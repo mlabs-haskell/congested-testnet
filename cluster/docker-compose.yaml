@@ -1,0 +1,31 @@
+services:
+  node-spo:
+    image: inputoutput/cardano-node:8.4.0-pre
+    networks:
+       mynet:    
+          aliases:
+            - node-spo.local
+    expose:
+      - 3000
+      - 6000
+    volumes:
+      - node-spo-db:/data/db
+      - node-spo-socket:/socket
+      - /home/maxim/work/projects/congested-testnet/cardano-conf:/config
+    entrypoint: "cardano-node run \
+                  --topology                        '/config/topology.json' \
+                  --database-path                   '/data/db' \
+                  --shelley-kes-key                 '/config/genesis/delegate-keys/shelley.000.kes.skey' \
+                  --shelley-vrf-key                 '/config/genesis/delegate-keys/shelley.000.vrf.skey' \
+                  --byron-delegation-certificate    '/config/genesis/delegate-keys/byron.000.cert.json' \
+                  --byron-signing-key               '/config/genesis/delegate-keys/byron.000.key' \
+                  --shelley-operational-certificate '/config/genesis/delegate-keys/shelley.000.opcert.json' \
+                  --config                          '/config/genesis/node-config.json' \
+                  --port                            '3000'"
+
+networks:
+  mynet:
+
+volumes:
+  node-spo-db:
+  node-spo-socket:
