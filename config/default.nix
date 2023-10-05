@@ -1,29 +1,4 @@
 {pkgs,iohk-nix, ...}:
-let 
-topology =pkgs.writeText "topology" ''
-{
-  "localRoots": [
-    {
-      "accessPoints": [],
-      "advertise": false,
-      "valency": 1
-    }
-  ],
-  "publicRoots": [
-    {
-      "accessPoints": [
-        {
-          "address": "preview-node.world.dev.cardano.org",
-          "port": 30002
-        }
-      ],
-      "advertise": false
-    }
-  ],
-  "useLedgerAfterSlot": 322000
-}
-'';
-in
 pkgs.writeScriptBin "config" ''
   #!/bin/sh
   ROOT=cardano-conf
@@ -40,8 +15,8 @@ pkgs.writeScriptBin "config" ''
   cardano-cli genesis create-cardano \
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
-        --gen-utxo-keys 1 \
-        --supply 30000000000000000 \
+        --gen-utxo-keys 3 \
+        --supply 1234567890123456 \
         --testnet-magic "$TESTNET_MAGIC" \
         --slot-coefficient 0.05 \
         --byron-template "$TEMPLATE_DIR/byron.json" \
@@ -53,6 +28,16 @@ pkgs.writeScriptBin "config" ''
         --slot-length "$SLOT_LENGTH" \
         --start-time "$START_TIME"
 
-  cp "${topology}" $ROOT/topology.json 
+  cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
+  cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 
+  cp "${./topology-spo-2.json}" $ROOT/topology-spo-2.json 
+  cp "${./topology-relay-2.json}" $ROOT/topology-relay-2.json 
+  cp "${./topology-passive-3.json}" $ROOT/topology-passive-3.json 
+
+  #genesis addresses
+  cardano-cli address build \
+    --payment-verification-key-file "$GENESIS_DIR/utxo-keys/shelley.000.vkey" \
+    --out-file "$ROOT/payment.addr" \
+    --testnet-magic $TESTNET_MAGIC
 
 ''

@@ -1,19 +1,19 @@
 services:
-  node-spo:
+  node-spo-1:
     image: inputoutput/cardano-node:8.4.0-pre
     networks:
        mynet:    
           aliases:
-            - node-spo.local
+            - node-spo-1.local
     expose:
       - 3000
       - 6000
     volumes:
-      - node-spo-db:/data/db
-      - node-spo-socket:/socket
-      - /home/maxim/work/projects/congested-testnet/cardano-conf:/config
+      - node-spo-1-db:/data/db
+      - node-spo-1-socket:/socket
+      - ../cardano-conf:/config
     entrypoint: "cardano-node run \
-                  --topology                        '/config/topology.json' \
+                  --topology                        '/config/topology-spo-1.json' \
                   --database-path                   '/data/db' \
                   --shelley-kes-key                 '/config/genesis/delegate-keys/shelley.000.kes.skey' \
                   --shelley-vrf-key                 '/config/genesis/delegate-keys/shelley.000.vrf.skey' \
@@ -23,9 +23,140 @@ services:
                   --config                          '/config/genesis/node-config.json' \
                   --port                            '3000'"
 
+  node-spo-2:
+    image: inputoutput/cardano-node:8.4.0-pre
+    networks:
+       mynet:    
+          aliases:
+            - node-spo-2.local
+    expose:
+      - 3000
+      - 6000
+    volumes:
+      - node-spo-2-db:/data/db
+      - node-spo-2-socket:/socket
+      - ../cardano-conf:/config
+    entrypoint: "cardano-node run \
+                  --topology                        '/config/topology-spo-2.json' \
+                  --database-path                   '/data/db' \
+                  --shelley-kes-key                 '/config/genesis/delegate-keys/shelley.001.kes.skey' \
+                  --shelley-vrf-key                 '/config/genesis/delegate-keys/shelley.001.vrf.skey' \
+                  --byron-delegation-certificate    '/config/genesis/delegate-keys/byron.001.cert.json' \
+                  --byron-signing-key               '/config/genesis/delegate-keys/byron.001.key' \
+                  --shelley-operational-certificate '/config/genesis/delegate-keys/shelley.001.opcert.json' \
+                  --config                          '/config/genesis/node-config.json' \
+                  --port                            '3000'"
+
+
+  node-relay-1:
+    image: inputoutput/cardano-node:8.4.0-pre
+    networks:
+       mynet:    
+          aliases:
+            - node-relay-1.local
+    expose:
+      - 3000
+      - 6000
+    ports:
+      - 3000
+    volumes:
+      - node-relay-1-db:/data/db
+      - node-relay-1-socket:/socket
+      - ../cardano-conf:/config
+      
+    entrypoint: "cardano-node run \
+                  --config                          '/config/genesis/node-config.json' \
+                  --topology                        '/config/topology-relay-1.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'"
+
+
+  node-relay-2:
+    image: inputoutput/cardano-node:8.4.0-pre
+    networks:
+       mynet:    
+          aliases:
+            - node-relay-2.local
+    expose:
+      - 3000
+      - 6000
+    ports:
+      - 3000
+    volumes:
+      - node-relay-2-db:/data/db
+      - node-relay-2-socket:/socket
+      - ../cardano-conf:/config
+      
+    entrypoint: "cardano-node run \
+                  --config                          '/config/genesis/node-config.json' \
+                  --topology                        '/config/topology-relay-2.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'"
+
+
+
+  node-passive-3:
+    image: inputoutput/cardano-node:8.4.0-pre
+    networks:
+       mynet:    
+          aliases:
+            - node-passive-3.local
+    expose:
+      - 3000
+      - 6000
+    ports:
+      - 3000
+    volumes:
+      - node-passive-3-db:/data/db
+      - node-passive-3-socket:/socket
+      - ../cardano-conf:/config
+      
+    entrypoint: "cardano-node run \
+                  --config                          '/config/genesis/node-config.json' \
+                  --topology                        '/config/topology-passive-3.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'"
+
+
+
+
+
+
+  # node-query:
+  #   image: inputoutput/cardano-node:8.4.0-pre
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-query.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-relay-db:/data/db
+  #     - ./socket:/socket
+  #     - ../cardano-conf:/config
+  #
+  #   entrypoint: "sleep 10"
+      
+# cardano-cli query utxo --address $(cat /config/payment.addr) --testnet-magic 2 --socket-path /socket/node.socket
+
 networks:
   mynet:
 
 volumes:
-  node-spo-db:
-  node-spo-socket:
+  node-spo-1-db:
+  node-spo-1-socket:
+  node-spo-2-db:
+  node-spo-2-socket:
+  node-relay-1-socket:
+  node-relay-1-db:
+  node-relay-2-socket:
+  node-relay-2-db:
+  node-passive-3-socket:
+  node-passive-3-db:
+

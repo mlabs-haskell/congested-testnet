@@ -19,7 +19,6 @@
               pkgs.nixpkgs-fmt
               cardano.legacyPackages.${system}.cardano-cli
               cardano.legacyPackages.${system}.cardano-node
-              pkgs.yq
             ];
             shellHook = ''
             '';

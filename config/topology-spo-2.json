@@ -1,0 +1,15 @@
+{
+  "localRoots": [
+    {
+      "accessPoints": [
+        {
+          "address": "node-relay-2.local",
+          "port": 3000
+        }
+      ],
+      "advertise": false,
+      "valency": 1
+    }
+  ],
+  "useLedgerAfterSlot": 322000
+}
