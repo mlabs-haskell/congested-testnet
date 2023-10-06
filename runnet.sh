@@ -1,8 +1,9 @@
 #!/bin/sh
-# sudo docker compose --file cluster/docker-compose.yaml down
-# sudo docker compose --file cluster/docker-compose.yaml up -d
-# sudo docker compose --file cluster/docker-compose.yaml ps 
-# sudo docker compose --file cluster/docker-compose.yaml logs | grep node-query 
-# sudo docker compose --file cluster/docker-compose.yaml exec node-query bash
+sudo rm -rf cardano-conf
+nix run .#config
+sudo docker compose --file cluster/docker-compose.yaml up -d --remove-orphans --force-recreate --build
 
-sudo docker compose --file cluster/docker-compose.yaml up 
+
+# sudo docker compose --file cluster/docker-compose.yaml exec test-network bash
+# sudo docker compose --file cluster/docker-compose.yaml down
+

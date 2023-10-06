@@ -1,22 +1,21 @@
-{pkgs,iohk-nix, ...}:
+{pkgs, iohk-nix, cardano, system, ...}:
 pkgs.writeScriptBin "config" ''
   #!/bin/sh
   ROOT=cardano-conf
-  rm -rf $ROOT 
   mkdir $ROOT 
   GENESIS_DIR=$ROOT/genesis
-  NUM_GENESIS_KEYS=2
+  NUM_GENESIS_KEYS=1
   TESTNET_MAGIC=2
   SECURITY_PARAM=432
   SLOT_LENGTH=1000 
-  START_TIME="2023-01-01T14:00:00Z"
+  START_TIME="2023-10-01T14:00:00Z"
   TEMPLATE_DIR=${iohk-nix}/cardano-lib/testnet-template
 
-  cardano-cli genesis create-cardano \
+   ${cardano.legacyPackages.${system}.cardano-cli}/bin/cardano-cli genesis create-cardano \
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
-        --gen-utxo-keys 3 \
-        --supply 1234567890123456 \
+        --gen-utxo-keys 1 \
+        --supply 11234567890123456 \
         --testnet-magic "$TESTNET_MAGIC" \
         --slot-coefficient 0.05 \
         --byron-template "$TEMPLATE_DIR/byron.json" \
@@ -33,11 +32,4 @@ pkgs.writeScriptBin "config" ''
   cp "${./topology-spo-2.json}" $ROOT/topology-spo-2.json 
   cp "${./topology-relay-2.json}" $ROOT/topology-relay-2.json 
   cp "${./topology-passive-3.json}" $ROOT/topology-passive-3.json 
-
-  #genesis addresses
-  cardano-cli address build \
-    --payment-verification-key-file "$GENESIS_DIR/utxo-keys/shelley.000.vkey" \
-    --out-file "$ROOT/payment.addr" \
-    --testnet-magic $TESTNET_MAGIC
-
 ''

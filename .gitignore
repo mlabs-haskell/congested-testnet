@@ -1,0 +1,7 @@
+cardano-conf
+cluster 
+!cluster/default.nix
+!cluster/docker-compose.yaml
+!cluster/Dockerfile
+!cluster/start-node.sh
+tmp

@@ -1,6 +1,6 @@
 services:
   node-spo-1:
-    image: inputoutput/cardano-node:8.4.0-pre
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:
@@ -24,7 +24,7 @@ services:
                   --port                            '3000'"
 
   node-spo-2:
-    image: inputoutput/cardano-node:8.4.0-pre
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:
@@ -49,7 +49,8 @@ services:
 
 
   node-relay-1:
-    image: inputoutput/cardano-node:8.4.0-pre
+    build:
+      context: .
     networks:
        mynet:    
           aliases:
@@ -61,19 +62,14 @@ services:
       - 3000
     volumes:
       - node-relay-1-db:/data/db
-      - node-relay-1-socket:/socket
+      - ../cardano-conf/sockets/node-relay-1-socket:/socket
       - ../cardano-conf:/config
+      - ./start-node.sh:/start-node.sh
+    entrypoint: "/start-node.sh /config/topology-relay-1.json"
       
-    entrypoint: "cardano-node run \
-                  --config                          '/config/genesis/node-config.json' \
-                  --topology                        '/config/topology-relay-1.json' \
-                  --database-path                   '/data/db' \
-                  --socket-path                     '/socket/node.socket' \
-                  --port                            '3000'"
-
 
   node-relay-2:
-    image: inputoutput/cardano-node:8.4.0-pre
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:
@@ -98,7 +94,7 @@ services:
 
 
   node-passive-3:
-    image: inputoutput/cardano-node:8.4.0-pre
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:
@@ -110,47 +106,39 @@ services:
       - 3000
     volumes:
       - node-passive-3-db:/data/db
-      - node-passive-3-socket:/socket
+      - ../cardano-conf/sockets/node-passive-3-socket:/socket
       - ../cardano-conf:/config
+      - ./start-node.sh:/start-node.sh
+    entrypoint: "/start-node.sh /config/topology-passive-3.json"
       
-    entrypoint: "cardano-node run \
-                  --config                          '/config/genesis/node-config.json' \
-                  --topology                        '/config/topology-passive-3.json' \
-                  --database-path                   '/data/db' \
-                  --socket-path                     '/socket/node.socket' \
-                  --port                            '3000'"
 
 
+  test-network:
+    build:
+      context: .
+    networks:
+       mynet:    
+          aliases:
+            - test-network.local
+    expose:
+      - 3000
+      - 6000
+    ports:
+      - 3000
+    volumes:
+      - node-passive-3-socket:/socket-passive-3
+      - ../cardano-conf/sockets/node-relay-1-socket:/socket
+      - ../cardano-conf:/config
 
-
-
-
-  # node-query:
-  #   image: inputoutput/cardano-node:8.4.0-pre
-  #   networks:
-  #      mynet:    
-  #         aliases:
-  #           - node-query.local
-  #   expose:
-  #     - 3000
-  #     - 6000
-  #   ports:
-  #     - 3000
-  #   volumes:
-  #     - node-relay-db:/data/db
-  #     - ./socket:/socket
-  #     - ../cardano-conf:/config
-  #
-  #   entrypoint: "sleep 10"
+    entrypoint: "sleep 30000"
       
-# cardano-cli query utxo --address $(cat /config/payment.addr) --testnet-magic 2 --socket-path /socket/node.socket
 
 networks:
   mynet:
 
 volumes:
   node-spo-1-db:
-  node-spo-1-socket:
+  node-spo-1-socket: 
   node-spo-2-db:
   node-spo-2-socket:
   node-relay-1-socket:
