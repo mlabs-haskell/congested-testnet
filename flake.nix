@@ -19,7 +19,8 @@
               pkgs.nixpkgs-fmt
               cardano.legacyPackages.${system}.cardano-cli
               cardano.legacyPackages.${system}.cardano-node
-            ];
+              postgresql_14
+            ] ++ (with pkgs.python310Packages; [jupyterlab pandas psycopg2]);
             shellHook = ''
             '';
           };

@@ -5,3 +5,5 @@ cluster
 !cluster/Dockerfile
 !cluster/start-node.sh
 tmp
+secrets
+.ipynb_checkpoints
