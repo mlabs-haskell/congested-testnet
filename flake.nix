@@ -28,7 +28,7 @@
         {
           devShells.default = devShell;
           packages = {
-           config = import ./config {inherit pkgs iohk-nix cardano system;};
+            config = import ./config { inherit pkgs iohk-nix cardano system; };
           };
         }
       );

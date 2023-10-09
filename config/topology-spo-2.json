@@ -11,5 +11,6 @@
       "valency": 1
     }
   ],
-  "useLedgerAfterSlot": 322000
+  "publicRoots":[],
+  "useLedgerAfterSlot": 322000,
 }

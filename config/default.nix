@@ -1,10 +1,10 @@
-{pkgs, iohk-nix, cardano, system, ...}:
+{ pkgs, iohk-nix, cardano, system, ... }:
 pkgs.writeScriptBin "config" ''
   #!/bin/sh
   ROOT=cardano-conf
   mkdir $ROOT 
   GENESIS_DIR=$ROOT/genesis
-  NUM_GENESIS_KEYS=1
+  NUM_GENESIS_KEYS=2
   TESTNET_MAGIC=2
   SECURITY_PARAM=432
   SLOT_LENGTH=1000 
@@ -14,7 +14,7 @@ pkgs.writeScriptBin "config" ''
    ${cardano.legacyPackages.${system}.cardano-cli}/bin/cardano-cli genesis create-cardano \
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
-        --gen-utxo-keys 1 \
+        --gen-utxo-keys 2 \
         --supply 11234567890123456 \
         --testnet-magic "$TESTNET_MAGIC" \
         --slot-coefficient 0.05 \
@@ -23,9 +23,9 @@ pkgs.writeScriptBin "config" ''
         --alonzo-template "$TEMPLATE_DIR/alonzo.json" \
         --conway-template "$TEMPLATE_DIR/conway.json" \
         --node-config-template "$TEMPLATE_DIR/config.json" \
-        --security-param "$SECURITY_PARAM" \
-        --slot-length "$SLOT_LENGTH" \
-        --start-time "$START_TIME"
+        --security-param "$SECURITY_PARAM" 
+        # --slot-length "$SLOT_LENGTH" \
+        # --start-time "$START_TIME"
 
   cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
   cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 

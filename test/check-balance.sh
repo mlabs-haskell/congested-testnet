@@ -7,8 +7,9 @@ cd $ROOT
 cardano-cli query utxo \
       --socket-path "$SOCKETS/node-passive-3-socket/node.socket" \
 	    --testnet-magic 2 \
-	    --address $(cat genesis-1.addr) \
+	    --address $(cat user1.addr) \
 	    --out-file user1-utxos.json
 cat user1-utxos.json
 
       # --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \
+	    # --address $(cat user1.addr) \
