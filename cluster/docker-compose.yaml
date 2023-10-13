@@ -110,8 +110,26 @@ services:
       - ../cardano-conf:/config
       - ./start-node.sh:/start-node.sh
     entrypoint: "/start-node.sh /config/topology-passive-3.json"
-      
 
+  ogmios:
+    image: cardanosolutions/ogmios:v6.0.0-rc2
+    networks:
+      mynet:
+        aliases:
+          - ogmios.local
+    ports:
+      - 1337:1337
+    expose:
+      - 1337
+    volumes:
+      - ../cardano-conf/sockets/node-passive-3-socket:/socket
+      - ../cardano-conf:/config
+    command: [
+      "--host", "0.0.0.0",
+      "--node-socket", "/socket/node.socket",
+      "--node-config", "/config/genesis/node-config.json"
+    ]
+      
 
   test-network:
     build:
