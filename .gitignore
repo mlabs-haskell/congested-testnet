@@ -7,3 +7,4 @@ cluster
 tmp
 secrets
 .ipynb_checkpoints
+*.pkl
