@@ -18,6 +18,8 @@ You can edit this file as you like.
   , "uint"
   , "noble-secp256k1"
   , "console"
+  , "exceptions"
+  , "transformers"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
