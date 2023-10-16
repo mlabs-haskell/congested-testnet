@@ -11,5 +11,5 @@ cardano-cli query utxo \
 	    --out-file user1-utxos.json
 cat user1-utxos.json
 
-      # --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \
 	    # --address $(cat user1.addr) \
+      # --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \

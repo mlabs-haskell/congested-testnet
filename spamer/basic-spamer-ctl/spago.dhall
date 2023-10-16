@@ -16,6 +16,8 @@ You can edit this file as you like.
   , "prelude"
   , "spec"
   , "uint"
+  , "noble-secp256k1"
+  , "console"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]

@@ -23,29 +23,29 @@ services:
                   --config                          '/config/genesis/node-config.json' \
                   --port                            '3000'"
 
-  node-spo-2:
-    image: inputoutput/cardano-node:8.1.2
-    networks:
-       mynet:    
-          aliases:
-            - node-spo-2.local
-    expose:
-      - 3000
-      - 6000
-    volumes:
-      - node-spo-2-db:/data/db
-      - node-spo-2-socket:/socket
-      - ../cardano-conf:/config
-    entrypoint: "cardano-node run \
-                  --topology                        '/config/topology-spo-2.json' \
-                  --database-path                   '/data/db' \
-                  --shelley-kes-key                 '/config/genesis/delegate-keys/shelley.001.kes.skey' \
-                  --shelley-vrf-key                 '/config/genesis/delegate-keys/shelley.001.vrf.skey' \
-                  --byron-delegation-certificate    '/config/genesis/delegate-keys/byron.001.cert.json' \
-                  --byron-signing-key               '/config/genesis/delegate-keys/byron.001.key' \
-                  --shelley-operational-certificate '/config/genesis/delegate-keys/shelley.001.opcert.json' \
-                  --config                          '/config/genesis/node-config.json' \
-                  --port                            '3000'"
+  # node-spo-2:
+  #   image: inputoutput/cardano-node:8.1.2
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-spo-2.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   volumes:
+  #     - node-spo-2-db:/data/db
+  #     - node-spo-2-socket:/socket
+  #     - ../cardano-conf:/config
+  #   entrypoint: "cardano-node run \
+  #                 --topology                        '/config/topology-spo-2.json' \
+  #                 --database-path                   '/data/db' \
+  #                 --shelley-kes-key                 '/config/genesis/delegate-keys/shelley.001.kes.skey' \
+  #                 --shelley-vrf-key                 '/config/genesis/delegate-keys/shelley.001.vrf.skey' \
+  #                 --byron-delegation-certificate    '/config/genesis/delegate-keys/byron.001.cert.json' \
+  #                 --byron-signing-key               '/config/genesis/delegate-keys/byron.001.key' \
+  #                 --shelley-operational-certificate '/config/genesis/delegate-keys/shelley.001.opcert.json' \
+  #                 --config                          '/config/genesis/node-config.json' \
+  #                 --port                            '3000'"
 
 
   node-relay-1:
@@ -68,29 +68,29 @@ services:
     entrypoint: "/start-node.sh /config/topology-relay-1.json"
       
 
-  node-relay-2:
-    image: inputoutput/cardano-node:8.1.2
-    networks:
-       mynet:    
-          aliases:
-            - node-relay-2.local
-    expose:
-      - 3000
-      - 6000
-    ports:
-      - 3000
-    volumes:
-      - node-relay-2-db:/data/db
-      - node-relay-2-socket:/socket
-      - ../cardano-conf:/config
-      
-    entrypoint: "cardano-node run \
-                  --config                          '/config/genesis/node-config.json' \
-                  --topology                        '/config/topology-relay-2.json' \
-                  --database-path                   '/data/db' \
-                  --socket-path                     '/socket/node.socket' \
-                  --port                            '3000'"
-
+  # node-relay-2:
+  #   image: inputoutput/cardano-node:8.1.2
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-relay-2.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-relay-2-db:/data/db
+  #     - node-relay-2-socket:/socket
+  #     - ../cardano-conf:/config
+  #     
+  #   entrypoint: "cardano-node run \
+  #                 --config                          '/config/genesis/node-config.json' \
+  #                 --topology                        '/config/topology-relay-2.json' \
+  #                 --database-path                   '/data/db' \
+  #                 --socket-path                     '/socket/node.socket' \
+  #                 --port                            '3000'"
+  #
 
 
   node-passive-3:
@@ -112,7 +112,7 @@ services:
     entrypoint: "/start-node.sh /config/topology-passive-3.json"
 
   ogmios:
-    image: cardanosolutions/ogmios:v6.0.0-rc2
+    image: cardanosolutions/ogmios:v5.5.5-preview
     networks:
       mynet:
         aliases:
@@ -130,6 +130,25 @@ services:
       "--node-config", "/config/genesis/node-config.json"
     ]
       
+  kupo:
+    image: cardanosolutions/kupo:v2.7.0
+    networks:
+      mynet:
+        aliases:
+          - kupo.local
+    ports:
+      - 1442:1442
+    volumes:
+      - ../cardano-conf/sockets/node-passive-3-socket:/socket
+      - ../cardano-conf:/config
+    entrypoint: "/bin/kupo \
+                   --node-socket /socket/node.socket \
+                   --node-config /config/genesis/node-config.json \
+                   --host 0.0.0.0 \
+                   --since origin \
+                   --match '*/*' \
+                   --workdir /data"
+
 
   test-network:
     build:
@@ -165,4 +184,5 @@ volumes:
   node-relay-2-db:
   node-passive-3-socket:
   node-passive-3-db:
+  kupo-data:
 

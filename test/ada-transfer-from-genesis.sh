@@ -1,20 +1,20 @@
 #!/bin/sh
-rm -rf tmp
-mkdir tmp
+# rm -rf tmp
+# mkdir tmp
 ROOT=./tmp
 GENESIS_DIR=../cardano-conf/genesis
 SOCKETS=../cardano-conf/sockets
 cd $ROOT
 
-#generate user1 wallet 
-cardano-cli address key-gen \
-    --verification-key-file user1.vkey \
-    --signing-key-file user1.skey
-
-cardano-cli address build \
-    --payment-verification-key-file user1.vkey \
-    --out-file user1.addr \
-    --testnet-magic 2
+# #generate user1 wallet 
+# cardano-cli address key-gen \
+#     --verification-key-file user1.vkey \
+#     --signing-key-file user1.skey
+#
+# cardano-cli address build \
+#     --payment-verification-key-file user1.vkey \
+#     --out-file user1.addr \
+#     --testnet-magic 2
 
 #extract genesis node spo 1 wallet address
 
