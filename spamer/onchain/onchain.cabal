@@ -1,0 +1,34 @@
+-- Instructions on how to write this file are in the Cabal
+-- documentation, which can be found here:
+--   http://haskell.org/cabal/release/cabal-latest/doc/users-guide/
+
+name: onchain 
+version: 1.0.0.2
+license: BSD3
+license-file: LICENSE
+copyright: TO DO 
+author:  TO DO
+maintainer: TO DO
+bug-reports: TO DO 
+stability: stable
+homepage: TO DO 
+synopsis: Onchain 
+category: Console, Text
+cabal-version: >= 1.6
+build-type: Simple
+
+Description:
+  Onchain part of spamer
+
+
+executable onchain 
+  hs-source-dirs: src
+  main-is: AlwaysTrueScript.hs
+  build-depends:
+     base
+     , bytestring
+     , base16-bytestring
+     , plutus-core
+     , plutus-ledger-api
+     -- plutus-tx
+     -- plutus-tx-plugin

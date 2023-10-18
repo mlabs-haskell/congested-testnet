@@ -1,13 +1,14 @@
 {
   description = "congested-testnet";
-  inputs.nixpkgs.url = github:nixos/nixpkgs/nixpkgs-unstable;
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
+  inputs.nixpkgs.follows = "cardano/nixpkgs";
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
-  inputs.spamer.url = "path:./spamer/basic-spamer-ctl";
+  inputs.spamer-ctl.url = "path:./spamer/basic-spamer-ctl";
+  inputs.spamer-plutus.url = "path:./spamer/onchain";
 
 
-  outputs = { self, nixpkgs, flake-utils, cardano, iohk-nix, spamer, ... }:
+  outputs = { self, nixpkgs, flake-utils, cardano, iohk-nix, spamer-ctl, spamer-plutus, ... }:
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -29,7 +30,8 @@
               cardano.legacyPackages.${system}.cardano-node
               postgresql_14
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ]) 
-              ++ spamer.outputs.devShells.${system}.default.buildInputs;
+              ++ spamer-ctl.outputs.devShells.${system}.default.buildInputs
+              ++ spamer-plutus.outputs.devShells.${system}.default.buildInputs;
             shellHook = ''
             '';
           };

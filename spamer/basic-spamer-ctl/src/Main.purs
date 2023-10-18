@@ -46,6 +46,7 @@ main =launchAff_ do
         value = lovelaceValueOf (BInt.fromInt 13123456) 
         lookups :: ScriptLookups Void 
         lookups = unspentOutputs utxos 
+
         constraints :: TxConstraints Void Void 
         constraints = mustPayToPubKey pKhash value
     -- txId <- submitTxFromConstraints lookups constraints
