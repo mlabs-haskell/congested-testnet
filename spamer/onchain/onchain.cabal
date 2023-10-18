@@ -21,7 +21,7 @@ Description:
   Onchain part of spamer
 
 
-executable onchain 
+executable always-true-script 
   hs-source-dirs: src
   main-is: AlwaysTrueScript.hs
   build-depends:
@@ -30,5 +30,6 @@ executable onchain
      , base16-bytestring
      , plutus-core
      , plutus-ledger-api
-     -- plutus-tx
-     -- plutus-tx-plugin
+     , plutus-tx
+     -- , plutus-tx-plugin
+

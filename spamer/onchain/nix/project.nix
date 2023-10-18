@@ -11,7 +11,7 @@ let
     {
       src = ../.;
 
-      # shell.withHoogle = false;
+      shell.withHoogle = false;
 
       inputMap = {
         "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP;
@@ -20,7 +20,9 @@ let
       name = "onchain";
 
       compiler-nix-name = lib.mkDefault "ghc92";
+      # shell.nativeBuildInputs =[pkgs.hello]; 
       # shell.tools = {
+      # haskell-language-server = { };
       # };
 
 
@@ -44,7 +46,7 @@ let
 
     shellArgs = repoRoot.nix.shell;
 
-    includeMingwW64HydraJobs = false; 
+    includeMingwW64HydraJobs = false;
 
     readTheDocs = {
       enable = false;
@@ -55,7 +57,7 @@ let
     combinedHaddock = {
       enable = false;
       prologue = "";
-      packages = [];
+      packages = [ ];
     };
   };
 

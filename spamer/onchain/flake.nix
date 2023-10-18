@@ -18,7 +18,7 @@
     #   url = "github:input-output-hk/cardano-haskell-packages/4c55186c53103fee3e3973d70a9ce8a3a55a8486";
     #   flake = false;
     # };
-    
+
     # haskell-nix = {
     #   url = "github:input-output-hk/haskell.nix/9be017fdfbd2b290f1df4385ccd0fc22f549c1f2";
     #   inputs.hackage.follows = "hackage";

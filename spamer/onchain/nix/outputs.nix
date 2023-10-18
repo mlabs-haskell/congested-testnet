@@ -14,7 +14,7 @@ in
   #   devShells.default = ghc92.devShell;
   #   packages = ghc92.packages;
   # }
-  ( 
+  (
     project.flake
   )
 ]

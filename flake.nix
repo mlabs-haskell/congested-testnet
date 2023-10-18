@@ -29,9 +29,9 @@
               cardano.legacyPackages.${system}.cardano-cli
               cardano.legacyPackages.${system}.cardano-node
               postgresql_14
-            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ]) 
-              ++ spamer-ctl.outputs.devShells.${system}.default.buildInputs
-              ++ spamer-plutus.outputs.devShells.${system}.default.buildInputs;
+            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
+            ++ spamer-ctl.outputs.devShells.${system}.default.buildInputs
+            ++ spamer-plutus.outputs.devShells.${system}.default.buildInputs;
             shellHook = ''
             '';
           };

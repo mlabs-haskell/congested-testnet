@@ -9,7 +9,10 @@ cabalProject:
 
   # welcomeMessage = null;
 
-  # packages = [];
+  packages = [
+    pkgs.haskellPackages.cabal-fmt
+    pkgs.haskellPackages.implicit-hie
+  ];
 
   # scripts = {};
 
