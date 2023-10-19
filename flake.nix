@@ -41,6 +41,7 @@
           devShells.default = devShell;
           packages = {
             config = import ./config { inherit pkgs iohk-nix cardano system; };
+            # get-script = spamer-plutus.outputs.packages.${system}.get-script;
           };
         }
       );
