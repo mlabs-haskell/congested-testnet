@@ -4,11 +4,23 @@
   inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
   inputs.nixpkgs.follows = "cardano/nixpkgs";
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
-  inputs.spamer-ctl.url = "path:./spamer/basic-spamer-ctl";
-  inputs.spamer-plutus.url = "path:./spamer/onchain";
+  # inputs.spamer-ctl.url = "path:./spamer/basic-spamer-ctl";
+
+  inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
+  inputs.iogx.follows = "plutus/iogx";
+  inputs.hackage.follows = "plutus/hackage";
+  inputs.CHaP.follows = "plutus/CHaP";
+  inputs.haskell-nix.follows = "plutus/haskell-nix";
 
 
-  outputs = { self, nixpkgs, flake-utils, cardano, iohk-nix, spamer-ctl, spamer-plutus, ... }:
+  outputs = { self, nixpkgs, flake-utils, cardano, iohk-nix, ... }@inputs:
+    let
+      onchain-outputs = inputs.iogx.lib.mkFlake {
+        inherit inputs;
+        repoRoot = ./spamer/onchain;
+        outputs = import ./spamer/onchain/nix/outputs.nix;
+      };
+    in
     flake-utils.lib.eachDefaultSystem
       (system:
         let
@@ -30,8 +42,8 @@
               cardano.legacyPackages.${system}.cardano-node
               postgresql_14
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
-            ++ spamer-ctl.outputs.devShells.${system}.default.buildInputs
-            ++ spamer-plutus.outputs.devShells.${system}.default.buildInputs;
+            ++ onchain-outputs.devShell.${system}.buildInputs;
+            # ++ spamer-ctl.outputs.devShells.${system}.default.buildInputs
             shellHook = ''
             '';
           };
@@ -39,10 +51,8 @@
         in
         {
           devShells.default = devShell;
-          packages = {
-            config = import ./config { inherit pkgs iohk-nix cardano system; };
-            # get-script = spamer-plutus.outputs.packages.${system}.get-script;
-          };
+          packages = onchain-outputs.packages.${system} //
+            { config = import ./config { inherit pkgs iohk-nix cardano system; }; };
         }
       );
 }

@@ -15,6 +15,6 @@ in
   #   packages = ghc92.packages;
   # }
   (
-    project.flake
+    project
   )
 ]

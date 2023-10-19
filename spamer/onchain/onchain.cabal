@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 3.4 
 name: onchain 
 version: 0.0.0.1
 license-file: LICENSE
@@ -48,6 +48,11 @@ common lang
 
   if flag(defer-plugin-errors)
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING
+  if impl(ghc <9.2)
+    buildable: False
+
 
 library
   import:          lang
@@ -71,6 +76,9 @@ executable get-script
   build-depends:
      base
      , onchain
+     , bytestring
+     , base16-bytestring
+     , plutus-ledger-api
 
   hs-source-dirs: exporter 
 
