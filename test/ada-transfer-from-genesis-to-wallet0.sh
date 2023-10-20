@@ -1,20 +1,26 @@
 #!/bin/sh
-# rm -rf tmp
-# mkdir tmp
+alias cardano-cli=$CARDANO_CLI/bin/cardano-cli 
 ROOT=./tmp
 GENESIS_DIR=../cardano-conf/genesis
 SOCKETS=../cardano-conf/sockets
+
+if [ -d "$ROOT" ]; then
+    echo "tmp exists."
+else
+    mkdir $ROOT
+fi
 cd $ROOT
 
-# #generate user1 wallet 
-# cardano-cli address key-gen \
-#     --verification-key-file user1.vkey \
-#     --signing-key-file user1.skey
-#
-# cardano-cli address build \
-#     --payment-verification-key-file user1.vkey \
-#     --out-file user1.addr \
-#     --testnet-magic 2
+# #generate wallet0 wallet 
+
+cardano-cli address key-gen \
+    --verification-key-file wallet0.vkey \
+    --signing-key-file wallet0.skey
+
+cardano-cli address build \
+    --payment-verification-key-file wallet0.vkey \
+    --out-file wallet0.addr \
+    --testnet-magic 2
 
 #extract genesis node spo 1 wallet address
 
@@ -42,7 +48,7 @@ cat genesis-utxos.json
 
 TXIN=$(jq "keys[0]" "genesis-utxos.json" --raw-output)
 SEND_AMT=500000000
-TXOUT="$(cat user1.addr)+${SEND_AMT}"
+TXOUT="$(cat wallet0.addr)+${SEND_AMT}"
 
 cardano-cli transaction build \
       --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \

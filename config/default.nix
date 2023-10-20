@@ -1,6 +1,7 @@
 { pkgs, iohk-nix, cardano, system, ... }:
 pkgs.writeScriptBin "config" ''
   #!/bin/sh
+  cd $(git rev-parse --show-toplevel)
   ROOT=cardano-conf
   mkdir $ROOT 
   GENESIS_DIR=$ROOT/genesis

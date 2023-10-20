@@ -50,7 +50,7 @@
           psProjectFor = pkgs:
             pkgs.purescriptProject rec {
               inherit pkgs;
-              projectName = "ctl-scaffold";
+              projectName = "ctl-node";
               packageJson = ./spamer/basic-spamer-ctl/package.json;
               packageLock = ./spamer/basic-spamer-ctl/package-lock.json;
               src = builtins.path {
@@ -83,11 +83,29 @@
             '';
           };
 
+          root = ./.;
+
         in
         {
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
-            { config = import ./config { inherit pkgs iohk-nix cardano system; }; };
+            rec {
+              # generate config files for testnet
+              config = import ./config { inherit pkgs iohk-nix cardano system; };
+              ctl-node = (psProjectFor pkgs).buildPursProject {
+                main = "Spamer.Main";
+                entrypoint = "index.js";
+              };
+              # run testnet with docker compose
+              runnet = import ./cluster { inherit pkgs; };
+              test = import ./test { inherit pkgs; cardano-cli = cardano.legacyPackages.${system}.cardano-cli; };
+
+            };
+
+          apps = {
+            purs-docs = (psProjectFor pkgs).launchSearchablePursDocs { };
+          };
+
         }
       );
 }
