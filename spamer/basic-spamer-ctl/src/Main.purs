@@ -26,12 +26,12 @@ main =launchAff_ do
       config :: ContractParams 
       config =
             { backendParams: CtlBackendParams 
-              { ogmiosConfig: defaultOgmiosWsConfig 
+            { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"}
               , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
               } Nothing
-            , networkId: TestnetId 
+            , networkId: MainnetId 
             , logLevel: Trace
-            , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/user1.skey") Nothing  
+            , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
             , customLogger: Nothing
             , suppressLogs : false 
             , hooks : emptyHooks
@@ -51,10 +51,9 @@ main =launchAff_ do
         constraints = mustPayToPubKey pKhash value
     -- txId <- submitTxFromConstraints lookups constraints
     ubTx <- liftedE $ mkUnbalancedTx lookups constraints 
-    -- _ <- waitNSlots (fromInt' 1) 
     bTx <- liftedE (balanceTx ubTx)
     -- bTx <- signTransaction =<< 
-    -- log $ show $ getTxFinalFee bTx
+    -- log $ show $ utxos 
     log "Contract here"  
   
 

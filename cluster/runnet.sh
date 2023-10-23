@@ -2,6 +2,8 @@
 cd $ROOT
 echo "start docker daemon"
 sudo systemctl start docker
+echo "shutdown old testnet"
+sudo docker compose --file cluster/docker-compose.yaml down
 echo "generate foler with configuration and sockets"
 sudo rm -rf cardano-conf
 echo "add configs to start network"

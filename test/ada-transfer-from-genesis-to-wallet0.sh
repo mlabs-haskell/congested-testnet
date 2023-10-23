@@ -48,7 +48,9 @@ cat genesis-utxos.json
 
 TXIN=$(jq "keys[0]" "genesis-utxos.json" --raw-output)
 SEND_AMT=500000000
+SEND_AMT2=200000000
 TXOUT="$(cat wallet0.addr)+${SEND_AMT}"
+TXOUT2="$(cat wallet0.addr)+${SEND_AMT2}"
 
 cardano-cli transaction build \
       --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \
@@ -57,6 +59,7 @@ cardano-cli transaction build \
 	    --change-address $(cat genesis-1.addr) \
 	    --tx-in "${TXIN}" \
 	    --tx-out "${TXOUT}" \
+	    --tx-out "${TXOUT2}" \
 	    --out-file "tx.body" \
       --witness-override 2
 
