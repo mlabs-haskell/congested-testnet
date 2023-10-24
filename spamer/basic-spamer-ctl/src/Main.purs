@@ -29,7 +29,7 @@ main =launchAff_ do
             { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"}
               , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
               } Nothing
-            , networkId: MainnetId
+            , networkId: TestnetId 
             , logLevel: Trace
             , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
             , customLogger: Nothing
@@ -48,9 +48,10 @@ main =launchAff_ do
 
         constraints :: TxConstraints Void Void 
         constraints = mustPayToPubKey pKhash value
-    -- txId <- submitTxFromConstraints lookups constraints
-    ubTx <- liftedE $ mkUnbalancedTx lookups constraints 
-    bTx <- liftedE (balanceTx ubTx)
+    log $ show $ utxos 
+    txId <- submitTxFromConstraints lookups constraints
+    -- ubTx <- liftedE $ mkUnbalancedTx lookups constraints 
+    -- bTx <- liftedE (balanceTx ubTx)
     -- bTx <- signTransaction =<< 
     -- log $ show $ utxos 
     log "Contract here"  

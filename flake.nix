@@ -2,23 +2,39 @@
   description = "congested-testnet";
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
-  inputs.nixpkgs.follows = "cardano/nixpkgs";
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
-
   inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
-  inputs.iogx.follows = "plutus/iogx";
-  inputs.hackage.follows = "plutus/hackage";
-  inputs.CHaP.follows = "plutus/CHaP";
-  inputs.haskell-nix.follows = "plutus/haskell-nix";
-  inputs.flake-compat = {
-    url = "github:edolstra/flake-compat";
-    flake = false;
-  };
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
     repo = "cardano-transaction-lib";
-    rev = "605931759ff35bdd71bb4d933071aced9fb57870";
+    rev = "f2da9f684b3a75172b4494c9cfb66f14f893022e";
+    # rev = "605931759ff35bdd71bb4d933071aced9fb57870";
+  };
+  inputs.plutip.url = github:mlabs-haskell/plutip/1bf0b547cd3689c727586abb8385c008fb2a3d1c;
+  inputs.plutip.inputs.iohk-nix.follows = "iohk-nix";
+  inputs.plutip.inputs.haskell-nix.follows = "plutus/haskell-nix";
+  inputs.plutip.inputs.hackage-nix.follows = "plutus/hackage";
+  inputs.plutip.inputs.cardano-node.follows = "cardano";
+
+  inputs.nixpkgs.follows = "cardano/nixpkgs";
+  inputs.iogx.follows = "plutus/iogx";
+  inputs.hackage.follows = "plutus/hackage";
+  inputs.CHaP.follows = "plutus/CHaP";
+
+  inputs.ctl.inputs.CHaP.follows = "plutus/CHaP";
+  inputs.ctl.inputs.haskell-nix.follows = "plutus/haskell-nix";
+  inputs.ctl.inputs.iohk-nix.follows = "iohk-nix";
+  inputs.ctl.inputs.cardano-node.follows = "cardano";
+  inputs.ctl.inputs.plutip.follows = "plutip";
+  inputs.ctl.inputs.blockfrost.url = github:blockfrost/blockfrost-backend-ryo/113ddfc2dbea9beba3a428aa274965237f31b858;
+
+
+
+  inputs.haskell-nix.follows = "plutus/haskell-nix";
+  inputs.flake-compat = {
+    url = "github:edolstra/flake-compat";
+    flake = false;
   };
 
 
@@ -72,8 +88,8 @@
           devShell = with pkgs; mkShell {
             buildInputs = [
               pkgs.nixpkgs-fmt
-              cardano.legacyPackages.${system}.cardano-cli
-              cardano.legacyPackages.${system}.cardano-node
+              # cardano.legacyPackages.${system}.cardano-cli
+              # cardano.legacyPackages.${system}.cardano-node
               postgresql_14
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
             ++ onchain-outputs.devShell.${system}.buildInputs

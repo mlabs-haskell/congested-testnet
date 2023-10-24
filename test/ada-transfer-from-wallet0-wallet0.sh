@@ -3,7 +3,6 @@ alias cardano-cli=$CARDANO_CLI/bin/cardano-cli
 ROOT=./tmp
 GENESIS_DIR=../cardano-conf/genesis
 SOCKETS=../cardano-conf/sockets
-
 if [ -d "$ROOT" ]; then
     echo "tmp exists."
 else
@@ -50,10 +49,10 @@ cardano-cli transaction sign \
 
 cat "tx.signed"
 
-# cardano-cli transaction submit \
-#       --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \
-# 	    --tx-file "tx.signed" \
-# 	    --testnet-magic 2
-# echo "transaction from genesis utxo to user-1 wallet is ok "
+cardano-cli transaction submit \
+      --socket-path "$SOCKETS/node-relay-1-socket/node.socket" \
+	    --tx-file "tx.signed" \
+	    --testnet-magic 2
+echo "transaction from genesis utxo to user-1 wallet is ok "
 #
 # echo OK 
