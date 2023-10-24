@@ -16,9 +16,8 @@ pkgs.writeScriptBin "config" ''
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
         --gen-utxo-keys 2 \
-        --supply 11234567890123456 \
         --testnet-magic "$TESTNET_MAGIC" \
-        --slot-coefficient 0.05 \
+        --supply 11234567890123456 \
         --byron-template "$TEMPLATE_DIR/byron.json" \
         --shelley-template "$TEMPLATE_DIR/shelley.json" \
         --alonzo-template "$TEMPLATE_DIR/alonzo.json" \
@@ -27,10 +26,13 @@ pkgs.writeScriptBin "config" ''
         --security-param "$SECURITY_PARAM" 
         # --slot-length "$SLOT_LENGTH" \
         # --start-time "$START_TIME"
+        # --slot-coefficient 0.05 \
 
   cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
   cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 
   cp "${./topology-spo-2.json}" $ROOT/topology-spo-2.json 
   cp "${./topology-relay-2.json}" $ROOT/topology-relay-2.json 
   cp "${./topology-passive-3.json}" $ROOT/topology-passive-3.json 
+  ${pkgs.jq}/bin/jq '.RequiresNetworkMagic = "RequiresNoMagic"' $ROOT/genesis/node-config.json > temp.json &&
+                                                mv temp.json $ROOT/genesis/node-config.json
 ''

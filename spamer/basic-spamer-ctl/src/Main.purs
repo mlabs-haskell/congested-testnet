@@ -29,7 +29,7 @@ main =launchAff_ do
             { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"}
               , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
               } Nothing
-            , networkId: MainnetId 
+            , networkId: MainnetId
             , logLevel: Trace
             , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
             , customLogger: Nothing
@@ -37,13 +37,12 @@ main =launchAff_ do
             , hooks : emptyHooks
             }
   runContract config do
-    x <- getWalletBalance 
     mOwnPkeyHash <- ownPaymentPubKeyHash 
     pKhash <- liftMaybe (error "no public key hash") mOwnPkeyHash 
     mUtxos <- getWalletUtxos
     utxos <- liftMaybe (error "no utxos") mUtxos
     let
-        value = lovelaceValueOf (BInt.fromInt 13123456) 
+        value = lovelaceValueOf (BInt.fromInt 3123456) 
         lookups :: ScriptLookups Void 
         lookups = unspentOutputs utxos 
 
