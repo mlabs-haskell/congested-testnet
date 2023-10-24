@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE Strict                #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -19,19 +20,30 @@
 module AlwaysTrueScript where
 
 import PlutusTx
+    ( CompiledCode,
+      BuiltinData,
+      UnsafeFromData(unsafeFromBuiltinData),
+      unsafeApplyCode,
+      liftCode,
+      makeLift,
+      compile )
 import PlutusLedgerApi.V2 (ScriptContext)
-import PlutusTx.Prelude (check)
+import PlutusTx.Prelude (check, replicate, (!!), (&&), foldr)
 import PlutusCore.Core (plcVersion100)
 
 
-data AlwaysTrueScriptParams = AlwaysTrueScriptParams {size :: Integer}
+newtype AlwaysTrueScriptParams = AlwaysTrueScriptParams {size :: Integer}
 
 PlutusTx.makeLift ''AlwaysTrueScriptParams
 
 
 {-# INLINEABLE typedValidator #-}
 typedValidator :: AlwaysTrueScriptParams -> () -> () -> PlutusLedgerApi.V2.ScriptContext -> Bool
-typedValidator params _ _ ctx = True
+typedValidator AlwaysTrueScriptParams {size} _ _ _ =  res 
+  where
+    list = PlutusTx.Prelude.replicate size True
+    res  = PlutusTx.Prelude.foldr (PlutusTx.Prelude.&&) True list
+
 
 {-# INLINEABLE untypedValidator #-}
 untypedValidator :: AlwaysTrueScriptParams -> BuiltinData -> BuiltinData -> BuiltinData -> ()
@@ -49,4 +61,4 @@ script ::
   CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 script params =
  $$(PlutusTx.compile [||untypedValidator||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 params
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode PlutusCore.Core.plcVersion100 params

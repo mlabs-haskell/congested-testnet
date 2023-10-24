@@ -4,7 +4,6 @@
   inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
   inputs.nixpkgs.follows = "cardano/nixpkgs";
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
-  # inputs.spamer-ctl.url = "path:./spamer/basic-spamer-ctl";
 
   inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
   inputs.iogx.follows = "plutus/iogx";
