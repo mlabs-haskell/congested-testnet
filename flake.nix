@@ -11,23 +11,24 @@
     rev = "f2da9f684b3a75172b4494c9cfb66f14f893022e";
     # rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
-  inputs.plutip.url = github:mlabs-haskell/plutip/1bf0b547cd3689c727586abb8385c008fb2a3d1c;
-  inputs.plutip.inputs.iohk-nix.follows = "iohk-nix";
-  inputs.plutip.inputs.haskell-nix.follows = "plutus/haskell-nix";
-  inputs.plutip.inputs.hackage-nix.follows = "plutus/hackage";
-  inputs.plutip.inputs.cardano-node.follows = "cardano";
+  # inputs.plutip.url = github:mlabs-haskell/plutip/1bf0b547cd3689c727586abb8385c008fb2a3d1c;
+  # inputs.plutip.inputs.iohk-nix.follows = "iohk-nix";
+  # inputs.plutip.inputs.haskell-nix.follows = "plutus/haskell-nix";
+  # inputs.plutip.inputs.hackage-nix.follows = "plutus/hackage";
+  # inputs.plutip.inputs.cardano-node.follows = "cardano";
 
-  inputs.nixpkgs.follows = "cardano/nixpkgs";
+  # inputs.ctl.inputs.CHaP.follows = "plutus/CHaP";
+  # inputs.ctl.inputs.haskell-nix.follows = "plutus/haskell-nix";
+  # inputs.ctl.inputs.iohk-nix.follows = "iohk-nix";
+  # inputs.ctl.inputs.cardano-node.follows = "cardano";
+  # inputs.ctl.inputs.plutip.follows = "plutip";
+  # inputs.ctl.inputs.blockfrost.url = github:blockfrost/blockfrost-backend-ryo/113ddfc2dbea9beba3a428aa274965237f31b858;
+
+  inputs.nixpkgs.follows = "ctl/nixpkgs";
+  # inputs.nixpkgs.follows = "cardano/nixpkgs";
   inputs.iogx.follows = "plutus/iogx";
   inputs.hackage.follows = "plutus/hackage";
   inputs.CHaP.follows = "plutus/CHaP";
-
-  inputs.ctl.inputs.CHaP.follows = "plutus/CHaP";
-  inputs.ctl.inputs.haskell-nix.follows = "plutus/haskell-nix";
-  inputs.ctl.inputs.iohk-nix.follows = "iohk-nix";
-  inputs.ctl.inputs.cardano-node.follows = "cardano";
-  inputs.ctl.inputs.plutip.follows = "plutip";
-  inputs.ctl.inputs.blockfrost.url = github:blockfrost/blockfrost-backend-ryo/113ddfc2dbea9beba3a428aa274965237f31b858;
 
 
 
