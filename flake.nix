@@ -2,6 +2,8 @@
   description = "congested-testnet";
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
+  inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
+  inputs.cardano-world.flake = false;
   inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
   inputs.ctl = {
     type = "github";
@@ -9,10 +11,8 @@
     repo = "cardano-transaction-lib";
     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
-  inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
-  inputs.nixpkgs.follows = "cardano/nixpkgs";
 
-  # inputs.nixpkgs.follows = "ctl/nixpkgs";
+  inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.iogx.follows = "plutus/iogx";
   inputs.hackage.follows = "plutus/hackage";
   inputs.CHaP.follows = "plutus/CHaP";
@@ -24,7 +24,7 @@
   };
 
 
-  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, ... }@inputs:
     let
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
@@ -51,11 +51,11 @@
 
           cardano = pkgs.stdenv.mkDerivation {
             pname = "cardano-static";
-            version = "1.35.7";
+            version = "1.35.6";
 
             src = pkgs.fetchurl {
-              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.7-linux.tar.gz";
-              sha256 = "sha256-ftHhMR6RGVpKdb8EiFF3uY4nj5t75NjF6IBei7Jp5NI="; 
+              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.6-linux.tar.gz";
+              sha256 = "sha256-R4+5qbHyFLIvwHb5x9uTxLDdOPFwBADrjKRP6eTnoBE=";
             };
 
             buildCommand = ''
@@ -96,7 +96,7 @@
               postgresql_14
               cardano
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
-             ++ onchain-outputs.devShell.${system}.buildInputs
+            ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
             shellHook = ''
             '';
@@ -110,17 +110,15 @@
           packages = onchain-outputs.packages.${system} //
             rec {
               # generate config files for testnet
-              config = import ./config { inherit pkgs iohk-nix system cardano;};
+              config = import ./config { inherit pkgs iohk-nix cardano-world system cardano; };
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spamer.Main";
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
               runnet = import ./cluster { inherit pkgs; };
-              test = import ./test { inherit pkgs cardano;};
+              test = import ./test { inherit pkgs cardano; };
 
-
-               
 
             };
 

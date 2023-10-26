@@ -1,6 +1,6 @@
 services:
   node-spo-1:
-    image: inputoutput/cardano-node:8.1.2
+    image: inputoutput/cardano-node:1.35.6
     networks:
        mynet:    
           aliases:
@@ -24,7 +24,7 @@ services:
                   --port                            '3000'"
 
   # node-spo-2:
-  #   image: inputoutput/cardano-node:8.1.2
+  #   image: inputoutput/cardano-node:1.35.6
   #   networks:
   #      mynet:    
   #         aliases:
@@ -49,8 +49,7 @@ services:
 
 
   node-relay-1:
-    build:
-      context: .
+    image: inputoutput/cardano-node:1.35.6
     networks:
        mynet:    
           aliases:
@@ -69,7 +68,7 @@ services:
       
 
   # node-relay-2:
-  #   image: inputoutput/cardano-node:8.1.2
+  #   image: inputoutput/cardano-node:1.35.6
   #   networks:
   #      mynet:    
   #         aliases:
@@ -94,7 +93,7 @@ services:
 
 
   node-passive-3:
-    image: inputoutput/cardano-node:8.1.2
+    image: inputoutput/cardano-node:1.35.6
     networks:
        mynet:    
           aliases:
