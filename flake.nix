@@ -26,8 +26,7 @@
 
   outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, ... }@inputs:
     let
-      onchain-outputs = inputs.iogx.lib.mkFlake {
-        inherit inputs;
+      onchain-outputs = inputs.iogx.lib.mkFlake { inherit inputs;
         repoRoot = ./spamer/onchain;
         outputs = import ./spamer/onchain/nix/outputs.nix;
       };
@@ -95,7 +94,7 @@
               pkgs.nixpkgs-fmt
               postgresql_14
               cardano
-            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
+            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate])
             ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
             shellHook = ''
@@ -118,8 +117,7 @@
               # run testnet with docker compose
               runnet = import ./cluster { inherit pkgs; };
               test = import ./test { inherit pkgs cardano; };
-
-
+              research = import ./research { inherit pkgs; };
             };
 
           apps = {
