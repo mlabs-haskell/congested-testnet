@@ -62,8 +62,8 @@
               tar -C $out --strip-components=1 -xf $src
               cd $out
               mkdir $out/bin
-              mv $out/cardano-cli $out/bin/cardano-cli
-              mv $out/cardano-node $out/bin/cardano-node
+              ln -s $out/cardano-cli $out/bin/cardano-cli
+              ln -s $out/cardano-node $out/bin/cardano-node
             '';
           };
           psProjectFor = pkgs:
@@ -94,6 +94,7 @@
               pkgs.nixpkgs-fmt
               postgresql_14
               cardano
+              dia
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate])
             ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
