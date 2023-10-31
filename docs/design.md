@@ -6,6 +6,5 @@
 - A publicly available tADA faucet will be provided on the testnet for developers.
 - The testnet will offer a mechanism to submit custom transactions.
 
-
 ## Architechture
 ![Design](./imgs/design.svg)
