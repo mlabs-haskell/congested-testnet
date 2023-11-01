@@ -12,7 +12,9 @@ pkgs.writeScriptBin "config" ''
   START_TIME="2023-10-01T14:00:00Z"
   TEMPLATE_DIR=${iohk-nix}/cardano-lib/testnet-template
 
-   ${cardano}/bin/cardano-cli genesis create-cardano \
+   ## ${cardano}/bin/cardano-cli genesis create-cardano \
+
+   ${cardano.legacyPackages.${system}.cardano-cli}/bin/cardano-cli genesis create-cardano \
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
         --gen-utxo-keys 2 \
@@ -22,8 +24,8 @@ pkgs.writeScriptBin "config" ''
         --shelley-template "$TEMPLATE_DIR/shelley.json" \
         --alonzo-template "$TEMPLATE_DIR/alonzo.json" \
         --node-config-template "$TEMPLATE_DIR/config.json" \
-        --security-param "$SECURITY_PARAM" 
-        #--conway-template "$TEMPLATE_DIR/conway.json" \
+        --security-param "$SECURITY_PARAM" \
+        --conway-template "$TEMPLATE_DIR/conway.json" \
 
   cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
   cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 

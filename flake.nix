@@ -10,9 +10,8 @@
     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
   inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
-  inputs.nixpkgs.follows = "cardano/nixpkgs";
 
-  # inputs.nixpkgs.follows = "ctl/nixpkgs";
+  inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.iogx.follows = "plutus/iogx";
   inputs.hackage.follows = "plutus/hackage";
   inputs.CHaP.follows = "plutus/CHaP";
@@ -24,7 +23,7 @@
   };
 
 
-  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano, ... }@inputs:
     let
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
@@ -49,13 +48,13 @@
             config.allowBroken = true;
           };
 
-          cardano = pkgs.stdenv.mkDerivation {
+          cardano-static = pkgs.stdenv.mkDerivation {
             pname = "cardano-static";
-            version = "1.35.7";
+            version = "8.1.2";
 
             src = pkgs.fetchurl {
-              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.7-linux.tar.gz";
-              sha256 = "sha256-ftHhMR6RGVpKdb8EiFF3uY4nj5t75NjF6IBei7Jp5NI="; 
+              url = "https://github.com/input-output-hk/cardano-node/releases/download/8.1.2/cardano-node-8.1.2-linux.tar.gz";
+              sha256 = "sha256-NakRbNfUf1J9NICFOq+HMrfPHurPemdTC8pqf9aeUPo="; 
             };
 
             buildCommand = ''
@@ -63,8 +62,8 @@
               tar -C $out --strip-components=1 -xf $src
               cd $out
               mkdir $out/bin
-              mv $out/cardano-cli $out/bin/cardano-cli
-              mv $out/cardano-node $out/bin/cardano-node
+              ln -s $out/cardano-cli $out/bin/cardano-cli
+              ln -s $out/cardano-node $out/bin/cardano-node
             '';
           };
           psProjectFor = pkgs:
@@ -94,7 +93,8 @@
             buildInputs = [
               pkgs.nixpkgs-fmt
               postgresql_14
-              cardano
+              cardano-static
+              # cardano.legacyPackages.${system}.cardano-cli
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
              ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
@@ -110,14 +110,14 @@
           packages = onchain-outputs.packages.${system} //
             rec {
               # generate config files for testnet
-              config = import ./config { inherit pkgs iohk-nix system cardano;};
+              config = import ./config { inherit pkgs iohk-nix system; cardano = cardano;};
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spamer.Main";
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
               runnet = import ./cluster { inherit pkgs; };
-              test = import ./test { inherit pkgs cardano;};
+              test = import ./test { inherit pkgs; cardano = cardano-static;};
 
 
                
