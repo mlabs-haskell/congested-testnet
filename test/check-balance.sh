@@ -8,7 +8,7 @@ cd $ROOT
 export CARDANO_NODE_SOCKET_PATH=$SOCKETS/node-passive-3-socket/node.socket 
 cardano-cli query utxo \
 	    --testnet-magic 2 \
-	    --address $(cat user1.addr) \
+	    --address $(cat wallet0.addr) \
 	    --out-file user1-utxos.json
 cat user1-utxos.json
 

@@ -126,6 +126,7 @@
           };
 
           temp = (psProjectFor pkgs);
+          temp1 = onchain-outputs;
 
         }
       );

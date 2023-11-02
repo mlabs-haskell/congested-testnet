@@ -20,6 +20,8 @@ You can edit this file as you like.
   , "console"
   , "exceptions"
   , "transformers"
+  , "node-buffer"
+  , "node-fs"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
