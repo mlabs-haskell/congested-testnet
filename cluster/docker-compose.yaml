@@ -49,8 +49,7 @@ services:
 
 
   node-relay-1:
-    build:
-      context: .
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:

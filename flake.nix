@@ -9,7 +9,7 @@
     repo = "cardano-transaction-lib";
     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
-  inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
+  # inputs.cardano.url = github:input-output-hk/cardano-node/8.1.2;
 
   inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.iogx.follows = "plutus/iogx";
@@ -23,7 +23,7 @@
   };
 
 
-  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, ... }@inputs:
     let
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
@@ -94,7 +94,6 @@
               pkgs.nixpkgs-fmt
               postgresql_14
               cardano-static
-              # cardano.legacyPackages.${system}.cardano-cli
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
              ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
@@ -110,7 +109,7 @@
           packages = onchain-outputs.packages.${system} //
             rec {
               # generate config files for testnet
-              config = import ./config { inherit pkgs iohk-nix system; cardano = cardano;};
+              config = import ./config { inherit pkgs iohk-nix system; cardano = cardano-static;};
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spamer.Main";
                 entrypoint = "index.js";

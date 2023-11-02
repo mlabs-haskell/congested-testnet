@@ -12,9 +12,7 @@ pkgs.writeScriptBin "config" ''
   START_TIME="2023-10-01T14:00:00Z"
   TEMPLATE_DIR=${iohk-nix}/cardano-lib/testnet-template
 
-   ## ${cardano}/bin/cardano-cli genesis create-cardano \
-
-   ${cardano.legacyPackages.${system}.cardano-cli}/bin/cardano-cli genesis create-cardano \
+   ${cardano}/bin/cardano-cli genesis create-cardano \
         --genesis-dir "$GENESIS_DIR" \
         --gen-genesis-keys "$NUM_GENESIS_KEYS" \
         --gen-utxo-keys 2 \
