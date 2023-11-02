@@ -4,18 +4,15 @@ module Spamer.Main where
 import Contract.Prelude
 
 import Contract.Address (NetworkId(..), ownPaymentPubKeyHash)
-import Contract.Chain (waitNSlots)
 import Contract.Config (ContractParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
-import Contract.Monad (launchAff_, liftedE, runContract)
-import Contract.Numeric.Natural (fromInt')
-import Contract.ScriptLookups (ScriptLookups, mkUnbalancedTx, unspentOutputs)
-import Contract.Transaction (balanceTx, getTxFinalFee, signTransaction, submitTxFromConstraints)
+import Contract.Monad (launchAff_, runContract)
+import Contract.ScriptLookups (ScriptLookups, unspentOutputs)
+import Contract.Transaction (submitTxFromConstraints) 
 import Contract.TxConstraints (TxConstraints, mustPayToPubKey)
-import Contract.Utxos (getWalletBalance, getWalletUtxos)
+import Contract.Utxos (getWalletUtxos)
 import Contract.Value (lovelaceValueOf)
 import Control.Monad.Error.Class (liftMaybe)
 import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
-import Ctl.Internal.Types.Int (toBigInt)
 import Data.BigInt as BInt
 import Data.UInt (fromInt)
 import Effect.Exception (error)
@@ -50,11 +47,8 @@ main =launchAff_ do
         constraints = mustPayToPubKey pKhash value
     log $ show $ utxos 
     txId <- submitTxFromConstraints lookups constraints
-    -- ubTx <- liftedE $ mkUnbalancedTx lookups constraints 
-    -- bTx <- liftedE (balanceTx ubTx)
-    -- bTx <- signTransaction =<< 
-    -- log $ show $ utxos 
-    log "Contract here"  
+    log $ show $ txId 
+    log "Successfully submitted"
   
 
 

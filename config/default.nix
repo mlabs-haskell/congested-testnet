@@ -28,7 +28,7 @@ pkgs.writeScriptBin "config" ''
         --alonzo-template "$TEMPLATE_DIR/alonzo-genesis.json" \
         --node-config-template "$TEMPLATE_DIR/config.json" 
 
-  #### copy alonzo and conwayfrom repo , and fix issues in node config 
+  #### copy alonzo and conway from repo , and fix issues in node config 
   cp $TEMPLATE_DIR/alonzo-genesis.json $GENESIS_DIR/
   cp $TEMPLATE_DIR/conway-genesis.json $GENESIS_DIR/
 
