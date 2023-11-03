@@ -1,6 +1,6 @@
 services:
   node-spo-1:
-    image: inputoutput/cardano-node:1.35.4
+    image: inputoutput/cardano-node:${CARDANO_TAG}
     networks:
        mynet:    
           aliases:
@@ -24,7 +24,7 @@ services:
                   --port                            '3000'"
 
   # node-spo-2:
-  #   image: inputoutput/cardano-node:1.35.4
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
   #   networks:
   #      mynet:    
   #         aliases:
@@ -49,7 +49,7 @@ services:
 
 
   node-relay-1:
-    image: inputoutput/cardano-node:1.35.4
+    image: inputoutput/cardano-node:${CARDANO_TAG}
     networks:
        mynet:    
           aliases:
@@ -63,12 +63,16 @@ services:
       - node-relay-1-db:/data/db
       - ../cardano-conf/sockets/node-relay-1-socket:/socket
       - ../cardano-conf:/config
-      - ./start-node.sh:/start-node.sh
-    entrypoint: "/start-node.sh /config/topology-relay-1.json"
+    entrypoint: "cardano-node run \
+                  --config                          '/config/genesis/node-config.json' \
+                  --topology                        '/config/topology-relay-1.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'"
       
 
   # node-relay-2:
-  #   image: inputoutput/cardano-node:1.35.4
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
   #   networks:
   #      mynet:    
   #         aliases:
@@ -93,7 +97,7 @@ services:
 
 
   node-passive-3:
-    image: inputoutput/cardano-node:1.35.4
+    image: inputoutput/cardano-node:${CARDANO_TAG}
     networks:
        mynet:    
           aliases:
@@ -107,8 +111,12 @@ services:
       - node-passive-3-db:/data/db
       - ../cardano-conf/sockets/node-passive-3-socket:/socket
       - ../cardano-conf:/config
-      - ./start-node.sh:/start-node.sh
-    entrypoint: "/start-node.sh /config/topology-passive-3.json"
+    entrypoint: "cardano-node run \
+                  --config                          '/config/genesis/node-config.json' \
+                  --topology                        '/config/topology-passive-3.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'"
 
   ogmios:
     image: cardanosolutions/ogmios:v5.5.7-mainnet
@@ -149,25 +157,6 @@ services:
                    --workdir /data"
 
 
-  test-network:
-    build:
-      context: .
-    networks:
-       mynet:    
-          aliases:
-            - test-network.local
-    expose:
-      - 3000
-      - 6000
-    ports:
-      - 3000
-    volumes:
-      - node-passive-3-socket:/socket-passive-3
-      - ../cardano-conf/sockets/node-relay-1-socket:/socket
-      - ../cardano-conf:/config
-
-    entrypoint: "sleep 30000"
-      
 
 networks:
   mynet:

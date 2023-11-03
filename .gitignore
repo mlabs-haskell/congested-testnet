@@ -1,9 +1,6 @@
 cardano-conf
-cluster 
-!cluster/default.nix
-!cluster/docker-compose.yaml
-!cluster/Dockerfile
-!cluster/start-node.sh
+cluster/config 
+cluster/socket
 tmp
 secrets
 .ipynb_checkpoints

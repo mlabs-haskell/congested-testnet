@@ -9,7 +9,7 @@ sudo rm -rf cardano-conf
 echo "add configs to start network"
 nix run .#config
 echo "start docker-compose environment"
-sudo docker compose --file cluster/docker-compose.yaml up -d --remove-orphans --force-recreate --build
+sudo CARDANO_TAG=$CARDANO_TAG docker compose --file cluster/docker-compose.yaml up -d --remove-orphans --force-recreate --build
 
 
 

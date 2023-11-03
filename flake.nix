@@ -26,6 +26,7 @@
 
   outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, ... }@inputs:
     let
+      cardano-tag = "1.35.6";
       onchain-outputs = inputs.iogx.lib.mkFlake { inherit inputs;
         repoRoot = ./spamer/onchain;
         outputs = import ./spamer/onchain/nix/outputs.nix;
@@ -50,11 +51,11 @@
 
           cardano = pkgs.stdenv.mkDerivation {
             pname = "cardano-static";
-            version = "1.35.4";
+            version = cardano-tag;
 
             src = pkgs.fetchurl {
-              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz";
-              sha256 = "sha256-b7o6ncNPltMghBu5CELZw9fZ+Ro4vTSq1YnxnZe9iyg=";
+              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-${cardano-tag}-linux.tar.gz";
+              sha256 = "sha256-R4+5qbHyFLIvwHb5x9uTxLDdOPFwBADrjKRP6eTnoBE=";
             };
 
             buildCommand = ''
@@ -116,7 +117,7 @@
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
-              runnet = import ./cluster { inherit pkgs; };
+              runnet = import ./cluster { inherit pkgs; tags = {inherit cardano-tag;};};
               test = import ./test { inherit pkgs cardano; };
               research = import ./research { inherit pkgs; };
             };
