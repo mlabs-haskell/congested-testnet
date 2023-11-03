@@ -33,7 +33,7 @@ pkgs.writeScriptBin "config" ''
   cp $TEMPLATE_DIR/conway-genesis.json $GENESIS_DIR/
 
   ALONZO_HASH=$(echo $(${pkgs.jq}/bin/jq '.AlonzoGenesisHash' $TEMPLATE_DIR/config.json) | tr -d '"')
-  ${pkgs.jq}/bin/jq --arg HASH $ALONZO_HASH '.AlonzoGenesisHash = $HASH | .RequiresNetworkMagic = "RequiresNoMagic"' \
+  ${pkgs.jq}/bin/jq --arg HASH $ALONZO_HASH '.AlonzoGenesisHash = $HASH | .RequiresNetworkMagic = "RequiresNoMagic" | .TestEnableDevelopmentNetworkProtocols = true' \
     $GENESIS_DIR/node-config.json > temp.json &&
                                                 mv temp.json $GENESIS_DIR/node-config.json
 

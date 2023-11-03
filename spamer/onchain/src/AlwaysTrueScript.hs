@@ -39,7 +39,7 @@ PlutusTx.makeLift ''AlwaysTrueScriptParams
 
 {-# INLINEABLE typedValidator #-}
 typedValidator :: AlwaysTrueScriptParams -> () -> () -> PlutusLedgerApi.V2.ScriptContext -> Bool
-typedValidator AlwaysTrueScriptParams {size} _ _ _ =  res 
+typedValidator AlwaysTrueScriptParams {size} _ _ _ = True --res 
   where
     list = PlutusTx.Prelude.replicate size True
     res  = PlutusTx.Prelude.foldr (PlutusTx.Prelude.&&) True list

@@ -41,8 +41,8 @@ config =
       , logLevel: Trace
       , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
       , customLogger: Nothing
-      -- , suppressLogs : false 
-      , suppressLogs : true 
+      , suppressLogs : false 
+      -- , suppressLogs : true 
       , hooks : emptyHooks
       }
 

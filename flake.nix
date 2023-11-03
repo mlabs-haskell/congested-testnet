@@ -50,11 +50,11 @@
 
           cardano = pkgs.stdenv.mkDerivation {
             pname = "cardano-static";
-            version = "1.35.6";
+            version = "1.35.4";
 
             src = pkgs.fetchurl {
-              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.6-linux.tar.gz";
-              sha256 = "sha256-R4+5qbHyFLIvwHb5x9uTxLDdOPFwBADrjKRP6eTnoBE=";
+              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-1.35.4-linux.tar.gz";
+              sha256 = "sha256-b7o6ncNPltMghBu5CELZw9fZ+Ro4vTSq1YnxnZe9iyg=";
             };
 
             buildCommand = ''

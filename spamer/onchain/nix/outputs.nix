@@ -8,12 +8,12 @@ let
 in
 
 [
-  # {
-  #   inherit (project) cabalProject;
+  # (
+  #   let inherit (project) cabalProject;
+  #   in
+  #   cabalProject.shellFor 
   #
-  #   devShells.default = ghc92.devShell;
-  #   packages = ghc92.packages;
-  # }
+  # )
   (
     project
   )
