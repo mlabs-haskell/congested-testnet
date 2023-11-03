@@ -17,7 +17,7 @@ let
         "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP;
       };
 
-      name = "onchain";
+      name = "spamer";
 
       compiler-nix-name = lib.mkDefault "ghc92";
       # shell.nativeBuildInputs =[pkgs.hello]; 

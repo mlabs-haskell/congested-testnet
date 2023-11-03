@@ -25,10 +25,10 @@
 
   outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, ... }@inputs:
     let
-      onchain-outputs = inputs.iogx.lib.mkFlake {
+      plutus-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
-        repoRoot = ./spamer/onchain;
-        outputs = import ./spamer/onchain/nix/outputs.nix;
+        repoRoot = ./spamer/plutus;
+        outputs = import ./spamer/plutus/nix/outputs.nix;
       };
     in
     flake-utils.lib.eachDefaultSystem
@@ -95,7 +95,7 @@
               postgresql_14
               cardano-static
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 ])
-             ++ onchain-outputs.devShell.${system}.buildInputs
+             ++ plutus-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
             shellHook = ''
             '';
@@ -106,7 +106,7 @@
         in
         {
           devShells.default = devShell;
-          packages = onchain-outputs.packages.${system} //
+          packages = plutus-outputs.packages.${system} //
             rec {
               # generate config files for testnet
               config = import ./config { inherit pkgs iohk-nix system; cardano = cardano-static;};

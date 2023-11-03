@@ -151,8 +151,7 @@ services:
 
 
   test-network:
-    build:
-      context: .
+    image: inputoutput/cardano-node:8.1.2
     networks:
        mynet:    
           aliases:
@@ -168,6 +167,23 @@ services:
       - ../cardano-conf:/config
 
     entrypoint: "sleep 30000"
+
+  # blockfrost:
+  #   image: blockfrost/backend-ryo:v1.7.0
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - blockfrost.local
+  #   expose:
+  #     - 3000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-passive-3-socket:/socket-passive-3
+  #     - ../cardano-conf/sockets/node-relay-1-socket:/socket
+  #     - ../cardano-conf:/config
+  #
+  #   entrypoint: "sleep 30000"
       
 
 networks:

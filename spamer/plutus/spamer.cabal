@@ -1,5 +1,5 @@
 cabal-version: 3.4 
-name: onchain 
+name: spamer 
 version: 0.0.0.1
 license-file: LICENSE
 copyright: TO DO 
@@ -75,7 +75,7 @@ executable get-script
   main-is:        Main.hs
   build-depends:
      base
-     , onchain
+     , spamer 
      , bytestring
      , base16-bytestring
      , plutus-ledger-api
