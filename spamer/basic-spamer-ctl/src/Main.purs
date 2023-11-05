@@ -5,11 +5,12 @@ import Contract.Prelude
 
 import Contract.Address (NetworkId(..), ownPaymentPubKeyHash, scriptHashAddress)
 import Contract.Config (ContractParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
-import Contract.Monad (launchAff_, runContract)
+import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.PlutusData (unitDatum, unitRedeemer)
 import Contract.Prim.ByteArray (byteArrayFromAscii)
 import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
 import Contract.Scripts (PlutusScript(..), Validator(..), validatorHash)
+import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptV1FromEnvelope)
 import Contract.Transaction (Language(..), submitTxFromConstraints)
 import Contract.TxConstraints (DatumPresence(..), TxConstraints, mustPayToScript, mustSpendScriptOutput)
 import Contract.Utxos (getWalletUtxos, utxosAt)
@@ -24,17 +25,25 @@ import Effect.Exception (error)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 
-getValidator :: Effect Validator 
-getValidator = do
-  str <- readTextFile UTF8 "../../validator.uplc"
-  bytes <- liftMaybe (error "can't convert script to bytearray") (byteArrayFromAscii str)
-  pure $ Validator $ PlutusScript (bytes /\ PlutusV2)
+-- getValidator :: Effect Validator 
+-- getValidator = do
+--   str <-  "../../validator.uplc"
+--   bytes <- liftMaybe (error "can't convert script to bytearray") (byteArrayFromAscii str)
+--   pure $ Validator $ PlutusScript (bytes /\ PlutusV2)
+
+foreign import spamScript :: String
+
+getValidator :: Contract Validator
+getValidator =
+  liftMaybe (error "Error decoding alwaysSucceeds") do
+    envelope <- decodeTextEnvelope spamScript 
+    Validator <$> plutusScriptV1FromEnvelope envelope
 
 
 config :: ContractParams 
 config =
       { backendParams: CtlBackendParams 
-      { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"}
+      { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"} 
         , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
         } Nothing
       , networkId: TestnetId 
@@ -49,9 +58,9 @@ config =
 
 lock :: Effect Unit
 lock = do 
-  val <- getValidator 
   launchAff_ do
     runContract config do
+      val <- getValidator 
       mOwnPkeyHash <- ownPaymentPubKeyHash 
       pKhash <- liftMaybe (error "no public key hash") mOwnPkeyHash 
       mUtxos <- getWalletUtxos
@@ -71,9 +80,9 @@ lock = do
 
 unlock :: Effect Unit
 unlock = do 
-  val <- getValidator 
   launchAff_ do
     runContract config do
+      val <- getValidator 
       mOwnPkeyHash <- ownPaymentPubKeyHash 
       pKhash <- liftMaybe (error "no public key hash") mOwnPkeyHash 
       mUtxos <- getWalletUtxos
@@ -82,7 +91,6 @@ unlock = do
       scriptRecord <- liftMaybe (error "can't find any script utxo") (findMax valUtxos) 
       log $ show $ scriptRecord 
       let
-          value = lovelaceValueOf (BInt.fromInt 2123456) 
           lookups :: ScriptLookups Void 
           lookups = unspentOutputs utxos <>
                     unspentOutputs valUtxos <>
@@ -102,8 +110,8 @@ unlock = do
 
 main :: Effect Unit
 main = do
-  -- lock
-  unlock
+  lock
+  -- unlock
   
 
 

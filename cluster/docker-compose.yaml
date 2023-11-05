@@ -10,7 +10,6 @@ services:
       - 6000
     volumes:
       - node-spo-1-db:/data/db
-      - node-spo-1-socket:/socket
       - ../cardano-conf:/config
     entrypoint: "cardano-node run \
                   --topology                        '/config/topology-spo-1.json' \
@@ -63,12 +62,17 @@ services:
       - node-relay-1-db:/data/db
       - ../cardano-conf/sockets/node-relay-1-socket:/socket
       - ../cardano-conf:/config
-    entrypoint: "cardano-node run \
+    entrypoint: sh -c "cardano-node run \
                   --config                          '/config/genesis/node-config.json' \
                   --topology                        '/config/topology-relay-1.json' \
                   --database-path                   '/data/db' \
                   --socket-path                     '/socket/node.socket' \
-                  --port                            '3000'"
+                  --port                            '3000'
+                  &
+                  while ! [ -S /socket/node.socket ]; do sleep 1; done;
+                  chmod 777 /socket/node.socket;
+                  wait
+                  "
       
 
   # node-relay-2:
@@ -111,12 +115,17 @@ services:
       - node-passive-3-db:/data/db
       - ../cardano-conf/sockets/node-passive-3-socket:/socket
       - ../cardano-conf:/config
-    entrypoint: "cardano-node run \
+    entrypoint: sh -c "cardano-node run \
                   --config                          '/config/genesis/node-config.json' \
                   --topology                        '/config/topology-passive-3.json' \
                   --database-path                   '/data/db' \
                   --socket-path                     '/socket/node.socket' \
-                  --port                            '3000'"
+                  --port                            '3000'
+                  &
+                  while ! [ -S /socket/node.socket ]; do sleep 1; done;
+                  chmod 777 /socket/node.socket;
+                  wait
+                  "
 
   ogmios:
     image: cardanosolutions/ogmios:v5.5.7-mainnet
@@ -163,9 +172,7 @@ networks:
 
 volumes:
   node-spo-1-db:
-  node-spo-1-socket: 
   node-spo-2-db:
-  node-spo-2-socket:
   node-relay-1-socket:
   node-relay-1-db:
   node-relay-2-socket:
