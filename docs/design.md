@@ -9,10 +9,18 @@
 ## Architechture
 ![Design](./imgs/design.svg)
 ##### In our Cardano testnet, some nodes will be integrated with the following APIs:
- - Faucet API. This api sends tADA to the provided address     
+ - Faucet API. This api will be connected with few testnet nodes annd will be used to send 100 tADA to a specified address.      
+     ```bash
+    curl -X POST ".../faucet" \
+         -H "Content-Type: application/json" \
+         -d '{"address": $USER_ADDRESS}'
+     ```
  - [BlockFrost API](https://github.com/blockfrost/blockfrost-backend-ryo). This api will allows users to submit transactions to the testnet 
- - Spamer.
-    - spamer continually submits random transactions to the testnet in order to simulate constant congestion. 
+ - Spammer.
+    - Spammer continually submits random transactions in round robin manner to each node on the testnet in order to simulate constant congestion. 
+    - Transaction parameters such as transaction size, cpu/mem usage will be sampled from [congestion distribution](./congestion-statistics.md) 
     - It will be built on top of [Cardano transaction library(CTL)](https://github.com/Plutonomicon/cardano-transaction-lib) which connects with testnet nodes via [ogmios](https://github.com/CardanoSolutions/ogmios) and [kupo](https://github.com/CardanoSolutions/kupo). 
-    - all necessary data for spam transactions, such as random addresses, scripts, and policies, along with parameters from the [congestion distribution](./congestion-statistics.md), will be stored in database (`SpamerDB`).
+    - All necessary data for spam transactions, such as random addresses, scripts, and policies, along with parameters from the [congestion distribution](./congestion-statistics.md), will be stored in database (`SpammerDB`).
+- Mempool Monitoring. This API requests information from each node in the testnet to estimate the current mempool usage percentage for each node, as well as the average across the testnet.
+
 
