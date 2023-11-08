@@ -2,6 +2,8 @@
   description = "congested-testnet";
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
+  inputs.cardano-node.url = github:input-output-hk/cardano-node/1.35.6;
+  inputs.cardano-node.flake = false;
   inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
   inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
@@ -24,10 +26,11 @@
   };
 
 
-  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, cardano-node, ... }@inputs:
     let
       cardano-tag = "1.35.6";
-      onchain-outputs = inputs.iogx.lib.mkFlake { inherit inputs;
+      onchain-outputs = inputs.iogx.lib.mkFlake {
+        inherit inputs;
         repoRoot = ./spamer/onchain;
         outputs = import ./spamer/onchain/nix/outputs.nix;
       };
@@ -96,7 +99,7 @@
               postgresql_14
               cardano
               dia
-            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate])
+            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
             ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
             shellHook = ''
@@ -109,15 +112,15 @@
         {
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
+            (import ./config { inherit pkgs iohk-nix cardano-world system cardano cardano-node; }) //
             rec {
               # generate config files for testnet
-              config = import ./config { inherit pkgs iohk-nix cardano-world system cardano; };
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spamer.Main";
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
-              runnet = import ./cluster { inherit pkgs; tags = {inherit cardano-tag;};};
+              runnet = import ./cluster { inherit pkgs; tags = { inherit cardano-tag; }; };
               test = import ./test { inherit pkgs cardano; };
               research = import ./research { inherit pkgs; };
             };

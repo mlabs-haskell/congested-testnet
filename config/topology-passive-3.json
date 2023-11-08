@@ -5,6 +5,10 @@
         {
           "address": "node-relay-1.local",
           "port": 3000
+        },
+        {
+          "address": "node-relay-2.local",
+          "port": 3000
         }
       ],
       "advertise": false,

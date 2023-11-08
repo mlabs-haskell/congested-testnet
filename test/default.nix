@@ -15,5 +15,10 @@ rec {
     export CARDANO_CLI=${cardano}
     ${./check-balance.sh} 
   '';
+  check-ogmios = pkgs.writeScriptBin "check-ogmios" ''
+    cd $(git rev-parse --show-toplevel)
+    export CARDANO_CLI=${cardano}
+    ${./check-ogmios.sh} 
+  '';
 
 }

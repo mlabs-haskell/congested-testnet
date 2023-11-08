@@ -2231,16 +2231,16 @@
     "cardano-node": {
       "flake": false,
       "locked": {
-        "lastModified": 1659625017,
-        "narHash": "sha256-4IrheFeoWfvkZQndEk4fGUkOiOjcVhcyXZ6IqmvkDgg=",
+        "lastModified": 1677171733,
+        "narHash": "sha256-vjHU7rYDw/oOqjroxbxQgWiXzxSGe9L4p9yFilGJTRU=",
         "owner": "input-output-hk",
         "repo": "cardano-node",
-        "rev": "950c4e222086fed5ca53564e642434ce9307b0b9",
+        "rev": "07b0c71d2e6662aec4389ec282a7e91f68c3d85f",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "1.35.3",
+        "ref": "1.35.6",
         "repo": "cardano-node",
         "type": "github"
       }
@@ -2312,6 +2312,23 @@
       }
     },
     "cardano-node_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1659625017,
+        "narHash": "sha256-4IrheFeoWfvkZQndEk4fGUkOiOjcVhcyXZ6IqmvkDgg=",
+        "owner": "input-output-hk",
+        "repo": "cardano-node",
+        "rev": "950c4e222086fed5ca53564e642434ce9307b0b9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "ref": "1.35.3",
+        "repo": "cardano-node",
+        "type": "github"
+      }
+    },
+    "cardano-node_3": {
       "inputs": {
         "CHaP": "CHaP_3",
         "cardano-mainnet-mirror": "cardano-mainnet-mirror",
@@ -2364,7 +2381,7 @@
         "type": "github"
       }
     },
-    "cardano-node_3": {
+    "cardano-node_4": {
       "inputs": {
         "cardano-mainnet-mirror": "cardano-mainnet-mirror_4",
         "cardano-node-workbench": [
@@ -2416,7 +2433,7 @@
         "type": "github"
       }
     },
-    "cardano-node_4": {
+    "cardano-node_5": {
       "flake": false,
       "locked": {
         "lastModified": 1667644902,
@@ -2807,7 +2824,7 @@
         ],
         "cardano-explorer-app": "cardano-explorer-app",
         "cardano-graphql": "cardano-graphql",
-        "cardano-node": "cardano-node",
+        "cardano-node": "cardano-node_2",
         "cardano-wallet": "cardano-wallet",
         "data-merge": "data-merge_3",
         "flake-compat": "flake-compat_6",
@@ -13109,7 +13126,7 @@
         "CHaP": "CHaP_4",
         "blank": "blank_6",
         "cardano-configurations": "cardano-configurations_3",
-        "cardano-node": "cardano-node_3",
+        "cardano-node": "cardano-node_4",
         "flake-compat": "flake-compat_15",
         "haskell-nix": "haskell-nix_6",
         "iohk-nix": "iohk-nix_4",
@@ -13139,7 +13156,7 @@
         "CHaP": "CHaP_2",
         "blank": "blank_4",
         "cardano-configurations": "cardano-configurations_2",
-        "cardano-node": "cardano-node_2",
+        "cardano-node": "cardano-node_3",
         "flake-compat": "flake-compat_11",
         "haskell-nix": "haskell-nix_5",
         "iohk-nix": "iohk-nix_3",
@@ -13587,7 +13604,7 @@
       "inputs": {
         "CHaP": "CHaP_5",
         "cardano-addresses": "cardano-addresses",
-        "cardano-node": "cardano-node_4",
+        "cardano-node": "cardano-node_5",
         "cardano-wallet": "cardano-wallet_2",
         "flake-compat": "flake-compat_18",
         "haskell-nix": "haskell-nix_7",
@@ -13915,6 +13932,7 @@
           "plutus",
           "CHaP"
         ],
+        "cardano-node": "cardano-node",
         "cardano-world": "cardano-world",
         "ctl": "ctl",
         "flake-compat": "flake-compat_19",

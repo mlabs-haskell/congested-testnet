@@ -9,6 +9,10 @@
         {
           "address": "node-passive-3.local",
           "port": 3000
+        },
+        {
+          "address": "node-relay-2.local",
+          "port": 3000
         }
       ],
       "advertise": false,

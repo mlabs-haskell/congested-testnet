@@ -1,0 +1,183 @@
+services:
+  node-spo-1:
+    image: inputoutput/cardano-node:${CARDANO_TAG}
+    networks:
+       mynet:    
+          aliases:
+            - node-spo-1.local
+    expose:
+      - 3000
+      - 6000
+    volumes:
+      - node-spo-1-db:/db
+      - ../cardano-conf/node-spo1:/socket
+      - ../cardano-conf:/config
+    entrypoint: "cardano-node run \
+                  --topology                        '/config/topology-spo-1.json' \
+                  --database-path                   'db' \
+                  --shelley-kes-key                 '/config/node-spo1/kes.skey' \
+                  --shelley-vrf-key                 '/config/node-spo1/vrf.skey' \
+                  --byron-delegation-certificate    '/config/node-spo1/byron-delegation.cert' \
+                  --byron-signing-key               '/config/node-spo1/byron-delegate.key' \
+                  --shelley-operational-certificate '/config/node-spo1/opcert.cert' \
+                  --config                          '/config/configuration.yaml' \
+                  --socket-path                     '/config/node-spo1/node.socket' \
+                  --port                            '3000'"
+  node-spo-2:
+    image: inputoutput/cardano-node:${CARDANO_TAG}
+    networks:
+       mynet:    
+          aliases:
+            - node-spo-2.local
+    expose:
+      - 3000
+      - 6000
+    volumes:
+      - node-spo-2-db:/db
+      - ../cardano-conf/node-spo2:/socket
+      - ../cardano-conf:/config
+    entrypoint: "cardano-node run \
+                  --topology                        '/config/topology-spo-2.json' \
+                  --database-path                   'db' \
+                  --shelley-kes-key                 '/config/node-spo2/kes.skey' \
+                  --shelley-vrf-key                 '/config/node-spo2/vrf.skey' \
+                  --byron-delegation-certificate    '/config/node-spo2/byron-delegation.cert' \
+                  --byron-signing-key               '/config/node-spo2/byron-delegate.key' \
+                  --shelley-operational-certificate '/config/node-spo2/opcert.cert' \
+                  --config                          '/config/configuration.yaml' \
+                  --socket-path                     '/config/node-spo2/node.socket' \
+                  --port                            '3000'"
+
+
+  # node-relay-1:
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-relay-1.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-relay-1-db:/data/db
+  #     - ../cardano-conf/sockets/node-relay-1-socket:/socket
+  #     - ../cardano-conf:/config
+  #   entrypoint: sh -c "cardano-node run \
+  #                 --config                          '/config/configuration.yaml' \
+  #                 --topology                        '/config/topology-relay-1.json' \
+  #                 --database-path                   '/data/db' \
+  #                 --socket-path                     '/socket/node.socket' \
+  #                 --port                            '3000'
+  #                 &
+  #                 while ! [ -S /socket/node.socket ]; do sleep 1; done;
+  #                 chmod 777 /socket/node.socket;
+  #                 wait
+  #                 "
+  #     
+  #
+  # node-relay-2:
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-relay-2.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-relay-2-db:/data/db
+  #     - node-relay-2-socket:/socket
+  #     - ../cardano-conf:/config
+  #     
+  #   entrypoint: "cardano-node run \
+  #                 --config                          '/config/configuration.yaml' \
+  #                 --topology                        '/config/topology-relay-2.json' \
+  #                 --database-path                   '/data/db' \
+  #                 --socket-path                     '/socket/node.socket' \
+  #                 --port                            '3000'"
+  #
+  #
+  #
+  # node-passive-3:
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-passive-3.local
+  #   expose:
+  #     - 3000
+  #     - 6000
+  #   ports:
+  #     - 3000
+  #   volumes:
+  #     - node-passive-3-db:/data/db
+  #     - ../cardano-conf/sockets/node-passive-3-socket:/socket
+  #     - ../cardano-conf:/config
+  #   entrypoint: sh -c "cardano-node run \
+  #                 --config                          '/config/configuration.yaml' \
+  #                 --topology                        '/config/topology-passive-3.json' \
+  #                 --database-path                   '/data/db' \
+  #                 --socket-path                     '/socket/node.socket' \
+  #                 --port                            '3000'
+  #                 &
+  #                 while ! [ -S /socket/node.socket ]; do sleep 1; done;
+  #                 chmod 777 /socket/node.socket;
+  #                 wait
+  #                 "
+
+  ogmios:
+    image: cardanosolutions/ogmios:v5.6.0
+    networks:
+      mynet:
+        aliases:
+          - ogmios.local
+    ports:
+      - 1337:1337
+    expose:
+      - 1337
+    volumes:
+      - ../cardano-conf:/config
+    command: [
+      "--host", "0.0.0.0",
+      "--node-socket", "/config/node-spo1/node.socket",
+      "--node-config", "/config/configuration.yaml"
+    ]
+      
+  kupo:
+    image: cardanosolutions/kupo:v2.7.0
+    networks:
+      mynet:
+        aliases:
+          - kupo.local
+    ports:
+      - 1442:1442
+    volumes:
+      - ../cardano-conf:/config
+    entrypoint: "/bin/kupo \
+                   --node-socket /config/node-spo1/node.socket \
+                   --node-config /config/configuration.yaml \
+                   --host 0.0.0.0 \
+                   --since origin \
+                   --match '*/*' \
+                   --workdir /data"
+
+
+
+networks:
+  mynet:
+
+volumes:
+  node-spo-1-db:
+  node-spo-2-db:
+#   node-relay-1-socket:
+#   node-relay-1-db:
+#   node-relay-2-socket:
+#   node-relay-2-db:
+#   node-passive-3-socket:
+#   node-passive-3-db:
+#   kupo-data:
+
