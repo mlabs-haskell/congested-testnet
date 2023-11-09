@@ -3,7 +3,7 @@ rec {
   first-transaction = pkgs.writeScriptBin "first-transaction" ''
     cd $(git rev-parse --show-toplevel)
     export CARDANO_CLI=${cardano}
-    ${./ada-transfer-from-genesis-to-wallet0.sh} 
+    ${../cluster/ada-transfer-from-genesis-to-wallet0.sh} 
   '';
   wallet0-wallet0-transaction = pkgs.writeScriptBin "user-user-transaction" ''
     cd $(git rev-parse --show-toplevel)

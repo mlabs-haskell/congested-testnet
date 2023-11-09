@@ -2,7 +2,6 @@ module Spamer.Main where
 
 
 import Contract.Prelude
-
 import Contract.Address (NetworkId(..), ownPaymentPubKeyHash, scriptHashAddress)
 import Contract.Config (ContractParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Contract.Monad (Contract, launchAff_, runContract)
@@ -48,7 +47,7 @@ config =
         } Nothing
       , networkId: TestnetId 
       , logLevel: Trace
-      , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
+      , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../cardano-conf/wallet0.skey") Nothing  
       , customLogger: Nothing
       , suppressLogs : false 
       -- , suppressLogs : true 

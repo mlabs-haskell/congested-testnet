@@ -1,51 +1,6 @@
 { pkgs, iohk-nix, cardano, cardano-world, system, cardano-node, ... }:
 {
-  config = pkgs.writeScriptBin "config" ''
-    #!/bin/sh
-    cd $(git rev-parse --show-toplevel)
-    ROOT=cardano-conf
-    sudo rm -rf $ROOT
-    mkdir $ROOT 
-
-    GENESIS_DIR=$ROOT/genesis
-    NUM_GENESIS_KEYS=2
-    TESTNET_MAGIC=2
-    SECURITY_PARAM=432
-    TEMPLATE_DIR=${cardano-world}/docs/environments/private
-
-    ${pkgs.jq}/bin/jq '.blockVersionData' $TEMPLATE_DIR/byron-genesis.json > $ROOT/byron.json
-  
-
-     ${cardano}/bin/cardano-cli genesis create-cardano \
-          --genesis-dir "$GENESIS_DIR" \
-          --gen-genesis-keys "$NUM_GENESIS_KEYS" \
-          --gen-utxo-keys 2 \
-          --supply 11234567890123456 \
-          --testnet-magic "$TESTNET_MAGIC" \
-          --byron-template "$ROOT/byron.json" \
-          --shelley-template "$TEMPLATE_DIR/shelley-genesis.json" \
-          --alonzo-template "$TEMPLATE_DIR/alonzo-genesis.json" \
-          --node-config-template "$TEMPLATE_DIR/config.json" 
-
-
-    #### copy alonzo and conway from repo , and fix issues in node config 
-    cp $TEMPLATE_DIR/alonzo-genesis.json $GENESIS_DIR/
-    cp $TEMPLATE_DIR/conway-genesis.json $GENESIS_DIR/
-
-    ALONZO_HASH=$(echo $(${pkgs.jq}/bin/jq '.AlonzoGenesisHash' $TEMPLATE_DIR/config.json) | tr -d '"')
-    ${pkgs.jq}/bin/jq --arg HASH $ALONZO_HASH '.AlonzoGenesisHash = $HASH | .RequiresNetworkMagic = "RequiresMagic" | .TestEnableDevelopmentNetworkProtocols = true | .TestBabbageHardForkAtEpoch = 0 | .TraceBlockFetchClient = true | .TraceBlockFetchDecisions = true | .TraceBlockFetchProtocol = true | .TraceBlockFetchProtocolSerialised = true | .TraceBlockFetchServer = true | .TraceChainSyncBlockServer = true | .TraceChainSyncClient = true | .TraceChainSyncHeaderServer = true | .TraceChainSyncProtocol = true | .TraceHandshake = true | .TraceLocalChainSyncProtocol = true | .TraceLocalHandshake = true | .TraceLocalTxSubmissionProtocol = true | .TraceLocalTxSubmissionServer = true | .TraceMux = true | .TraceTxInbound = true | .TraceTxOutbound = true | .TraceTxSubmissionProtocol = true | .ExperimentalProtocolsEnabled = true' \
-      $GENESIS_DIR/node-config.json > temp.json && cp temp.json $GENESIS_DIR/node-config.json
-
-
-    cat $GENESIS_DIR/node-config.json | jq
-
-    cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
-    cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 
-    cp "${./topology-spo-2.json}" $ROOT/topology-spo-2.json 
-    cp "${./topology-relay-2.json}" $ROOT/topology-relay-2.json 
-    cp "${./topology-passive-3.json}" $ROOT/topology-passive-3.json 
-  '';
-  config2 = pkgs.writeShellApplication {
+  config = pkgs.writeShellApplication {
     name = "conf";
     runtimeInputs = [ cardano pkgs.git ];
     text = ''
@@ -130,6 +85,9 @@
       echo "TestBabbageHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "TestEnableDevelopmentNetworkProtocols: True" >> "$ROOT/configuration.yaml"
       echo "EnableP2P: True" >> "$ROOT/configuration.yaml"
+      echo  "hasPrometheus:" >> "$ROOT/configuration.yaml"
+      # echo  '  - "127.0.0.1"' >> "$ROOT/configuration.yaml"
+      # echo  '  - 9090' >> "$ROOT/configuration.yaml"
 
       # Copy the cost mode
 
@@ -200,95 +158,57 @@
 
       cp "$ROOT/byron-gen-command/delegate-keys.000.key" "$ROOT/node-spo1/byron-delegate.key"
       cp "$ROOT/byron-gen-command/delegate-keys.001.key" "$ROOT/node-spo2/byron-delegate.key"
-      # cp "$ROOT/byron-gen-command/delegate-keys.002.key" "$ROOT/node-spo3/byron-delegate.key"
 
       cp "$ROOT/byron-gen-command/delegation-cert.000.json" "$ROOT/node-spo1/byron-delegation.cert"
       cp "$ROOT/byron-gen-command/delegation-cert.001.json" "$ROOT/node-spo2/byron-delegation.cert"
-      # cp "$ROOT/byron-gen-command/delegation-cert.002.json" "$ROOT/node-spo3/byron-delegation.cert"
 
 
-      echo 3001 > "$ROOT/node-spo1/port"
-      echo 3002 > "$ROOT/node-spo2/port"
-      # echo 3003 > "$ROOT/node-spo3/port"
-
-      # Make topology files
-      # Make topology files
-      #TODO generalise this over the N BFT nodes and pool nodes
-      cat > "$ROOT/node-spo1/topology.json" <<EOF
-      {
-         "Producers": [
-           {
-             "addr": "127.0.0.1",
-             "port": 3002,
-             "valency": 1
-           }
-         , {
-             "addr": "127.0.0.1",
-             "port": 3003,
-             "valency": 1
-           }
-         ]
-       }
-      EOF
-
-      cat > "$ROOT/node-spo2/topology.json" <<EOF
-      {
-         "Producers": [
-           {
-             "addr": "127.0.0.1",
-             "port": 3001,
-             "valency": 1
-           }
-         , {
-             "addr": "127.0.0.1",
-             "port": 3003,
-             "valency": 1
-           }
-         ]
-       }
-      EOF
-
-
-      for NODE in $SPO_NODES; do
-        (
-          echo "#!/usr/bin/env bash"
-          echo ""
-          echo "cardano-node run \\"
-          echo "  --config                          '$ROOT/configuration.yaml' \\"
-          echo "  --topology                        '$ROOT/$NODE/topology.json' \\"
-          echo "  --database-path                   '$ROOT/$NODE/db' \\"
-          echo "  --socket-path                     '$ROOT/$NODE/node.sock' \\"
-          echo "  --shelley-kes-key                 '$ROOT/$NODE/kes.skey' \\"
-          echo "  --shelley-vrf-key                 '$ROOT/$NODE/vrf.skey' \\"
-          echo "  --byron-delegation-certificate    '$ROOT/$NODE/byron-delegation.cert' \\"
-          echo "  --byron-signing-key               '$ROOT/$NODE/byron-delegate.key' \\"
-          echo "  --shelley-operational-certificate '$ROOT/$NODE/opcert.cert' \\"
-          echo "  --port                            $(cat "$ROOT/$NODE/port") \\"
-          echo "  | tee -a '$ROOT/$NODE/node.log'"
-        ) > "$ROOT/$NODE.sh"
-
-        chmod a+x "$ROOT/$NODE.sh"
-
-        echo "$ROOT/$NODE.sh"
-      done
-
-      mkdir -p "$ROOT/run"
-
-      echo "#!/usr/bin/env bash" > "$ROOT/run/all.sh"
-      echo "" >> "$ROOT/run/all.sh"
-
-      for NODE in $SPO_NODES; do
-        echo "$ROOT/$NODE.sh &" >> "$ROOT/run/all.sh"
-      done
-      echo "" >> "$ROOT/run/all.sh"
-      echo "wait" >> "$ROOT/run/all.sh"
-
-      chmod a+x "$ROOT/run/all.sh"
-
-      echo "CARDANO_NODE_SOCKET_PATH=$ROOT/node-spo1/node.sock "
-
-      (cd "$ROOT"; ln -s node-spo1/node.sock main.sock)
 
     '';
   };
+  config-old = pkgs.writeScriptBin "config-old" ''
+    #!/bin/sh
+    cd $(git rev-parse --show-toplevel)
+    ROOT=cardano-conf
+    sudo rm -rf $ROOT
+    mkdir $ROOT 
+
+    GENESIS_DIR=$ROOT/genesis
+    NUM_GENESIS_KEYS=2
+    TESTNET_MAGIC=2
+    SECURITY_PARAM=432
+    TEMPLATE_DIR=${cardano-world}/docs/environments/private
+
+    ${pkgs.jq}/bin/jq '.blockVersionData' $TEMPLATE_DIR/byron-genesis.json > $ROOT/byron.json
+  
+
+     ${cardano}/bin/cardano-cli genesis create-cardano \
+          --genesis-dir "$GENESIS_DIR" \
+          --gen-genesis-keys "$NUM_GENESIS_KEYS" \
+          --gen-utxo-keys 2 \
+          --supply 11234567890123456 \
+          --testnet-magic "$TESTNET_MAGIC" \
+          --byron-template "$ROOT/byron.json" \
+          --shelley-template "$TEMPLATE_DIR/shelley-genesis.json" \
+          --alonzo-template "$TEMPLATE_DIR/alonzo-genesis.json" \
+          --node-config-template "$TEMPLATE_DIR/config.json" 
+
+
+    #### copy alonzo and conway from repo , and fix issues in node config 
+    cp $TEMPLATE_DIR/alonzo-genesis.json $GENESIS_DIR/
+    cp $TEMPLATE_DIR/conway-genesis.json $GENESIS_DIR/
+
+    ALONZO_HASH=$(echo $(${pkgs.jq}/bin/jq '.AlonzoGenesisHash' $TEMPLATE_DIR/config.json) | tr -d '"')
+    ${pkgs.jq}/bin/jq --arg HASH $ALONZO_HASH '.AlonzoGenesisHash = $HASH | .RequiresNetworkMagic = "RequiresMagic" | .TestEnableDevelopmentNetworkProtocols = true | .TestBabbageHardForkAtEpoch = 0 | .TraceBlockFetchClient = true | .TraceBlockFetchDecisions = true | .TraceBlockFetchProtocol = true | .TraceBlockFetchProtocolSerialised = true | .TraceBlockFetchServer = true | .TraceChainSyncBlockServer = true | .TraceChainSyncClient = true | .TraceChainSyncHeaderServer = true | .TraceChainSyncProtocol = true | .TraceHandshake = true | .TraceLocalChainSyncProtocol = true | .TraceLocalHandshake = true | .TraceLocalTxSubmissionProtocol = true | .TraceLocalTxSubmissionServer = true | .TraceMux = true | .TraceTxInbound = true | .TraceTxOutbound = true | .TraceTxSubmissionProtocol = true | .ExperimentalProtocolsEnabled = true' \
+      $GENESIS_DIR/node-config.json > temp.json && cp temp.json $GENESIS_DIR/node-config.json
+
+
+    cat $GENESIS_DIR/node-config.json | jq
+
+    cp "${./topology-spo-1.json}" $ROOT/topology-spo-1.json 
+    cp "${./topology-relay-1.json}" $ROOT/topology-relay-1.json 
+    cp "${./topology-spo-2.json}" $ROOT/topology-spo-2.json 
+    cp "${./topology-relay-2.json}" $ROOT/topology-relay-2.json 
+    cp "${./topology-passive-3.json}" $ROOT/topology-passive-3.json 
+  '';
 }

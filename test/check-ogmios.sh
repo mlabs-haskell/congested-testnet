@@ -10,18 +10,18 @@ OGMIOS_REQUEST='{
 # echo "$OGMIOS_REQUEST" | jq
 # echo "OGMIOS RESULT"
 # echo "$OGMIOS_REQUEST" | tr -d "\n" 
-# echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat ws://127.0.0.1:1337 | jq ".result"
+echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat ws://127.0.0.1:1337 | jq ".result"
 
 
-alias cardano-cli=$CARDANO_CLI/bin/cardano-cli 
-ROOT=./tmp
-CONF=../cardano-conf
-# GENESIS_DIR=../cardano-conf/genesis
-# SOCKETS=../cardano-conf/sockets
-cd $ROOT
-#
-export CARDANO_NODE_SOCKET_PATH=$CONF/node-spo1/node.socket 
-cardano-cli query tip --testnet-magic 2
+# alias cardano-cli=$CARDANO_CLI/bin/cardano-cli 
+# ROOT=./tmp
+# CONF=../cardano-conf
+# # GENESIS_DIR=../cardano-conf/genesis
+# # SOCKETS=../cardano-conf/sockets
+# cd $ROOT
+# #
+# export CARDANO_NODE_SOCKET_PATH=$CONF/node-spo1/node.socket 
+# cardano-cli query tip --testnet-magic 2
 #
 # cardano-cli query utxo \
 # 	    --testnet-magic 2 \

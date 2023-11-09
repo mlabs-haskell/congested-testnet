@@ -3,7 +3,7 @@
     {
       "accessPoints": [
         {
-          "address": "node-spo-2.local",
+          "address": "node-relay-1.local",
           "port": 3000
         }
       ],
