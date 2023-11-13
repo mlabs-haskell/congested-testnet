@@ -2,12 +2,12 @@
 
 let script;
 if (typeof BROWSER_RUNTIME != "undefined" && BROWSER_RUNTIME) {
-  script = require("../../../../validator.uplc");
+  script = require("../../../../validator.plutus");
 } else {
   const fs = require("fs");
   const path = require("path");
   script = fs.readFileSync(
-    path.resolve(__dirname, "../../../../validator.uplc"),
+    path.resolve(__dirname, "../../../../validator.plutus"),
     "utf8"
   );
 }

@@ -2,11 +2,13 @@
   description = "congested-testnet";
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
+  inputs.iogx.url = github:input-output-hk/iogx/be20493284255d15192b3e98ad8b4d51a73b2c8c;
   inputs.cardano-node.url = github:input-output-hk/cardano-node/1.35.6;
   inputs.cardano-node.flake = false;
   inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
   inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
+  # inputs.plutus.url = "github:input-output-hk/plutus/1.1.0.0";
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
@@ -15,11 +17,8 @@
   };
 
   inputs.nixpkgs.follows = "ctl/nixpkgs";
-  inputs.iogx.follows = "plutus/iogx";
-  inputs.hackage.follows = "plutus/hackage";
-  inputs.CHaP.follows = "plutus/CHaP";
+  inputs.CHaP.follows = "ctl/CHaP";
 
-  inputs.haskell-nix.follows = "plutus/haskell-nix";
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;

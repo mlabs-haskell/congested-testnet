@@ -58,9 +58,13 @@ services:
       - 3000
       - 6000
       - 12789
+      - 12788
+      - 12798
     ports:
-      - 3000
-      - 12789
+      - "3000:3000"
+      - "12789:12789"
+      - "12788:12788"
+      - "12798:12798"
     volumes:
       - node-relay-1-db:/data/db
       - ../cardano-conf/sockets/node-relay-1-socket:/socket
@@ -159,24 +163,41 @@ services:
     volumes:
       - ../cardano-conf:/config
     entrypoint: "/bin/kupo \
-                   --node-socket /config/node-spo1/node.socket \
+                   --node-socket /config/sockets/node-relay-1-socket/node.socket \
                    --node-config /config/configuration.yaml \
                    --host 0.0.0.0 \
                    --since origin \
                    --match '*/*' \
                    --workdir /data"
 
-  # prometheus:
-  #   image: prom/prometheus:v2.43.1
+  prometheus:
+    image: prom/prometheus:v2.43.1
+    networks:
+      mynet:
+        aliases:
+          - prometheus.local
+    ports:
+      - 9090:9090 
+    volumes:
+      - ../cardano-conf/:/etc/prometheus
+      - prom-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
   #   networks:
   #     mynet:
   #       aliases:
-  #         - prometheus.local
-  #   ports:
-  #     - 9090:9090 
+  #         - node_exporter.local
+  #   pid: host
+  #   restart: unless-stopped
   #   volumes:
-  #     - ../cardano-conf:/config
-
+  #     - '/:/host:ro,rslave'
 
 networks:
   mynet:
@@ -185,4 +206,5 @@ volumes:
   node-spo-1-db:
   node-spo-2-db:
   node-relay-1-db:
+  prom-data:
 

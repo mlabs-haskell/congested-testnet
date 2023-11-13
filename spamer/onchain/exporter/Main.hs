@@ -1,20 +1,27 @@
 module Main where
 import AlwaysTrueScript
+    ( script, AlwaysTrueScriptParams(AlwaysTrueScriptParams, size), alwaysSucceedsCompiled )
 import Data.ByteString qualified as B
-import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Short qualified as BS
-import PlutusLedgerApi.V2 qualified as V2
-import System.Environment (getArgs)
+import Cardano.Api (writeFileTextEnvelope, TextEnvelopeDescr,  SerialiseAsCBOR (deserialiseFromCBOR), AsType (AsScript, AsPlutusScriptV2), Script, PlutusScriptVersion (PlutusScriptV2), PlutusScriptV2, Script)
+import Data.String (IsString(fromString))
+import Data.ByteString (toStrict)
+import PlutusLedgerApi.Common (serialiseCompiledCode)
+
 
 main :: IO ()
 main = do 
-  -- [fpath size] <- getArgs
-  let fpath = "validator.uplc"
-  B.writeFile fpath . Base16.encode $ serialisedScriptByteString
+  let fpath = fromString "validator.plutus"
+      scriptName :: Cardano.Api.TextEnvelopeDescr = fromString "always-true"
   print scriptLength
+  case Cardano.Api.deserialiseFromCBOR (Cardano.Api.AsScript Cardano.Api.AsPlutusScriptV2) serialisedScriptByteString  of
+    Left err -> print err
+    Right script'' ->
+      Cardano.Api.writeFileTextEnvelope @(Script PlutusScriptV2) fpath (Just scriptName) script''
+      >>= either print return
     where
-      script' = script params
-      serialisedScript = V2.serialiseCompiledCode script'
+      script' = alwaysSucceedsCompiled -- script params
+      serialisedScript = serialiseCompiledCode script'
       serialisedScriptByteString = BS.fromShort serialisedScript
       scriptLength = B.length serialisedScriptByteString
       params =

@@ -28,7 +28,7 @@ import PlutusTx
       makeLift,
       compile )
 import PlutusLedgerApi.V2 (ScriptContext)
-import PlutusTx.Prelude (check, replicate, (!!), (&&), foldr)
+import PlutusTx.Prelude (check, (!!), (&&), foldr)
 import PlutusCore.Core (plcVersion100)
 
 
@@ -40,9 +40,9 @@ PlutusTx.makeLift ''AlwaysTrueScriptParams
 {-# INLINEABLE typedValidator #-}
 typedValidator :: AlwaysTrueScriptParams -> () -> () -> PlutusLedgerApi.V2.ScriptContext -> Bool
 typedValidator AlwaysTrueScriptParams {size} _ _ _ = True --res 
-  where
-    list = PlutusTx.Prelude.replicate size True
-    res  = PlutusTx.Prelude.foldr (PlutusTx.Prelude.&&) True list
+  -- where
+  --   list = PlutusTx.Prelude.replicate size True
+  --   res  = PlutusTx.Prelude.foldr (PlutusTx.Prelude.&&) True list
 
 
 {-# INLINEABLE untypedValidator #-}
@@ -62,3 +62,9 @@ script ::
 script params =
  $$(PlutusTx.compile [||untypedValidator||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCode PlutusCore.Core.plcVersion100 params
+
+alwaysSucceeds :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+alwaysSucceeds _ _ _ = ()
+
+alwaysSucceedsCompiled :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+alwaysSucceedsCompiled = $$(PlutusTx.compile [|| alwaysSucceeds ||])
