@@ -1,4 +1,4 @@
-module Spamer.Main where
+module Spammer.Main where
 
 
 import Contract.Prelude

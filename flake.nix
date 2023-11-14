@@ -30,8 +30,8 @@
       cardano-tag = "1.35.6";
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
-        repoRoot = ./spamer/onchain;
-        outputs = import ./spamer/onchain/nix/outputs.nix;
+        repoRoot = ./spammer/onchain;
+        outputs = import ./spammer/onchain/nix/outputs.nix;
       };
     in
     flake-utils.lib.eachDefaultSystem
@@ -73,10 +73,10 @@
             pkgs.purescriptProject rec {
               inherit pkgs;
               projectName = "ctl-node";
-              packageJson = ./spamer/basic-spamer-ctl/package.json;
-              packageLock = ./spamer/basic-spamer-ctl/package-lock.json;
+              packageJson = ./spammer/basic-spammer-ctl/package.json;
+              packageLock = ./spammer/basic-spammer-ctl/package-lock.json;
               src = builtins.path {
-                path = ./spamer/basic-spamer-ctl;
+                path = ./spammer/basic-spammer-ctl;
                 name = "${projectName}-src";
                 # Adjust the `filter` as necessary
                 filter = path: ftype: !(pkgs.lib.hasSuffix ".md" path);
@@ -117,7 +117,7 @@
             rec {
               # generate config files for testnet
               ctl-node = (psProjectFor pkgs).buildPursProject {
-                main = "Spamer.Main";
+                main = "Spammer.Main";
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
