@@ -1,4 +1,4 @@
-cabal-version: 3.4 
+cabal-version: 3.0 
 name: onchain 
 version: 0.0.0.1
 license-file: LICENSE
@@ -49,10 +49,10 @@ common lang
 
   if flag(defer-plugin-errors)
 
-common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING
-  if impl(ghc <9.2)
-    buildable: False
+-- common ghc-version-support
+--   -- See the section on GHC versions in CONTRIBUTING
+--   if impl(ghc <9.2)
+--     buildable: False
 
 
 library
@@ -68,6 +68,7 @@ library
      , plutus-ledger-api
      , plutus-tx
      , plutus-tx-plugin   
+     , unix
 
   hs-source-dirs:  src
 
@@ -80,7 +81,9 @@ executable get-script
      , bytestring
      , base16-bytestring
      , plutus-ledger-api
+     , serialise
      , cardano-api
+
 
   hs-source-dirs: exporter 
 

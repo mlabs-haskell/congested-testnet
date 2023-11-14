@@ -19,9 +19,8 @@ let
 
       name = "onchain";
 
-      compiler-nix-name = lib.mkDefault "ghc92";
-      # compiler-nix-name = lib.mkDefault "ghc884";
-      # compiler-nix-name = lib.mkDefault "ghc810";
+      # compiler-nix-name = lib.mkDefault "ghc92";
+      compiler-nix-name = lib.mkDefault "ghc810";
       # shell.nativeBuildInputs =[pkgs.hello]; 
       # shell.tools = {
       # haskell-language-server = { };

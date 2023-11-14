@@ -98,6 +98,8 @@
               postgresql_14
               cardano
               dia
+              libsodium
+              secp256k1
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
             ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
