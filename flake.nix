@@ -120,7 +120,9 @@
                 entrypoint = "index.js";
               };
               # run testnet with docker compose
-              runnet = import ./cluster { inherit pkgs cardano; tags = { inherit cardano-tag; }; };
+              runnet = import ./cluster { inherit pkgs cardano; 
+                                          tags = { inherit cardano-tag; }; 
+                                          gen-testnet-config = self.packages.${system}.config; };
               test = import ./test { inherit pkgs cardano; };
               research = import ./research { inherit pkgs; };
             };

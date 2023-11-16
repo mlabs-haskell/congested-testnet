@@ -1,15 +1,18 @@
 #!/bin/sh
 cd $ROOT
-echo "start docker daemon"
+# start docker daemon
 sudo systemctl start docker
-echo "shutdown old testnet"
+# shutdown old testnet
 sudo docker compose --file cluster/docker-compose.yaml down -v
-echo "generate foler with configuration and sockets"
+# generate foler with configuration and sockets
 sudo rm -rf cardano-conf
-echo "add configs to start network"
+# add configs to start network
 nix run .#config
-echo "start docker-compose environment"
-sudo CARDANO_TAG=$CARDANO_TAG docker compose --file cluster/docker-compose.yaml up -d --remove-orphans --force-recreate --build
+# start docker-compose environment
+sudo CARDANO_TAG=$CARDANO_TAG docker compose \
+  --file cluster/docker-compose.yaml \ 
+  --file cluster/
+  up -d --remove-orphans --force-recreate --build
 
 
 

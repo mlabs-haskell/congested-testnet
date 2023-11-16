@@ -1,28 +1,4 @@
 services:
-  node-spo-1:
-    image: inputoutput/cardano-node:${CARDANO_TAG}
-    networks:
-       mynet:    
-          aliases:
-            - node-spo-1.local
-    expose:
-      - 3000
-      - 6000
-    volumes:
-      - node-spo-1-db:/db
-      - ../cardano-conf/node-spo1:/socket
-      - ../cardano-conf:/config
-    entrypoint: "cardano-node run \
-                  --topology                        '/config/topology-spo-1.json' \
-                  --database-path                   'db' \
-                  --shelley-kes-key                 '/config/node-spo1/kes.skey' \
-                  --shelley-vrf-key                 '/config/node-spo1/vrf.skey' \
-                  --byron-delegation-certificate    '/config/node-spo1/byron-delegation.cert' \
-                  --byron-signing-key               '/config/node-spo1/byron-delegate.key' \
-                  --shelley-operational-certificate '/config/node-spo1/opcert.cert' \
-                  --config                          '/config/configuration.yaml' \
-                  --port                            '3000'"
-
   node-spo-2:
     image: inputoutput/cardano-node:${CARDANO_TAG}
     networks:
@@ -34,8 +10,8 @@ services:
       - 6000
     volumes:
       - node-spo-2-db:/db
-      - ../cardano-conf/node-spo2:/socket
-      - ../cardano-conf:/config
+      - ${TESTNET_CONFIG}/node-spo2:/socket
+      - ${TESTNET_CONFIG}:/config
     entrypoint: "cardano-node run \
                   --topology                        '/config/topology-spo-2.json' \
                   --database-path                   'db' \
@@ -67,8 +43,8 @@ services:
       - "12798:12798"
     volumes:
       - node-relay-1-db:/data/db
-      - ../cardano-conf/sockets/node-relay-1-socket:/socket
-      - ../cardano-conf:/config
+      - ${TESTNET_CONFIG}/sockets/node-relay-1-socket:/socket
+      - ${TESTNET_CONFIG}:/config
     entrypoint: sh -c "cardano-node run \
                   --config                          '/config/configuration.yaml' \
                   --topology                        '/config/topology-relay-1.json' \
@@ -96,7 +72,7 @@ services:
   #   volumes:
   #     - node-relay-2-db:/data/db
   #     - node-relay-2-socket:/socket
-  #     - ../cardano-conf:/config
+  #     - ${TESTNET_CONFIG}:/config
   #     
   #   entrypoint: "cardano-node run \
   #                 --config                          '/config/configuration.yaml' \
@@ -120,8 +96,8 @@ services:
   #     - 3000
   #   volumes:
   #     - node-passive-3-db:/data/db
-  #     - ../cardano-conf/sockets/node-passive-3-socket:/socket
-  #     - ../cardano-conf:/config
+  #     - ${TESTNET_CONFIG}/sockets/node-passive-3-socket:/socket
+  #     - ${TESTNET_CONFIG}:/config
   #   entrypoint: sh -c "cardano-node run \
   #                 --config                          '/config/configuration.yaml' \
   #                 --topology                        '/config/topology-passive-3.json' \
@@ -145,7 +121,7 @@ services:
     expose:
       - 1337
     volumes:
-      - ../cardano-conf:/config
+      - ${TESTNET_CONFIG}:/config
     command: [
       "--host", "0.0.0.0",
       "--node-socket", "/config/sockets/node-relay-1-socket/node.socket",
@@ -161,7 +137,7 @@ services:
     ports:
       - 1442:1442
     volumes:
-      - ../cardano-conf:/config
+      - ${TESTNET_CONFIG}:/config
     entrypoint: "/bin/kupo \
                    --node-socket /config/sockets/node-relay-1-socket/node.socket \
                    --node-config /config/configuration.yaml \
@@ -170,20 +146,20 @@ services:
                    --match '*/*' \
                    --workdir /data"
 
-  prometheus:
-    image: prom/prometheus:v2.43.1
-    networks:
-      mynet:
-        aliases:
-          - prometheus.local
-    ports:
-      - 9090:9090 
-    volumes:
-      - ../cardano-conf/:/etc/prometheus
-      - prom-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-    restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus:v2.43.1
+  #   networks:
+  #     mynet:
+  #       aliases:
+  #         - prometheus.local
+  #   ports:
+  #     - 9090:9090 
+  #   volumes:
+  #     - ${TESTNET_CONFIG}/:/etc/prometheus
+  #     - prom-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #   restart: unless-stopped
 
   # node_exporter:
   #   image: quay.io/prometheus/node-exporter:latest
