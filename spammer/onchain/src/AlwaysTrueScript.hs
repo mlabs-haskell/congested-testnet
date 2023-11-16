@@ -6,16 +6,8 @@
 {-# LANGUAGE Strict                #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE NamedFieldPuns #-}
+-- {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-uplc #-}
 
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-full-laziness #-}
-{-# OPTIONS_GHC -fno-spec-constr #-}
-{-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -fno-strictness #-}
-{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
-{-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module AlwaysTrueScript where
 
@@ -29,6 +21,8 @@ import PlutusTx
       compile )
 -- import PlutusLedgerApi.V2 (ScriptContext)
 import PlutusTx.Prelude (check, (!!), (&&), foldr)
+-- import PlutusLedgerApi.Common (serialiseCompiledCode)
+import PlutusLedgerApi.V2 (serialiseCompiledCode)
 -- import PlutusCore.Core (plcVersion100)
 
 
@@ -68,3 +62,6 @@ alwaysSucceeds _ _ _ = ()
 
 alwaysSucceedsCompiled :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 alwaysSucceedsCompiled = $$(PlutusTx.compile [|| alwaysSucceeds ||])
+
+
+-- ser = serialiseCompiledCode alwaysSucceedsCompiled 

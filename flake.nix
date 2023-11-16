@@ -4,20 +4,19 @@
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
   inputs.iogx.url = github:input-output-hk/iogx/be20493284255d15192b3e98ad8b4d51a73b2c8c;
   inputs.cardano-node.url = github:input-output-hk/cardano-node/1.35.6;
-  inputs.cardano-node.flake = false;
-  inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
+  inputs.cardano-node.flake = false; inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
-  inputs.plutus.url = "github:input-output-hk/plutus/a49a91f467930868a3b6b08f194d94ae3f0e086e";
-  # inputs.plutus.url = "github:input-output-hk/plutus/1.1.0.0";
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
     repo = "cardano-transaction-lib";
     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
-
   inputs.nixpkgs.follows = "ctl/nixpkgs";
-  inputs.CHaP.follows = "ctl/CHaP";
+  inputs.CHaP = {
+  url = github:input-output-hk/cardano-haskell-packages?ref=repo;
+  flake = false;
+  };
 
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
@@ -101,7 +100,7 @@
               libsodium
               secp256k1
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
-            ++ onchain-outputs.devShell.${system}.buildInputs
+            # ++ onchain-outputs.devShell.${system}.buildInputs
             ++ (psProjectFor pkgs).devShell.buildInputs;
             shellHook = ''
             '';

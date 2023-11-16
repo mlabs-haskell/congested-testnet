@@ -13,7 +13,7 @@ category: Console, Text
 build-type: Simple
 
 Description:
-  Onchain part of spamer
+  Onchain part of spammer
 
 
 flag defer-plugin-errors
@@ -62,13 +62,12 @@ library
 
   build-depends:
      base
-     , bytestring
-     , base16-bytestring
-     , plutus-core
-     , plutus-ledger-api
-     , plutus-tx
-     , plutus-tx-plugin   
-     , unix
+      , bytestring
+      , base16-bytestring
+      , plutus-core
+      , plutus-ledger-api
+      , plutus-tx
+      , plutus-tx-plugin   
 
   hs-source-dirs:  src
 
@@ -77,12 +76,12 @@ executable get-script
   main-is:        Main.hs
   build-depends:
      base
-     , onchain
-     , bytestring
-     , base16-bytestring
-     , plutus-ledger-api
-     , serialise
-     , cardano-api
+      , onchain
+      , bytestring
+      , base16-bytestring
+      , plutus-ledger-api
+      , cardano-api
+      , serialise
 
 
   hs-source-dirs: exporter 
