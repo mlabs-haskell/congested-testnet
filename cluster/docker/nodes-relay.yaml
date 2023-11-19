@@ -1,0 +1,33 @@
+services:
+  node-relay-1:
+    image: inputoutput/cardano-node:${CARDANO_TAG}
+    networks:
+       mynet:    
+          aliases:
+            - node-relay-1.local
+    expose:
+      - 3000
+      - 6000
+      - 12789
+      - 12788
+      - 12798
+    ports:
+      - "3000:3000"
+      - "12789:12789"
+      - "12788:12788"
+      - "12798:12798"
+    volumes:
+      - node-relay-1-db:/data/db
+      - ${TESTNET_CONFIG}/sockets/node-relay-1-socket:/socket
+      - ${TESTNET_CONFIG}:/config
+    entrypoint: sh -c "cardano-node run \
+                  --config                          '/config/configuration.yaml' \
+                  --topology                        '/config/topology-relay-1.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'
+                  &
+                  while ! [ -S /socket/node.socket ]; do sleep 1; done;
+                  chmod 777 /socket/node.socket;
+                  wait
+                  "

@@ -1,40 +1,73 @@
-{ pkgs, tags, cardano, gen-testnet-config}:
+{ pkgs, tags, cardano, gen-testnet-config }:
 let
   inherit (tags) cardano-tag;
 in
-# pkgs.writeScriptBin "runnet" ''
-#   export CARDANO_CLI=${cardano}
-#   export ROOT=$(git rev-parse --show-toplevel)
-#   export CARDANO_TAG=${cardano-tag}
-#   ${./runnet.sh}
-# ''
-pkgs.writeShellApplication {
+{
+  runnet = pkgs.writeShellApplication {
     name = "runnet";
-    runtimeInputs = [pkgs.git];
+    runtimeInputs = [ pkgs.git ];
     text = ''
-    #!/bin/sh
-    set +o pipefail
-    # shellcheck disable=SC2034,SC2086,SC1072,SC2046
-    # move to root
-    TESTNET_CONFIG="$(git rev-parse --show-toplevel)/cardano-conf"
+      #!/bin/sh
 
-    # start docker daemon
-    sudo systemctl start docker
+      # start (logs CONTAINER) stop
+      COMMAND="$1"
+      
 
-    # shutdown all containers 
-    # shellcheck disable=SC2046
-    # sudo docker stop $(sudo docker ps -a -q)
-    # shellcheck disable=SC2046
-    # sudo docker volume rm $(sudo docker volume ls -q)
-    # sudo docker-compose down --file ${./docker-compose.yaml}
-
-    # add configs to start network
-    ${gen-testnet-config}/bin/conf
+      case $COMMAND in
+          "start"|"logs"|"stop")
+              ;;
+          *)
+              raise error "$COMMAND is not in start logs stop"
+              ;;
+      esac
 
 
-    # sudo CARDANO_TAG=${cardano-tag} TESTNET_CONFIG=$TESTNET_CONFIG docker compose --file ${./docker-compose.yaml} up -d --remove-orphans --force-recreate --build
+
+      # add configs to start network
+      if [[ "$COMMAND" == "start" ]]; then
+          ${gen-testnet-config}/bin/conf
+      fi
+
+      # copy docker compose files
+      TESTNET_CONFIG="$(git rev-parse --show-toplevel)/cardano-conf" 
+      if [[ "$COMMAND" == "start" ]]; then
+          mkdir -p "$TESTNET_CONFIG"/cluster
+          for file in ${./docker}/*; do 
+          cp "$file" "$TESTNET_CONFIG"/cluster/
+          done
+
+          # write .env file with variables
+          echo TESTNET_CONFIG="$TESTNET_CONFIG" >> "$TESTNET_CONFIG"/cluster/.env
+          echo CARDANO_TAG=${cardano-tag} >> "$TESTNET_CONFIG"/cluster/.env
+          
+          # start docker
+          sudo systemctl start docker
+      fi
+
+      cd "$TESTNET_CONFIG"/cluster
+
+
+      DOCKER_FILES=""
+      for file in "$TESTNET_CONFIG"/cluster/* ; do 
+        if [[ "$file" == *.yaml ]]; then
+          DOCKER_FILES+="-f $(basename "$file") "
+        fi
+      done
+      
+      # shutdown containers 
+      if [[ "$COMMAND" != "logs" ]]; then
+        eval "sudo docker compose -p congested-testnet $DOCKER_FILES down -v"
+      fi
+      
+      # run contaners 
+      if [[ "$COMMAND" == "start" ]]; then
+        eval "sudo docker compose -p congested-testnet $DOCKER_FILES up -d --remove-orphans --force-recreate --build"
+      fi
+
+      # logs 
+      if [[ "$COMMAND" == "logs" ]]; then
+        eval "sudo docker compose -p congested-testnet $DOCKER_FILES logs $2"
+      fi
     '';
+  };
 }
-     # sudo docker compose --file cluster/docker-compose.yaml exec test-network bash
-     # sudo docker compose --file cluster/docker-compose.yaml down -v
-     # sudo docker compose --file cluster/docker-compose.yaml logs node-spo-1 

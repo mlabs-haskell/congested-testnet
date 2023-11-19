@@ -1,0 +1,29 @@
+# services:
+  # prometheus:
+  #   image: prom/prometheus:v2.43.1
+  #   networks:
+  #     mynet:
+  #       aliases:
+  #         - prometheus.local
+  #   ports:
+  #     - 9090:9090 
+  #   volumes:
+  #     - ${TESTNET_CONFIG}/:/etc/prometheus
+  #     - prom-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #   restart: unless-stopped
+
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
+  #   networks:
+  #     mynet:
+  #       aliases:
+  #         - node_exporter.local
+  #   pid: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - '/:/host:ro,rslave'

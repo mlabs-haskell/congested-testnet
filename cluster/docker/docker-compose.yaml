@@ -1,0 +1,9 @@
+networks:
+  mynet:
+
+volumes:
+  node-spo-1-db:
+  node-spo-2-db:
+  node-relay-1-db:
+  prom-data:
+

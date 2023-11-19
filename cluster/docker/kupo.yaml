@@ -1,0 +1,18 @@
+services:
+  kupo:
+    image: cardanosolutions/kupo:v2.7.0
+    networks:
+      mynet:
+        aliases:
+          - kupo.local
+    ports:
+      - 1442:1442
+    volumes:
+      - ${TESTNET_CONFIG}:/config
+    entrypoint: "/bin/kupo \
+                   --node-socket /config/sockets/node-relay-1-socket/node.socket \
+                   --node-config /config/configuration.yaml \
+                   --host 0.0.0.0 \
+                   --since origin \
+                   --match '*/*' \
+                   --workdir /data"

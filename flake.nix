@@ -4,7 +4,8 @@
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
   inputs.iogx.url = github:input-output-hk/iogx/be20493284255d15192b3e98ad8b4d51a73b2c8c;
   inputs.cardano-node.url = github:input-output-hk/cardano-node/1.35.6;
-  inputs.cardano-node.flake = false; inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
+  inputs.cardano-node.flake = false;
+  inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
   inputs.ctl = {
     type = "github";
@@ -14,8 +15,8 @@
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.CHaP = {
-  url = github:input-output-hk/cardano-haskell-packages?ref=repo;
-  flake = false;
+    url = github:input-output-hk/cardano-haskell-packages?ref=repo;
+    flake = false;
   };
 
   inputs.flake-compat = {
@@ -113,16 +114,18 @@
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
             (import ./config { inherit pkgs iohk-nix cardano-world system cardano cardano-node; }) //
+            # run testnet with docker compose
+            (import ./cluster {
+              inherit pkgs cardano;
+              tags = { inherit cardano-tag; };
+              gen-testnet-config = self.packages.${system}.config;
+            }) //
             rec {
               # generate config files for testnet
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spammer.Main";
                 entrypoint = "index.js";
               };
-              # run testnet with docker compose
-              runnet = import ./cluster { inherit pkgs cardano; 
-                                          tags = { inherit cardano-tag; }; 
-                                          gen-testnet-config = self.packages.${system}.config; };
               test = import ./test { inherit pkgs cardano; };
               research = import ./research { inherit pkgs; };
             };
