@@ -3,7 +3,7 @@
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
   inputs.iogx.url = github:input-output-hk/iogx/be20493284255d15192b3e98ad8b4d51a73b2c8c;
-  inputs.cardano-node.url = github:input-output-hk/cardano-node/1.35.6;
+  inputs.cardano-node.url = github:input-output-hk/cardano-node/8.1.2;
   inputs.cardano-node.flake = false;
   inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
@@ -11,7 +11,7 @@
     type = "github";
     owner = "Plutonomicon";
     repo = "cardano-transaction-lib";
-    rev = "605931759ff35bdd71bb4d933071aced9fb57870";
+     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.CHaP = {
@@ -27,7 +27,7 @@
 
   outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, cardano-node, ... }@inputs:
     let
-      cardano-tag = "1.35.6";
+      cardano-tag = "8.1.2";
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
         repoRoot = ./spammer/onchain;
@@ -56,8 +56,8 @@
             version = cardano-tag;
 
             src = pkgs.fetchurl {
-              url = "https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-${cardano-tag}-linux.tar.gz";
-              sha256 = "sha256-R4+5qbHyFLIvwHb5x9uTxLDdOPFwBADrjKRP6eTnoBE=";
+              url = "https://github.com/input-output-hk/cardano-node/releases/download/${cardano-tag}/cardano-node-${cardano-tag}-linux.tar.gz";
+              sha256 = "sha256-NakRbNfUf1J9NICFOq+HMrfPHurPemdTC8pqf9aeUPo=";
             };
 
             buildCommand = ''
@@ -113,6 +113,7 @@
         {
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
+            # generate config for cardano testnet
             (import ./config { inherit pkgs iohk-nix cardano-world system cardano cardano-node; }) //
             # run testnet with docker compose
             (import ./cluster {
@@ -121,7 +122,6 @@
               gen-testnet-config = self.packages.${system}.config;
             }) //
             rec {
-              # generate config files for testnet
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spammer.Main";
                 entrypoint = "index.js";
@@ -133,9 +133,6 @@
           apps = {
             purs-docs = (psProjectFor pkgs).launchSearchablePursDocs { };
           };
-
-          temp = (psProjectFor pkgs);
-          temp1 = onchain-outputs;
 
         }
       );

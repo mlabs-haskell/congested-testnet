@@ -1,12 +1,12 @@
-{ pkgs, iohk-nix, cardano, cardano-world, system, cardano-node, ... }:
+{ pkgs, cardano, cardano-node, ... }:
 {
   config = pkgs.writeShellApplication {
     name = "conf";
-    runtimeInputs = [ cardano pkgs.git ];
+    runtimeInputs = [cardano pkgs.git ];
     text = ''
         #!/bin/sh
         # base script is located in 
-        # https://github.com/input-output-hk/cardano-node/blob/1.35.6/scripts/babbage/mkfiles.sh
+        # https://github.com/input-output-hk/cardano-node/blob/8.1.2/scripts/babbage/mkfiles.sh
 
         DIR=$(git rev-parse --show-toplevel)
         ROOT=$DIR/cardano-conf
@@ -59,6 +59,8 @@
       # are deprecated, we must use the "create-staked" cli command to create
       # SPOs in the ShelleyGenesis
       cp ${cardano-node}/scripts/babbage/alonzo-babbage-test-genesis.json "$ROOT/genesis.alonzo.spec.json"
+      cp ${cardano-node}/scripts/babbage/conway-babbage-test-genesis.json "$ROOT/genesis.conway.spec.json"
+
       cp ${cardano-node}/configuration/defaults/byron-mainnet/configuration.yaml "$ROOT/"
 
       # shellcheck disable=SC2129
@@ -70,6 +72,7 @@
            -e 's|GenesisFile: genesis.json|ByronGenesisFile: genesis/byron/genesis.json|' \
            -e '/ByronGenesisFile/ aShelleyGenesisFile: genesis/shelley/genesis.json' \
            -e '/ByronGenesisFile/ aAlonzoGenesisFile: genesis/shelley/genesis.alonzo.json' \
+           -e '/ByronGenesisFile/ aConwayGenesisFile: genesis/shelley/genesis.conway.json' \
            -e 's/RequiresNoMagic/RequiresMagic/' \
            -e 's/LastKnownBlockVersion-Major: 0/LastKnownBlockVersion-Major: 6/' \
            -e 's/LastKnownBlockVersion-Minor: 2/LastKnownBlockVersion-Minor: 0/'
@@ -83,7 +86,8 @@
       echo "TestMaryHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "TestAlonzoHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "TestBabbageHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
-      echo "TestEnableDevelopmentNetworkProtocols: True" >> "$ROOT/configuration.yaml"
+      echo "TestConwayHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
+      echo "ExperimentalProtocolsEnabled: True" >> "$ROOT/configuration.yaml"
       echo "EnableP2P: True" >> "$ROOT/configuration.yaml"
       echo  "hasPrometheus:" >> "$ROOT/configuration.yaml"
       echo  '  - "127.0.0.1"' >> "$ROOT/configuration.yaml"
@@ -117,6 +121,7 @@
 
       cp "$ROOT/byron-gen-command/genesis.json" "$ROOT/genesis/byron/genesis-wrong.json"
       cp "$ROOT/genesis.alonzo.json" "$ROOT/genesis/shelley/genesis.alonzo.json"
+      cp "$ROOT/genesis.conway.json" "$ROOT/genesis/shelley/genesis.conway.json"
       cp "$ROOT/genesis.json" "$ROOT/genesis/shelley/genesis.json"
 
       jq --raw-output '.protocolConsts.protocolMagic = 2' "$ROOT/genesis/byron/genesis-wrong.json" > "$ROOT/genesis/byron/genesis.json"

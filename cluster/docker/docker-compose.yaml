@@ -6,4 +6,6 @@ volumes:
   node-spo-2-db:
   node-relay-1-db:
   prom-data:
+  postgres:
+
 

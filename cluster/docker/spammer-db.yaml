@@ -1,0 +1,15 @@
+services:
+  spammer-db:
+    image: postgres:14-alpine
+    networks:
+       mynet:    
+          aliases:
+            - spammer-db.local
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=spammer
