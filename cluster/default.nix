@@ -1,7 +1,4 @@
-{ pkgs, tags, cardano, gen-testnet-config }:
-let
-  inherit (tags) cardano-tag;
-in
+inputs@{ pkgs, cardano-tag, cardano, gen-testnet-config, ...}:
 {
   runnet = pkgs.writeShellApplication {
     name = "runnet";

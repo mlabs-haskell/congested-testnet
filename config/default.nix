@@ -1,4 +1,4 @@
-{ pkgs, cardano, cardano-node, ... }:
+inputs@{ pkgs, cardano, cardano-node, ... }:
 {
   config = pkgs.writeShellApplication {
     name = "conf";
@@ -159,7 +159,7 @@
       cp "$ROOT/pools/kes1.skey" "$ROOT/node-spo1/kes.skey"
       cp "$ROOT/pools/kes2.skey" "$ROOT/node-spo2/kes.skey"
 
-      #Byron related
+      # Byron related
 
       cp "$ROOT/byron-gen-command/delegate-keys.000.key" "$ROOT/node-spo1/byron-delegate.key"
       cp "$ROOT/byron-gen-command/delegate-keys.001.key" "$ROOT/node-spo2/byron-delegate.key"
@@ -167,10 +167,13 @@
       cp "$ROOT/byron-gen-command/delegation-cert.000.json" "$ROOT/node-spo1/byron-delegation.cert"
       cp "$ROOT/byron-gen-command/delegation-cert.001.json" "$ROOT/node-spo2/byron-delegation.cert"
 
-      #Prometheus
+      # Prometheus
 
       cp "${./prometheus.yml}" "$ROOT/prometheus.yml" 
 
+      # Spammer db initial script
+      mkdir -p "$ROOT/init-sql-script/"
+      cp "${./init-db.sql}" "$ROOT/init-sql-script/init-db.sql"
 
 
     '';

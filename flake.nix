@@ -52,7 +52,7 @@
           };
 
           cardano = pkgs.stdenv.mkDerivation {
-            pname = "cardano-static";
+            pname = "cardano-binary-source";
             version = cardano-tag;
 
             src = pkgs.fetchurl {
@@ -69,28 +69,9 @@
               ln -s $out/cardano-node $out/bin/cardano-node
             '';
           };
-          psProjectFor = pkgs:
-            pkgs.purescriptProject rec {
-              inherit pkgs;
-              projectName = "ctl-node";
-              packageJson = ./spammer/basic-spammer-ctl/package.json;
-              packageLock = ./spammer/basic-spammer-ctl/package-lock.json;
-              src = builtins.path {
-                path = ./spammer/basic-spammer-ctl;
-                name = "${projectName}-src";
-                # Adjust the `filter` as necessary
-                filter = path: ftype: !(pkgs.lib.hasSuffix ".md" path);
-              };
-              shell = {
-                withRuntime = true;
-                packageLockOnly = true;
-                packages = with pkgs; [
-                  fd
-                  nodePackages.eslint
-                  nodePackages.prettier
-                ];
-              };
-            };
+
+        inputs' = inputs // {inherit cardano-tag cardano pkgs;};
+        inherit (import ./spammer/nix inputs') psProjectFor;
 
           devShell = with pkgs; mkShell {
             buildInputs = [
@@ -107,27 +88,25 @@
             '';
           };
 
-          root = ./.;
-
         in
         {
+          
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
             # generate config for cardano testnet
-            (import ./config { inherit pkgs iohk-nix cardano-world system cardano cardano-node; }) //
+            (import ./config inputs') //
             # run testnet with docker compose
-            (import ./cluster {
-              inherit pkgs cardano;
-              tags = { inherit cardano-tag; };
-              gen-testnet-config = self.packages.${system}.config;
-            }) //
+            (import ./cluster (
+              inputs' // {gen-testnet-config = self.packages.${system}.config;}
+            )) //
+            (import ./spammer/nix inputs') //
             rec {
               ctl-node = (psProjectFor pkgs).buildPursProject {
                 main = "Spammer.Main";
                 entrypoint = "index.js";
               };
-              test = import ./test { inherit pkgs cardano; };
-              research = import ./research { inherit pkgs; };
+              test = import ./test inputs' ;
+              research = import ./research inputs' ;
             };
 
           apps = {
