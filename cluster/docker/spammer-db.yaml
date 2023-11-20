@@ -11,6 +11,7 @@ services:
       - postgres:/var/lib/postgresql/data
       - ${TESTNET_CONFIG}/init-sql-script:/docker-entrypoint-initdb.d
     environment:
-      - POSTGRES_PASSWORD=password
       - POSTGRES_USER=user
       - POSTGRES_DB=spammer
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      # - POSTGRES_PASSWORD=password

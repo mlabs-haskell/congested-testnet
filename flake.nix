@@ -11,9 +11,11 @@
     type = "github";
     owner = "Plutonomicon";
     repo = "cardano-transaction-lib";
-     rev = "605931759ff35bdd71bb4d933071aced9fb57870";
+    rev = "605931759ff35bdd71bb4d933071aced9fb57870";
+    # rev = "b212a58a544d979b5e49dfe5db7f623a2c69e25b";
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
+  # inputs.CHaP.follows = "ctl/CHaP";
   inputs.CHaP = {
     url = github:input-output-hk/cardano-haskell-packages?ref=repo;
     flake = false;
@@ -70,8 +72,8 @@
             '';
           };
 
-        inputs' = inputs // {inherit cardano-tag cardano pkgs;};
-        inherit (import ./spammer/nix inputs') psProjectFor;
+          inputs' = inputs // { inherit cardano-tag cardano pkgs; };
+          inherit (import ./spammer/nix inputs') psProjectFor;
 
           devShell = with pkgs; mkShell {
             buildInputs = [
@@ -90,14 +92,14 @@
 
         in
         {
-          
+
           devShells.default = devShell;
           packages = onchain-outputs.packages.${system} //
             # generate config for cardano testnet
             (import ./config inputs') //
             # run testnet with docker compose
             (import ./cluster (
-              inputs' // {gen-testnet-config = self.packages.${system}.config;}
+              inputs' // { gen-testnet-config = self.packages.${system}.config; }
             )) //
             (import ./spammer/nix inputs') //
             rec {
@@ -105,8 +107,8 @@
                 main = "Spammer.Main";
                 entrypoint = "index.js";
               };
-              test = import ./test inputs' ;
-              research = import ./research inputs' ;
+              test = import ./test inputs';
+              research = import ./research inputs';
             };
 
           apps = {

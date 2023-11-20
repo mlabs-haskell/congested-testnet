@@ -1,4 +1,4 @@
-inputs@{ pkgs, cardano-tag, cardano, gen-testnet-config, ...}:
+inputs@{ pkgs, cardano-tag, cardano, gen-testnet-config, ... }:
 {
   runnet = pkgs.writeShellApplication {
     name = "runnet";
