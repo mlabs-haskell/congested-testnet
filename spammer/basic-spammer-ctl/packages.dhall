@@ -186,51 +186,6 @@ let additions =
         , repo = "https://github.com/garyb/purescript-mote"
         , version = "v1.1.0"
         }
-      , medea =
-        { dependencies =
-          [ "aff"
-          , "argonaut"
-          , "arrays"
-          , "bifunctors"
-          , "control"
-          , "effect"
-          , "either"
-          , "enums"
-          , "exceptions"
-          , "foldable-traversable"
-          , "foreign-object"
-          , "free"
-          , "integers"
-          , "lists"
-          , "maybe"
-          , "mote"
-          , "naturals"
-          , "newtype"
-          , "node-buffer"
-          , "node-fs-aff"
-          , "node-path"
-          , "nonempty"
-          , "ordered-collections"
-          , "parsing"
-          , "partial"
-          , "prelude"
-          , "psci-support"
-          , "quickcheck"
-          , "quickcheck-combinators"
-          , "safely"
-          , "spec"
-          , "strings"
-          , "these"
-          , "transformers"
-          , "typelevel"
-          , "tuples"
-          , "unicode"
-          , "unordered-collections"
-          , "unsafe-coerce"
-          ]
-        , repo = "https://github.com/juspay/medea-ps.git"
-        , version = "8b215851959aa8bbf33e6708df6bd683c89d1a5a"
-        }
       , purescript-toppokki =
         { dependencies =
           [ "prelude"
@@ -300,7 +255,6 @@ let additions =
           , "lists"
           , "math"
           , "maybe"
-          , "medea"
           , "media-types"
           , "monad-logger"
           , "mote"
@@ -353,7 +307,7 @@ let additions =
           , "web-html"
           ]
         , repo = "https://github.com/Plutonomicon/cardano-transaction-lib.git"
-        , version = "ee5233d556bce8aee7fd1c2934641b72eecae196"
+        , version = "167bc59308d00be43c01706e03f8c0e7993b6d69"
         }
       , noble-secp256k1 =
         { dependencies =

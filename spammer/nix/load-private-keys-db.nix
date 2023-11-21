@@ -8,7 +8,7 @@ pkgs.writeShellApplication {
   text = ''
     #!/bin/sh
     SQL_COMMAND="" 
-    for _ in $(seq 1 100); do 
+    for _ in $(seq 1 1); do 
       cardano-cli address key-gen \
           --verification-key-file "/tmp/pub.vkey" \
           --signing-key-file "/tmp/priv.skey"
@@ -21,6 +21,7 @@ pkgs.writeShellApplication {
     DB_USER="user"
     DB_HOST="localhost"
     DB_PORT="5432"
+    echo "$SQL_COMMAND"
 
 
     # Execute the SQL file

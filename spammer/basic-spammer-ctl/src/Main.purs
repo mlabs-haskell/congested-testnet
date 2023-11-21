@@ -116,10 +116,10 @@ s1 = "4e4d01000033222220051200120011"
 s2 = "480100002221200101"
 main :: Effect Unit
 main = do 
-  arr <- liftMaybe (error "no parse") (decodeCborHexToBytes s2)
-  let script = plutusV2Script arr
-  log $ show $ script
-  log $ show $ arr
+  -- arr <- liftMaybe (error "no parse") (decodeCborHexToBytes s2)
+  -- let script = plutusV2Script arr
+  -- log $ show $ script
+  -- log $ show $ arr
   -- launchAff_ do
   --   runContract config do 
 
