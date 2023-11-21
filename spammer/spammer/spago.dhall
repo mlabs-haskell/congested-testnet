@@ -22,6 +22,7 @@ You can edit this file as you like.
   , "transformers"
   , "node-buffer"
   , "node-fs"
+  , "numbers"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
