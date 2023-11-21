@@ -3,7 +3,7 @@ module Spammer.Main where
 
 import Contract.Prelude
 
-import Contract.Address (ByteArray, NetworkId(..), ownPaymentPubKeyHash, scriptHashAddress)
+import Contract.Address (NetworkId(..), scriptHashAddress)
 import Contract.Config (ContractParams, LogLevel(..), PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.PlutusData (unitDatum, unitRedeemer)
@@ -26,12 +26,6 @@ import Data.UInt (fromInt)
 import Effect.Exception (error)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
-
--- getValidator :: Effect Validator 
--- getValidator = do
---   str <-  "../../validator.uplc"
---   bytes <- liftMaybe (error "can't convert script to bytearray") (byteArrayFromAscii str)
---   pure $ Validator $ PlutusScript (bytes /\ PlutusV2)
 
 
 

@@ -11,11 +11,9 @@
     type = "github";
     owner = "Plutonomicon";
     repo = "cardano-transaction-lib";
-    # rev = "605931759ff35bdd71bb4d933071aced9fb57870";
     rev = "b212a58a544d979b5e49dfe5db7f623a2c69e25b";
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
-  # inputs.CHaP.follows = "ctl/CHaP";
   inputs.CHaP = {
     url = github:input-output-hk/cardano-haskell-packages?ref=repo;
     flake = false;

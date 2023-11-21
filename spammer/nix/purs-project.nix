@@ -7,10 +7,10 @@ pkgs:
 pkgs.purescriptProject rec {
   inherit pkgs;
   projectName = "spammer";
-  packageJson = ../basic-spammer-ctl/package.json;
-  packageLock = ../basic-spammer-ctl/package-lock.json;
+  packageJson = ../spammer/package.json;
+  packageLock = ../spammer/package-lock.json;
   src = builtins.path {
-    path = ../basic-spammer-ctl;
+    path = ../spammer;
     name = "${projectName}-src";
     # Adjust the `filter` as necessary
     filter = path: ftype: !(pkgs.lib.hasSuffix ".md" path);
