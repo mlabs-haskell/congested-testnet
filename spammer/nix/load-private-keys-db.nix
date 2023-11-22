@@ -26,6 +26,7 @@ pkgs.writeShellApplication {
 
     # Execute the SQL file
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$SQL_COMMAND"
+    # psql -h "localhost" -p "5432" -U "user" -d "spammer" 
 
   '';
 }
