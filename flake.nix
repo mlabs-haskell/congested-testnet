@@ -28,6 +28,7 @@
   outputs = { self, nixpkgs, flake-utils, iohk-nix, ctl, cardano-world, cardano-node, ... }@inputs:
     let
       cardano-tag = "8.1.2";
+      cardano-version = "8.1.2";
       onchain-outputs = inputs.iogx.lib.mkFlake {
         inherit inputs;
         repoRoot = ./spammer/onchain;
@@ -53,10 +54,10 @@
 
           cardano = pkgs.stdenv.mkDerivation {
             pname = "cardano-binary-source";
-            version = cardano-tag;
+            version = cardano-version;
 
             src = pkgs.fetchurl {
-              url = "https://github.com/input-output-hk/cardano-node/releases/download/${cardano-tag}/cardano-node-${cardano-tag}-linux.tar.gz";
+              url = "https://github.com/input-output-hk/cardano-node/releases/download/${cardano-tag}/cardano-node-${cardano-version}-linux.tar.gz";
               sha256 = "sha256-NakRbNfUf1J9NICFOq+HMrfPHurPemdTC8pqf9aeUPo=";
             };
 
@@ -70,8 +71,10 @@
             '';
           };
 
-          inputs' = inputs // { inherit cardano-tag cardano pkgs; };
+          inputs'' = inputs // { inherit cardano-tag cardano pkgs; };
           inherit (import ./spammer/nix inputs') psProjectFor;
+          ctl-runtime = (psProjectFor pkgs).devShell.buildInputs;
+          inputs' = inputs'' // { inherit ctl-runtime; };
 
           devShell = with pkgs; mkShell {
             buildInputs = [
@@ -83,7 +86,7 @@
               secp256k1
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
             # ++ onchain-outputs.devShell.${system}.buildInputs
-            ++ (psProjectFor pkgs).devShell.buildInputs;
+            ++ ctl-runtime;
             shellHook = ''
             '';
           };

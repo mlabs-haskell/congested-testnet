@@ -5,7 +5,7 @@ import Contract.Prelude
 
 import Contract.Address (NetworkId(..), scriptHashAddress)
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
-import Contract.Monad (Contract)
+import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.PlutusData (unitDatum, unitRedeemer)
 import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
 import Contract.Scripts (Validator(..), validatorHash)
@@ -67,7 +67,7 @@ config =
         , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
         } Nothing
       , networkId: TestnetId 
-      , logLevel: Info 
+      , logLevel: Debug 
       , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
       , customLogger: Nothing
       , suppressLogs : false 
@@ -84,11 +84,9 @@ lock = do
   log $ show $ mUtxos 
   let
       value = lovelaceValueOf (BInt.fromInt 2123456) 
-      lookups :: ScriptLookups Void 
       lookups = unspentOutputs utxos <>
                 validator val
 
-      constraints :: TxConstraints Void Void 
       constraints = mustPayToScript (validatorHash val) unitDatum DatumWitness value 
   txId <- submitTxFromConstraints lookups constraints
   log $ show $ txId 
@@ -105,7 +103,6 @@ unlock = do
   scriptRecord <- liftMaybe (error "can't find any script utxo") (findMax valUtxos) 
   log $ show $ scriptRecord 
   let
-      lookups :: ScriptLookups Void 
       lookups = unspentOutputs utxos <>
                 unspentOutputs valUtxos <>
                 validator val
@@ -113,7 +110,6 @@ unlock = do
 
       scriptInput = scriptRecord.key
 
-      constraints :: TxConstraints Void Void 
       constraints = mustSpendScriptOutput scriptInput unitRedeemer 
   txId <- submitTxFromConstraints lookups constraints
   log $ show $ txId 
@@ -136,10 +132,9 @@ main = do
   -- let script = plutusV2Script arr
   -- log $ show $ script
   -- log $ show $ arr
-  -- launchAff_ do
-  --   runContract config do 
-
-       -- lock
+  launchAff_ do
+    runContract config do 
+       lock
        -- unlock
        -- lock
        -- unlock

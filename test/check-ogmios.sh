@@ -1,16 +1,12 @@
 #!/bin/sh
-OGMIOS_REQUEST='{ 
-  "type": "jsonwsp/request",
-  "version": "1.0",
-  "servicename": "ogmios",
-  "methodname": "Query",
-  "args": { "query": "utxo" }
-}'
+OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/protocolParameters","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
+  # "id" : "queryLedgerState/protocolParameters-5pyr5tknolp8mtrbe" 
 # echo "Sending the following request to Ogmios"
 # echo "$OGMIOS_REQUEST" | jq
 # echo "OGMIOS RESULT"
 # echo "$OGMIOS_REQUEST" | tr -d "\n" 
-echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat ws://127.0.0.1:1337 | jq ".result"
+# echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat ws://127.0.0.1:1337 | jq ".result"
+echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat ws://127.0.0.1:1337  | jq
 
 
 # alias cardano-cli=$CARDANO_CLI/bin/cardano-cli 

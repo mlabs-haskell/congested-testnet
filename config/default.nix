@@ -6,7 +6,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
     text = ''
         #!/bin/sh
         # base script is located in 
-        # https://github.com/input-output-hk/cardano-node/blob/8.1.2/scripts/babbage/mkfiles.sh
+        # https://github.com/input-output-hk/cardano-node/blob/{cardano-tag}/scripts/babbage/mkfiles.sh
 
         DIR=$(git rev-parse --show-toplevel)
         ROOT=$DIR/cardano-conf
@@ -74,7 +74,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
            -e '/ByronGenesisFile/ aAlonzoGenesisFile: genesis/shelley/genesis.alonzo.json' \
            -e '/ByronGenesisFile/ aConwayGenesisFile: genesis/shelley/genesis.conway.json' \
            -e 's/RequiresNoMagic/RequiresMagic/' \
-           -e 's/LastKnownBlockVersion-Major: 0/LastKnownBlockVersion-Major: 6/' \
+           -e 's/LastKnownBlockVersion-Major: 0/LastKnownBlockVersion-Major: 8/' \
            -e 's/LastKnownBlockVersion-Minor: 2/LastKnownBlockVersion-Minor: 0/'
 
       # sed -i '/^SocketPath:/d' "$ROOT/configuration.yaml" 
@@ -86,7 +86,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       echo "TestMaryHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "TestAlonzoHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "TestBabbageHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
-      echo "TestConwayHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
+      # echo "TestConwayHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "ExperimentalProtocolsEnabled: True" >> "$ROOT/configuration.yaml"
       echo "EnableP2P: True" >> "$ROOT/configuration.yaml"
       echo  "hasPrometheus:" >> "$ROOT/configuration.yaml"
@@ -128,20 +128,20 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
       rm "$ROOT/genesis/byron/genesis-wrong.json"
 
-      sed -i "$ROOT/genesis/shelley/genesis.json" \
-        -e 's/"slotLength": 1/"slotLength": 0.1/' \
-        -e 's/"activeSlotsCoeff": 5.0e-2/"activeSlotsCoeff": 0.1/' \
-        -e 's/"securityParam": 2160/"securityParam": 10/' \
-        -e 's/"epochLength": 432000/"epochLength": 500/' \
-        -e 's/"maxLovelaceSupply": 0/"maxLovelaceSupply": 1000000000000/' \
-        -e 's/"minFeeA": 1/"minFeeA": 44/' \
-        -e 's/"minFeeB": 0/"minFeeB": 155381/' \
-        -e 's/"minUTxOValue": 0/"minUTxOValue": 1000000/' \
-        -e 's/"decentralisationParam": 1.0/"decentralisationParam": 0.7/' \
-        -e 's/"major": 0/"major": 7/' \
-        -e 's/"rho": 0.0/"rho": 0.1/' \
-        -e 's/"tau": 0.0/"tau": 0.1/' \
-        -e 's/"updateQuorum": 5/"updateQuorum": 2/'
+      # sed -i "$ROOT/genesis/shelley/genesis.json" \
+      #   -e 's/"slotLength": 1/"slotLength": 0.1/' \
+      #   -e 's/"activeSlotsCoeff": 5.0e-2/"activeSlotsCoeff": 0.1/' \
+      #   -e 's/"securityParam": 2160/"securityParam": 10/' \
+      #   -e 's/"epochLength": 432000/"epochLength": 500/' \
+      #   -e 's/"maxLovelaceSupply": 0/"maxLovelaceSupply": 1000000000000/' \
+      #   -e 's/"minFeeA": 1/"minFeeA": 44/' \
+      #   -e 's/"minFeeB": 0/"minFeeB": 155381/' \
+      #   -e 's/"minUTxOValue": 0/"minUTxOValue": 1000000/' \
+      #   -e 's/"decentralisationParam": 1.0/"decentralisationParam": 0.7/' \
+      #   -e 's/"major": 0/"major": 8/' \
+      #   -e 's/"rho": 0.0/"rho": 0.1/' \
+      #   -e 's/"tau": 0.0/"tau": 0.1/' \
+      #   -e 's/"updateQuorum": 5/"updateQuorum": 2/'
 
       # shellcheck disable=SC2086
       cp "${./topology-spo-1.json}" "$ROOT/topology-spo-1.json"

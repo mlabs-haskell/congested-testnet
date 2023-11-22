@@ -23,6 +23,7 @@ You can edit this file as you like.
   , "node-buffer"
   , "node-fs"
   , "numbers"
+  , "aff-promise"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
