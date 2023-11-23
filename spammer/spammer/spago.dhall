@@ -24,6 +24,9 @@ You can edit this file as you like.
   , "node-fs"
   , "numbers"
   , "aff-promise"
+  , "arrays"
+  , "aeson"
+  , "argonaut"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
