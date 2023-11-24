@@ -10,7 +10,8 @@ import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 import Spammer.Db (executeQuery)
-import Spammer.Types (KeyFile, CborHex)
+import Spammer.Keys (parseKeyFromJsonString)
+import Spammer.Utils (liftJsonDecodeError)
 
 
 
@@ -43,21 +44,6 @@ loadGenesisUtxoKeysDb = do
 
 
 
-
-parseKeyFromJsonString :: String -> Either JsonDecodeError CborHex 
-parseKeyFromJsonString jsonString = do
-      keyFile :: KeyFile <- parseJson jsonString >>= decodeJson  
-      let
-          cborHex = keyFile.cborHex 
-          cborHexWithoutHeader = drop 4 cborHex
-      pure cborHexWithoutHeader
-
-
-liftJsonDecodeError :: forall a. DecodeJson a => Either JsonDecodeError a -> Effect a 
-liftJsonDecodeError eitherErrA = do 
-  case eitherErrA of
-      Left e -> throw $ printJsonDecodeError e 
-      Right x -> pure x 
 
 
 

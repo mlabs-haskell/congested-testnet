@@ -1,14 +1,14 @@
 let pg = require('pg')
 
-const client = new pg.Client({
-  host : 'localhost',
-  port : 5432,
-  database : 'spammer', 
-  user : 'user'
-})
 
 exports._executeQuery = function (queryString) {
   return function (onError, onSuccess) {
+    const client = new pg.Client({
+      host : 'localhost',
+      port : 5432,
+      database : 'spammer', 
+      user : 'user'
+    })
     return client.connect()
         .then(() => {
             return client.query(queryString);

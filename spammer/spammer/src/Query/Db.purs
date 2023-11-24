@@ -14,3 +14,5 @@ foreign import _executeQuery :: Query -> EffectFnAff Json
 
 executeQuery :: Query -> Aff Json 
 executeQuery = fromEffectFnAff <<< _executeQuery 
+
+

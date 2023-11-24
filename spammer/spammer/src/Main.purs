@@ -27,13 +27,12 @@ import Effect.Exception (error)
 
 
 
-foreign import spamScript :: String
 
-getValidator :: Contract Validator
-getValidator =
-  liftMaybe (error "Error decoding alwaysSucceeds") do
-    envelope <- decodeTextEnvelope spamScript 
-    Validator <$> plutusScriptV2FromEnvelope envelope
+-- getValidator :: Contract Validator
+-- getValidator =
+--   liftMaybe (error "Error decoding alwaysSucceeds") do
+--     envelope <- decodeTextEnvelope spamScript 
+--     Validator <$> plutusScriptV2FromEnvelope envelope
 
 defaultTimeParams :: ContractTimeParams 
 defaultTimeParams =
@@ -76,44 +75,44 @@ config =
       , synchronizationParams: defaultSynchronizationParams
       }
 
-lock :: Contract Unit 
-lock = do
-  val <- getValidator 
-  mUtxos <- getWalletUtxos 
-  utxos <- liftMaybe (error "no utxos") mUtxos
-  log $ show $ mUtxos 
-  let
-      value = lovelaceValueOf (BInt.fromInt 2123456) 
-      lookups = unspentOutputs utxos <>
-                validator val
-
-      constraints = mustPayToScript (validatorHash val) unitDatum DatumWitness value 
-  txId <- submitTxFromConstraints lookups constraints
-  log $ show $ txId 
-  log "Successfully submitted"
-
-
-
-unlock :: Contract Unit
-unlock = do 
-  val <- getValidator 
-  mUtxos <- getWalletUtxos
-  utxos <- liftMaybe (error "no utxos") mUtxos
-  valUtxos <- utxosAt (scriptHashAddress (validatorHash val) Nothing)  
-  scriptRecord <- liftMaybe (error "can't find any script utxo") (findMax valUtxos) 
-  log $ show $ scriptRecord 
-  let
-      lookups = unspentOutputs utxos <>
-                unspentOutputs valUtxos <>
-                validator val
+-- lock :: Contract Unit 
+-- lock = do
+--   val <- getValidator 
+--   mUtxos <- getWalletUtxos 
+--   utxos <- liftMaybe (error "no utxos") mUtxos
+--   log $ show $ mUtxos 
+--   let
+--       value = lovelaceValueOf (BInt.fromInt 2123456) 
+--       lookups = unspentOutputs utxos <>
+--                 validator val
+--
+--       constraints = mustPayToScript (validatorHash val) unitDatum DatumWitness value 
+--   txId <- submitTxFromConstraints lookups constraints
+--   log $ show $ txId 
+--   log "Successfully submitted"
 
 
-      scriptInput = scriptRecord.key
 
-      constraints = mustSpendScriptOutput scriptInput unitRedeemer 
-  txId <- submitTxFromConstraints lookups constraints
-  log $ show $ txId 
-  log "Successfully submitted"
+-- unlock :: Contract Unit
+-- unlock = do 
+--   val <- getValidator 
+--   mUtxos <- getWalletUtxos
+--   utxos <- liftMaybe (error "no utxos") mUtxos
+--   valUtxos <- utxosAt (scriptHashAddress (validatorHash val) Nothing)  
+--   scriptRecord <- liftMaybe (error "can't find any script utxo") (findMax valUtxos) 
+--   log $ show $ scriptRecord 
+--   let
+--       lookups = unspentOutputs utxos <>
+--                 unspentOutputs valUtxos <>
+--                 validator val
+--
+--
+--       scriptInput = scriptRecord.key
+--
+--       constraints = mustSpendScriptOutput scriptInput unitRedeemer 
+--   txId <- submitTxFromConstraints lookups constraints
+--   log $ show $ txId 
+--   log "Successfully submitted"
 
     
 -- decodeCborHexToBytes :: String -> Maybe ByteArray 
@@ -121,10 +120,10 @@ unlock = do
 --   cborBa <- hexToByteArray cborHex
 --   hush $ toByteArray $ wrap $ wrap cborBa
 
-s1 :: String
-s1 = "4e4d01000033222220051200120011"
-s2 :: String
-s2 = "480100002221200101"
+-- s1 :: String
+-- s1 = "4e4d01000033222220051200120011"
+-- s2 :: String
+-- s2 = "480100002221200101"
 main :: Effect Unit
 main = do 
   log "hi"
@@ -132,9 +131,9 @@ main = do
   -- let script = plutusV2Script arr
   -- log $ show $ script
   -- log $ show $ arr
-  launchAff_ do
-    runContract config do 
-       lock
+  -- launchAff_ do
+  --   runContract config do 
+  --      lock
        -- unlock
        -- lock
        -- unlock
