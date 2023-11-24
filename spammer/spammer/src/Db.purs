@@ -1,15 +1,16 @@
-module Spammer.Db (executeQuery, KeysRow) where
+module Spammer.Db (executeQuery) where
 
 import Contract.Prelude
 
 import Control.Promise (Promise, toAffE)
+import Data.Argonaut (Json)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 
-type KeysRow = {pkey :: String, pubkey :: String} 
+type Query = String
 
-foreign import _executeQuery :: String -> EffectFnAff (Array KeysRow)
+foreign import _executeQuery :: Query -> EffectFnAff Json 
 
-executeQuery :: String -> Aff (Array KeysRow) 
+executeQuery :: Query -> Aff Json 
 executeQuery = fromEffectFnAff <<< _executeQuery 

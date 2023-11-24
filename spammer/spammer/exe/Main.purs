@@ -15,32 +15,14 @@ import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Db (executeQuery)
-
-type KeyFile = { 
-  type :: String,
-  description :: String,
-  cborHex :: String
-  }
+import Spammer.Types (KeyFile)
+import Spammer.Start (startSpammer)
 
 
 
 main :: Effect Unit
 main = do 
-  -- log "hi"
-  utxo1_skey <- readTextFile UTF8 "/home/maxim/work/projects/congested-testnet/cardano-conf/utxo-keys/utxo1.skey"
-  utxo1_pkey <- readTextFile UTF8 "/home/maxim/work/projects/congested-testnet/cardano-conf/utxo-keys/utxo1.vkey"
-  let 
-      json :: Either JsonDecodeError KeyFile
-      json = parseJson utxo1_skey >>= decodeJson  
-  key <- case json of
-      Left e -> throw "decode error"
-      Right key -> pure key
-
-  log $ key.description
-  launchAff_ do
-     res <- executeQuery "select * from pkeys;"
-     -- h <- liftMaybe (error "no array") (head res)
-     log $ show $ Data.Array.null res 
-     -- log "hi"
+  startSpammer
+  
        
   

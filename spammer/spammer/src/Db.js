@@ -15,8 +15,6 @@ exports._executeQuery = function (queryString) {
         })
         .then(result => {
             console.log(result.rows);
-            // console.log(result.rows.length);
-            // onSuccess([{"one" : 1}])
             onSuccess(result.rows)
         })
         .catch(err => {
@@ -30,9 +28,4 @@ exports._executeQuery = function (queryString) {
 }
 };
 
-// exports._executeQuery = function (queryString) {
-//   return function (onError, onSuccess) {
-//       onSuccess([{"one":1}]);
-//   };
-// };
 

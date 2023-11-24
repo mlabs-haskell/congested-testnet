@@ -27,6 +27,7 @@ You can edit this file as you like.
   , "arrays"
   , "aeson"
   , "argonaut"
+  , "strings"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
