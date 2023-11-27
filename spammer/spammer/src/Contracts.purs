@@ -24,12 +24,12 @@ import Data.Number (infinity)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 import Effect.Exception (error)
+import Ctl.Internal.Types.PubKeyHash (PaymentPubKeyHash)
 
-
-payFromWalletToPubKey :: Wallet -> PaymentPubKey -> Contract Unit 
+payFromWalletToPubKey :: Wallet -> PaymentPubKeyHash -> Contract Unit
 payFromWalletToPubKey wallet pubKey = withWallet \wallet -> do
-  mUtxos <- getWalletUtxos 
-  keyHashes <- ownStakePubKeyHashes 
+  mUtxos <- getWalletUtxos
+  keyHashes <- ownStakePubKeyHashes
   utxos <- liftMaybe (error "no utxos") mUtxos
   log $ show $ keyHashes
   -- let

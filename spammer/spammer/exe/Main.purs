@@ -16,6 +16,7 @@ import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
 import Spammer.Db (executeQuery)
 import Spammer.Query.Wallet (getWallet')
+import Spammer.Query.PubKeys (getPubKey)
 import Spammer.Start (startSpammer)
 
 
@@ -25,12 +26,13 @@ main = do
   -- startSpammer
   launchAff_ do
      keyWallet <- getWallet'
-     -- pubKeyToPay <- getPubKeys
      runContract config $ withKeyWallet keyWallet do
+        pubKeyToPay <- getPubKey 
         mutxos <- getWalletUtxos 
         pkeyhashes <- ownPaymentPubKeyHashes
         log $ show $ pkeyhashes 
         log $ show $ mutxos 
+        log $ show $ pubKeyToPay 
      
      
      

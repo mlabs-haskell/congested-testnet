@@ -1,6 +1,5 @@
 module Spammer.Main where
 
-
 import Contract.Prelude
 
 import Contract.Address (NetworkId(..), scriptHashAddress)
@@ -25,16 +24,13 @@ import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 import Effect.Exception (error)
 
-
-
-
 -- getValidator :: Contract Validator
 -- getValidator =
 --   liftMaybe (error "Error decoding alwaysSucceeds") do
 --     envelope <- decodeTextEnvelope spamScript 
 --     Validator <$> plutusScriptV2FromEnvelope envelope
 
-defaultTimeParams :: ContractTimeParams 
+defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
   { syncWallet:
       -- As clarified in Eternl discord, they synchronize with the server every 2
@@ -46,11 +42,11 @@ defaultTimeParams =
       { delay: Milliseconds 3_000.0, timeout: Seconds 120.0 }
   , awaitTxConfirmed:
       -- CIP-30 calls are cheap, so the delay can be just 1 second
-      { delay: Milliseconds 1_000.0, timeout: Seconds infinity}
+      { delay: Milliseconds 1_000.0, timeout: Seconds infinity }
   , waitUntilSlot: { delay: Milliseconds 1_000.0 }
   }
 
-defaultSynchronizationParams :: ContractSynchronizationParams 
+defaultSynchronizationParams :: ContractSynchronizationParams
 defaultSynchronizationParams =
   { syncBackendWithWallet:
       { errorOnTimeout: false, beforeCip30Methods: true, beforeBalancing: true }
@@ -59,21 +55,22 @@ defaultSynchronizationParams =
       { errorOnTimeout: false, beforeTxConfirmed: true }
   }
 
-config :: ContractParams 
+config :: ContractParams
 config =
-      { backendParams: CtlBackendParams 
-      { ogmiosConfig: defaultOgmiosWsConfig {host = "127.0.0.1"} 
-        , kupoConfig: defaultKupoServerConfig {path = Nothing, port = fromInt 1442}
-        } Nothing
-      , networkId: TestnetId 
-      , logLevel: Debug 
-      , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
-      , customLogger: Nothing
-      , suppressLogs : false 
-      , hooks : emptyHooks
-      , timeParams: defaultTimeParams 
-      , synchronizationParams: defaultSynchronizationParams
+  { backendParams: CtlBackendParams
+      { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1" }
+      , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt 1442 }
       }
+      Nothing
+  , networkId: TestnetId
+  , logLevel: Debug
+  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing
+  , customLogger: Nothing
+  , suppressLogs: false
+  , hooks: emptyHooks
+  , timeParams: defaultTimeParams
+  , synchronizationParams: defaultSynchronizationParams
+  }
 
 -- lock :: Contract Unit 
 -- lock = do
@@ -90,8 +87,6 @@ config =
 --   txId <- submitTxFromConstraints lookups constraints
 --   log $ show $ txId 
 --   log "Successfully submitted"
-
-
 
 -- unlock :: Contract Unit
 -- unlock = do 
@@ -114,7 +109,6 @@ config =
 --   log $ show $ txId 
 --   log "Successfully submitted"
 
-    
 -- decodeCborHexToBytes :: String -> Maybe ByteArray 
 -- decodeCborHexToBytes cborHex = do
 --   cborBa <- hexToByteArray cborHex
@@ -125,28 +119,20 @@ config =
 -- s2 :: String
 -- s2 = "480100002221200101"
 main :: Effect Unit
-main = do 
+main = do
   log "hi"
-  -- arr <- liftMaybe (error "no parse") (decodeCborHexToBytes s2)
-  -- let script = plutusV2Script arr
-  -- log $ show $ script
-  -- log $ show $ arr
-  -- launchAff_ do
-  --   runContract config do 
-  --      lock
-       -- unlock
-       -- lock
-       -- unlock
-       -- lock
-       -- unlock
-       -- lock
-       -- unlock
-
-      
-
-
-
-
-
-
+-- arr <- liftMaybe (error "no parse") (decodeCborHexToBytes s2)
+-- let script = plutusV2Script arr
+-- log $ show $ script
+-- log $ show $ arr
+-- launchAff_ do
+--   runContract config do 
+--      lock
+-- unlock
+-- lock
+-- unlock
+-- lock
+-- unlock
+-- lock
+-- unlock
 
