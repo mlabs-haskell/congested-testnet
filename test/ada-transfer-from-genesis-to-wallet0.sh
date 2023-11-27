@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 CONFIG=../cardano-conf
 export CARDANO_NODE_SOCKET_PATH=$CONFIG/sockets/node-relay-1-socket/node.socket 
 
@@ -36,7 +35,7 @@ cardano-cli address build \
   --out-file genesis1.addr \
   --testnet-magic 2 
 
-cat $CONFIG/utxo-keys/utxo1.skey
+# cat $CONFIG/utxo-keys/utxo1.skey
 # cat genesis1.addr
 
 
@@ -50,20 +49,14 @@ cardano-cli query utxo \
 cat genesis-utxos.json | jq
 
 TXIN=$(jq "keys[0]" "genesis-utxos.json" --raw-output)
-SEND_AMT=500000000
-SEND_AMT2=200000000
-SEND_AMT3=100000000
+SEND_AMT=3000000
 TXOUT="$(cat wallet0.addr)+${SEND_AMT}"
-TXOUT2="$(cat wallet0.addr)+${SEND_AMT2}"
-TXOUT3="$(cat wallet0.addr)+${SEND_AMT3}"
 
 cardano-cli transaction build \
 	    --testnet-magic 2 \
 	    --change-address $(cat genesis1.addr) \
 	    --tx-in "${TXIN}" \
 	    --tx-out "${TXOUT}" \
-	    --tx-out "${TXOUT2}" \
-	    --tx-out "${TXOUT3}" \
 	    --out-file "tx.body" \
       --witness-override 2
 
@@ -83,9 +76,9 @@ cardano-cli query utxo \
 
 cat wallet0-utxos.json | jq
 
-# cardano-cli transaction submit \
-# 	    --tx-file "tx.signed" \
-# 	    --testnet-magic 2
+cardano-cli transaction submit \
+	    --tx-file "tx.signed" \
+	    --testnet-magic 2
 #
 # cardano-cli query tip \
 # 	    --testnet-magic 2 \

@@ -25,16 +25,11 @@ loadGenesisUtxoKeysDb = do
       dir = "/home/maxim/work/projects/congested-testnet/cardano-conf/utxo-keys/"
   utxo1_skey_file<- readTextFile UTF8 (dir <> "utxo1.skey")
   utxo1_pkey_file <- readTextFile UTF8 (dir <> "utxo1.vkey")
-  utxo2_skey_file <- readTextFile UTF8 (dir <> "utxo2.skey")
-  utxo2_pkey_file <- readTextFile UTF8 (dir <> "utxo2.vkey")
   utxo1_skey_hex <- liftJsonDecodeError (parseKeyFromJsonString utxo1_skey_file) 
   utxo1_pkey_hex <- liftJsonDecodeError (parseKeyFromJsonString utxo1_pkey_file) 
-  utxo2_skey_hex <- liftJsonDecodeError (parseKeyFromJsonString utxo2_skey_file) 
-  utxo2_pkey_hex <- liftJsonDecodeError (parseKeyFromJsonString utxo2_pkey_file) 
   let 
       query = "INSERT INTO pkeys (pkey, pubkey) VALUES " <>  
-                "('" <> utxo1_skey_hex <> "', '" <> utxo1_pkey_hex <> "'), " <> 
-                "('" <> utxo2_skey_hex <> "', '" <> utxo2_pkey_hex <> "') " <>
+                "('" <> utxo1_skey_hex <> "', '" <> utxo1_pkey_hex <> "') " <> 
                 "ON CONFLICT (pkey) DO NOTHING;"
   launchAff_ do
      executeQuery query

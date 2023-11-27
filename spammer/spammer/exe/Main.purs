@@ -25,8 +25,8 @@ main = do
   -- startSpammer
   launchAff_ do
      keyWallet <- getWallet'
+     -- pubKeyToPay <- getPubKeys
      runContract config $ withKeyWallet keyWallet do
-     -- runContract config do
         mutxos <- getWalletUtxos 
         pkeyhashes <- ownPaymentPubKeyHashes
         log $ show $ pkeyhashes 
@@ -35,8 +35,6 @@ main = do
      
      
 
-    -- json <- executeQuery "select 1 from pkeys;"
-    -- log "end"
 
   
        

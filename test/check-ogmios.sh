@@ -1,5 +1,5 @@
 #!/bin/sh
-OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/protocolParameters","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
+OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/utxo","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
   # "id" : "queryLedgerState/protocolParameters-5pyr5tknolp8mtrbe" 
 # echo "Sending the following request to Ogmios"
 # echo "$OGMIOS_REQUEST" | jq

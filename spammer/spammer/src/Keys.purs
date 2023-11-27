@@ -9,6 +9,9 @@ import Data.String (drop)
 
 
 foreign import getPrivateKeyFromHex :: CborHex -> PrivateKey 
+foreign import genPrivateKey:: Effect PrivateKey 
+foreign import getPrivateKeyHex :: PrivateKey -> CborHex 
+foreign import getPubKeyHex :: PrivateKey -> CborHex 
 
 -- | Typical key file format  
 type KeyFile = { 

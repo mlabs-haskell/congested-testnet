@@ -7,7 +7,6 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
         #!/bin/sh
         # base script is located in 
         # https://github.com/input-output-hk/cardano-node/blob/{cardano-tag}/scripts/babbage/mkfiles.sh
-
         DIR=$(git rev-parse --show-toplevel)
         ROOT=$DIR/cardano-conf
         sudo rm -rf "$ROOT"
@@ -95,14 +94,16 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
       # Copy the cost mode
 
+      SUPPLY=1000000000000 
 
       cardano-cli genesis create-staked --genesis-dir "$ROOT" \
         --testnet-magic "$NETWORK_MAGIC" \
         --gen-pools 2 \
-        --supply 1000000000000 \
-        --supply-delegated 1000000000000 \
+        --supply $SUPPLY \
+        --supply-delegated $SUPPLY \
         --gen-stake-delegs 2 \
-        --gen-utxo-keys 2
+        --gen-utxo-keys 1 \
+        --gen-genesis-keys 1
 
       SPO_NODES="node-spo1 node-spo2"
 
@@ -116,8 +117,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       # for the nodes to use
 
       # Move all genesis related files
-      mkdir -p "$ROOT/genesis/byron"
-      mkdir -p "$ROOT/genesis/shelley"
+      mkdir -p "$ROOT/genesis/byron" mkdir -p "$ROOT/genesis/shelley"
 
       cp "$ROOT/byron-gen-command/genesis.json" "$ROOT/genesis/byron/genesis-wrong.json"
       cp "$ROOT/genesis.alonzo.json" "$ROOT/genesis/shelley/genesis.alonzo.json"
@@ -174,8 +174,13 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       # Spammer db initial script
       mkdir -p "$ROOT/init-sql-script/"
       cp "${./init-db.sql}" "$ROOT/init-sql-script/init-db.sql"
-
-
+      
+      # insert utxo1 row 
+      PKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.skey" | tail -c 66 | head -c -2 )"
+      PUBKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.vkey" | tail -c 66 | head -c -2)"
+      chmod 777 "$ROOT/init-sql-script/init-db.sql" 
+      echo "INSERT INTO pkeys (pkey, pubkey, balance) VALUES 
+      ('$PKEY', '$PUBKEY', $SUPPLY);" >> "$ROOT/init-sql-script/init-db.sql"
     '';
   };
 }

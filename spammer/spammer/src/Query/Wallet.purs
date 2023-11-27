@@ -13,19 +13,17 @@ import Spammer.Utils (liftJsonDecodeError)
 
 
 type Result = Array { 
-  pkey:: String,
-  pubkey :: String
+  pkey:: String
   }
 
 
 getWallet' :: Aff KeyWallet 
 getWallet' = do
-  json <- executeQuery "SELECT pkey, pubkey FROM pkeys LIMIT 1;"
+  json <- executeQuery "SELECT pkey FROM pkeys LIMIT 1;"
   result :: Result <- liftEffect $ liftJsonDecodeError (decodeJson json)
-  res <- liftMaybe (error "empty array") $ head result 
+  res <- liftMaybe (error "empty array in getWallet'") $ head result 
   let 
-      -- pkey = PrivatePaymentKey (getPrivateKeyFromHex res.pkey)
-      pkey = PrivatePaymentKey (getPrivateKeyFromHex "f20eb3183f6d7cbb4e96ffd08a286392db1594ada6df1b731c9798af5edac754")
+      pkey = PrivatePaymentKey (getPrivateKeyFromHex res.pkey)
       keyWallet = privateKeysToKeyWallet pkey Nothing 
   pure keyWallet 
 
