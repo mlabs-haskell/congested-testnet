@@ -14,8 +14,12 @@ exports._executeQuery = function (queryString) {
             return client.query(queryString);
         })
         .then(result => {
-            console.log(result.rows);
+          if (Array.isArray(result)) {
+            L = result.length
+            onSuccess(result[L-1].rows)
+            } else { 
             onSuccess(result.rows)
+            }
         })
         .catch(err => {
             console.error('Error query:', err);

@@ -11,3 +11,5 @@ liftJsonDecodeError eitherErrA = do
     Left e -> throw $ printJsonDecodeError e
     Right x -> pure x
 
+quotes :: String -> String
+quotes x = "'" <> x <> "'"

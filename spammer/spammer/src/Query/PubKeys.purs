@@ -13,8 +13,8 @@ import Spammer.Utils (liftJsonDecodeError)
 
 type Result = Array { pubkey :: String }
 
-getPubKey :: Contract PaymentPubKeyHash
-getPubKey = liftContractAffM
+getPubKeyHash :: Contract PaymentPubKeyHash
+getPubKeyHash = liftContractAffM
   "failed to get PublicKey for utxo out"
   do
     json <- executeQuery "SELECT pubkey FROM pkeys ORDER BY balance LIMIT 1;"
