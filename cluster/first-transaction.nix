@@ -8,26 +8,12 @@ pkgs.writeShellApplication {
     CONFIG="$DIR/cardano-conf"
     CARDANO_NODE_SOCKET_PATH="$CONFIG/sockets/node-relay-1-socket/node.socket" 
 
-    #generate wallet 
-
-    cardano-cli address key-gen \
-        --verification-key-file "/tmp/wallet.vkey" \
-        --signing-key-file "/tmp/wallet.skey"
-
-
-    cardano-cli address build \
-        --payment-verification-key-file "/tmp/wallet.vkey" \
-        --out-file "/tmp/wallet.addr" \
-        --testnet-magic 2
-
-
     cardano-cli address build \
       --payment-verification-key-file "$CONFIG/utxo-keys/utxo1.vkey" \
       --out-file "/tmp/genesis.addr" \
       --testnet-magic 2 
 
 
-    # echo "send ada from genesis wallet to user wallet"
     cardano-cli query utxo \
           --socket-path "$CARDANO_NODE_SOCKET_PATH" \
           --testnet-magic 2 \
@@ -36,7 +22,7 @@ pkgs.writeShellApplication {
 
     TXIN=$(jq "keys[0]" "/tmp/genesis-utxos.json" --raw-output)
     SEND_AMT=2000000
-    TXOUT="$(cat /tmp/wallet.addr)+$SEND_AMT"
+    TXOUT="$(cat /tmp/genesis.addr)+$SEND_AMT"
 
     cardano-cli transaction build \
           --socket-path "$CARDANO_NODE_SOCKET_PATH" \

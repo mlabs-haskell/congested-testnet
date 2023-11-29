@@ -14,7 +14,7 @@ import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
-import Spammer.Contracts (loopPayWalletFromPubKey, payFromWalletToPubKey)
+import Spammer.Contracts (loopPayWalletToPubKey)
 import Spammer.Db (executeQuery)
 import Spammer.Query.PubKeys (getPubKeyHash)
 import Spammer.Query.Wallet (getWallet')
@@ -26,7 +26,7 @@ main :: Effect Unit
 main = do 
   launchAff_ do
      runContract config do
-        loopPayWalletFromPubKey Nothing
+        loopPayWalletToPubKey 
 
      
      

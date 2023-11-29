@@ -28,6 +28,7 @@ You can edit this file as you like.
   , "aeson"
   , "argonaut"
   , "strings"
+  , "bignumber"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]

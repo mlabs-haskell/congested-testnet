@@ -178,9 +178,10 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       # insert utxo1 row 
       PKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.skey" | tail -c 66 | head -c -2 )"
       PUBKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.vkey" | tail -c 66 | head -c -2)"
+      PUBKEYHASH="$(cardano-cli address key-hash --payment-verification-key-file "$ROOT/utxo-keys/utxo1.vkey")"
       chmod 777 "$ROOT/init-sql-script/init-db.sql" 
-      echo "INSERT INTO pkeys (pkey, pubkey, balance) VALUES 
-      ('$PKEY', '$PUBKEY', $SUPPLY);" >> "$ROOT/init-sql-script/init-db.sql"
+      echo "INSERT INTO pkeys (pkey, pubkey, pubkeyhash, balance, time) VALUES 
+      ('$PKEY', '$PUBKEY', '$PUBKEYHASH', $SUPPLY, NOW());" >> "$ROOT/init-sql-script/init-db.sql"
     '';
   };
 }

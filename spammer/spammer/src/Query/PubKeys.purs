@@ -17,7 +17,7 @@ getPubKeyHash :: Contract PaymentPubKeyHash
 getPubKeyHash = liftContractAffM
   "failed to get PublicKey for utxo out"
   do
-    json <- executeQuery "SELECT pubkey FROM pkeys ORDER BY balance LIMIT 1;"
+    json <- executeQuery "SELECT pubkey FROM pkeys ORDER BY time ASC, balance DESC LIMIT 1;"
     result :: Result <- liftEffect $ liftJsonDecodeError (decodeJson json)
     let
       res = PaymentPubKeyHash

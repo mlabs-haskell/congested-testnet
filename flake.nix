@@ -84,6 +84,7 @@
               dia
               libsodium
               secp256k1
+              # dbeaver
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
             # ++ onchain-outputs.devShell.${system}.buildInputs
             ++ ctl-runtime;

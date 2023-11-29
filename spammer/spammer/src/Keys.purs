@@ -13,6 +13,8 @@ foreign import genPrivateKey :: Effect PrivateKey
 foreign import getPrivateKeyHex :: PrivateKey -> CborHex
 foreign import getPubKeyHex :: PrivateKey -> CborHex
 foreign import getEd25519HashFromPubKeyHex :: CborHex -> Ed25519KeyHash
+foreign import getPubKeyHashHex :: PrivateKey -> CborHex
+foreign import getHexFromEd25519Hash :: Ed25519KeyHash -> CborHex
 
 -- | Typical key file format  
 type KeyFile =

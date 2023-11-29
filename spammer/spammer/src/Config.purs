@@ -51,7 +51,7 @@ config =
     -- , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
     , walletSpec: Just $ UseKeys (PrivatePaymentKeyValue pkey) Nothing
     , customLogger: Nothing
-    , suppressLogs: false
+    , suppressLogs: true
     , hooks: emptyHooks
     , timeParams: defaultTimeParams
     , synchronizationParams: defaultSynchronizationParams
