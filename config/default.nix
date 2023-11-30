@@ -2,7 +2,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 {
   config = pkgs.writeShellApplication {
     name = "conf";
-    runtimeInputs = [ cardano pkgs.git ];
+    runtimeInputs = [ cardano pkgs.git pkgs.yq];
     text = ''
         #!/bin/sh
         # base script is located in 
@@ -88,9 +88,9 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       # echo "TestConwayHardForkAtEpoch: 0" >> "$ROOT/configuration.yaml"
       echo "ExperimentalProtocolsEnabled: True" >> "$ROOT/configuration.yaml"
       echo "EnableP2P: True" >> "$ROOT/configuration.yaml"
-      echo  "hasPrometheus:" >> "$ROOT/configuration.yaml"
-      echo  '  - "127.0.0.1"' >> "$ROOT/configuration.yaml"
-      echo  '  - 12789' >> "$ROOT/configuration.yaml"
+
+      # !!!!!!!!!!!!!!!!!!!!!!!! copy manual corrected config
+      cp ${./configuration.yaml} "$ROOT/configuration.yaml"
 
       # Copy the cost mode
 

@@ -7,7 +7,8 @@ services:
             - node-spo-1.local
     expose:
       - 3000
-      - 6000
+    ports:
+      - "12789:12788"
     volumes:
       - node-spo-1-db:/db
       - ${TESTNET_CONFIG}/node-spo1:/socket
@@ -31,7 +32,8 @@ services:
             - node-spo-2.local
     expose:
       - 3000
-      - 6000
+    ports:
+      - "12790:12788"
     volumes:
       - node-spo-2-db:/db
       - ${TESTNET_CONFIG}/node-spo2:/socket
