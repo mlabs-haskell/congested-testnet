@@ -7,8 +7,10 @@ services:
             - node-relay-1.local
     expose:
       - 3000
-    ports:
-      - "12788:12788"
+      - 12789
+    # ports:
+    #   - "12789:12789"
+    #   - "12788:12788"
     volumes:
       - node-relay-1-db:/data/db
       - ${TESTNET_CONFIG}/sockets/node-relay-1-socket:/socket

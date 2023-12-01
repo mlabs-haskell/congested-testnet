@@ -5,7 +5,7 @@ module Main (main) where
 import Contract.Prelude
 
 import Aeson (class DecodeAeson, class EncodeAeson, JsonDecodeError, decodeJsonString, getField)
-import Contract.Monad (launchAff_, runContract, throwContractError)
+import Contract.Monad (launchAff_, liftContractAffM, runContract, throwContractError)
 import Contract.Wallet (getWalletUtxos, ownPaymentPubKeyHashes, withKeyWallet)
 import Data.Argonaut (Json, decodeJson, jsonParser, parseJson, toObject)
 import Data.Array as Data.Array
@@ -16,6 +16,7 @@ import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
 import Spammer.Contracts (loopPayWalletToPubKey)
 import Spammer.Db (executeQuery)
+import Spammer.Prometheus (getAvgMemPoolUsage)
 import Spammer.Query.PubKeys (getPubKeyHash)
 import Spammer.Query.Wallet (getWallet')
 import Spammer.Start (startSpammer)
@@ -26,7 +27,10 @@ main :: Effect Unit
 main = do 
   launchAff_ do
      runContract config do
-        loopPayWalletToPubKey 
+        x <- liftContractAffM "NO" (pure <$> getAvgMemPoolUsage )
+        log $ show x
+        pure unit
+        -- loopPayWalletToPubKey 
 
      
      
