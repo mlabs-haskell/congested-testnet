@@ -2,7 +2,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 {
   config = pkgs.writeShellApplication {
     name = "conf";
-    runtimeInputs = [ cardano pkgs.git pkgs.yq];
+    runtimeInputs = [ cardano pkgs.git pkgs.yq ];
     text = ''
         #!/bin/sh
         # base script is located in 

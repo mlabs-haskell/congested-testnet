@@ -7,6 +7,7 @@
   inputs.cardano-node.flake = false;
   inputs.cardano-world.url = github:input-output-hk/cardano-world/f05d6593e2d9b959f5a99461cb10745826efcb64;
   inputs.cardano-world.flake = false;
+  inputs.aiken.url = github:aiken-lang/aiken;
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
@@ -88,6 +89,7 @@
               # dbeaver
             ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
             # ++ onchain-outputs.devShell.${system}.buildInputs
+            ++ [ inputs.aiken.outputs.packages.${system}.aiken ]
             ++ ctl-runtime;
             shellHook = ''
             '';
