@@ -15,6 +15,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
 import Spammer.Contracts (loopPayWalletToPubKey)
+import Spammer.Contracts.Lock (lock, unlock)
 import Spammer.Db (executeQuery)
 import Spammer.Prometheus (getAvgMemPoolUsage)
 import Spammer.Query.PubKeys (getPubKeyHash)
@@ -27,9 +28,13 @@ main :: Effect Unit
 main = do 
   launchAff_ do
      runContract config do
-        x <- liftContractAffM "NO" (pure <$> getAvgMemPoolUsage )
-        log $ show x
-        pure unit
+        keyWallet <- getWallet'
+        withKeyWallet keyWallet do 
+          x <- liftContractAffM "NO" (pure <$> getAvgMemPoolUsage )
+          log $ show x
+          lock
+          unlock
+          pure unit
         -- loopPayWalletToPubKey 
 
      

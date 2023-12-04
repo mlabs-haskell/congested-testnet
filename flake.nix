@@ -87,7 +87,7 @@
               secp256k1
               yq
               # dbeaver
-            ] ++ (with pkgs.python310Packages; [ jupyterlab pandas psycopg2 matplotlib tabulate ])
+            ] ++ (with pkgs.python310Packages; [cbor jupyterlab pandas psycopg2 matplotlib tabulate])
             # ++ onchain-outputs.devShell.${system}.buildInputs
             ++ [ inputs.aiken.outputs.packages.${system}.aiken ]
             ++ ctl-runtime;

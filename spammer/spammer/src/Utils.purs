@@ -4,6 +4,8 @@ import Contract.Prelude
 
 import Aeson (JsonDecodeError)
 import Contract.Monad (Contract)
+import Ctl.Internal.Types.ByteArray (ByteArray, hexToByteArray)
+import Ctl.Internal.Types.Cbor (toByteArray)
 import Data.Argonaut (class DecodeJson, printJsonDecodeError)
 import Data.BigInt (BigInt)
 import Effect.Exception (throw)
@@ -17,8 +19,9 @@ liftJsonDecodeError eitherErrA = do
 quotes :: String -> String
 quotes x = "'" <> x <> "'"
 
--- getBalance :: Contract BigInt
--- getBalance = do
---   mbalance <- getWalletBalance 
---   balance  <- liftMaybe (error "no utxos") mbalance 
+decodeCborHexToBytes :: String -> Maybe ByteArray
+decodeCborHexToBytes cborHex = do
+  cborBa <- hexToByteArray cborHex
+  hush $ toByteArray$ wrap $ wrap cborBa
+
 

@@ -43,9 +43,9 @@ RequiresNetworkMagic: RequiresMagic
 
 # This protocol version number gets used by block producing nodes as part
 # of the system for agreeing on and synchronising protocol updates.
-LastKnownBlockVersion-Major: 8
-LastKnownBlockVersion-Minor: 0
 LastKnownBlockVersion-Alt: 0
+LastKnownBlockVersion-Major: 7
+LastKnownBlockVersion-Minor: 0
 
 # In the Byron era some software versions are also published on the chain.
 # We do this only for Byron compatibility now.

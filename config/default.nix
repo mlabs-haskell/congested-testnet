@@ -73,7 +73,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
            -e '/ByronGenesisFile/ aAlonzoGenesisFile: genesis/shelley/genesis.alonzo.json' \
            -e '/ByronGenesisFile/ aConwayGenesisFile: genesis/shelley/genesis.conway.json' \
            -e 's/RequiresNoMagic/RequiresMagic/' \
-           -e 's/LastKnownBlockVersion-Major: 0/LastKnownBlockVersion-Major: 8/' \
+           -e 's/LastKnownBlockVersion-Major: 0/LastKnownBlockVersion-Major: 7/' \
            -e 's/LastKnownBlockVersion-Minor: 2/LastKnownBlockVersion-Minor: 0/'
 
       # sed -i '/^SocketPath:/d' "$ROOT/configuration.yaml" 
@@ -91,6 +91,9 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
       # !!!!!!!!!!!!!!!!!!!!!!!! copy manual corrected config
       cp ${./configuration.yaml} "$ROOT/configuration.yaml"
+
+
+      # !!!!!!!!!!!!!!!!!!!!!!!! change Shelley genesis.json
 
       # Copy the cost mode
 
@@ -127,21 +130,14 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       jq --raw-output '.protocolConsts.protocolMagic = 2' "$ROOT/genesis/byron/genesis-wrong.json" > "$ROOT/genesis/byron/genesis.json"
 
       rm "$ROOT/genesis/byron/genesis-wrong.json"
+      cp "$ROOT/genesis/shelley/genesis.json" "$ROOT/genesis/shelley/copy-genesis.json"
 
-      # sed -i "$ROOT/genesis/shelley/genesis.json" \
-      #   -e 's/"slotLength": 1/"slotLength": 0.1/' \
-      #   -e 's/"activeSlotsCoeff": 5.0e-2/"activeSlotsCoeff": 0.1/' \
-      #   -e 's/"securityParam": 2160/"securityParam": 10/' \
-      #   -e 's/"epochLength": 432000/"epochLength": 500/' \
-      #   -e 's/"maxLovelaceSupply": 0/"maxLovelaceSupply": 1000000000000/' \
-      #   -e 's/"minFeeA": 1/"minFeeA": 44/' \
-      #   -e 's/"minFeeB": 0/"minFeeB": 155381/' \
-      #   -e 's/"minUTxOValue": 0/"minUTxOValue": 1000000/' \
-      #   -e 's/"decentralisationParam": 1.0/"decentralisationParam": 0.7/' \
-      #   -e 's/"major": 0/"major": 8/' \
-      #   -e 's/"rho": 0.0/"rho": 0.1/' \
-      #   -e 's/"tau": 0.0/"tau": 0.1/' \
-      #   -e 's/"updateQuorum": 5/"updateQuorum": 2/'
+      jq -M '. + {slotLength:0.1, securityParam:10, activeSlotsCoeff:0.1, securityParam:10, epochLength:500, maxLovelaceSupply:10000000000000, updateQuorum:2}' "$ROOT/genesis/shelley/copy-genesis.json" > "$ROOT/genesis/shelley/copy2-genesis.json"
+      jq --raw-output '.protocolParams.protocolVersion.major = 7 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 0.7 | .protocolParams.rho = 0.1 | .protocolParams.tau = 0.1' "$ROOT/genesis/shelley/copy2-genesis.json" > "$ROOT/genesis/shelley/genesis.json"
+
+      rm "$ROOT/genesis/shelley/copy2-genesis.json"
+      rm "$ROOT/genesis/shelley/copy-genesis.json"
+
 
       # shellcheck disable=SC2086
       cp "${./topology-spo-1.json}" "$ROOT/topology-spo-1.json"
