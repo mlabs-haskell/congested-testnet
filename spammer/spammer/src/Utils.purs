@@ -22,6 +22,5 @@ quotes x = "'" <> x <> "'"
 decodeCborHexToBytes :: String -> Maybe ByteArray
 decodeCborHexToBytes cborHex = do
   cborBa <- hexToByteArray cborHex
-  hush $ toByteArray$ wrap $ wrap cborBa
-
+  hush $ toByteArray $ wrap $ wrap cborBa
 

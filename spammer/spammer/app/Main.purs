@@ -22,26 +22,16 @@ import Spammer.Query.PubKeys (getPubKeyHash)
 import Spammer.Query.Wallet (getWallet')
 import Spammer.Start (startSpammer)
 
-
-
 main :: Effect Unit
-main = do 
+main = do
   launchAff_ do
-     runContract config do
-        keyWallet <- getWallet'
-        withKeyWallet keyWallet do 
-          x <- liftContractAffM "NO" (pure <$> getAvgMemPoolUsage )
-          log $ show x
-          lock
-          unlock
-          pure unit
-        -- loopPayWalletToPubKey 
+    runContract config do
+      keyWallet <- getWallet'
+      withKeyWallet keyWallet do
+        x <- liftContractAffM "NO" (pure <$> getAvgMemPoolUsage)
+        log $ show x
+        lock
+        unlock
+        pure unit
+-- loopPayWalletToPubKey 
 
-     
-     
-     
-
-
-  
-       
-  

@@ -13,14 +13,15 @@ import Spammer.Db (executeQuery)
 import Spammer.Utils (quotes)
 
 main :: Effect Unit
-main = do 
+main = do
   arr_scripts_fpath <- argv
   scripts_fpath <- liftMaybe (error "no script path") $ arr_scripts_fpath !! 1
   content <- readTextFile UTF8 scripts_fpath
   let
-      
-      query = "INSERT INTO scripts (hex) VALUES " <>
-              foldl (\values line -> values <> " (" <> quotes line <> ") ," ) "" (lines content)  <>
-                "('') " <> "ON CONFLICT (hex) DO NOTHING;"
+
+    query = "INSERT INTO scripts (hex) VALUES "
+      <> foldl (\values line -> values <> " (" <> quotes line <> ") ,") "" (lines content)
+      <> "('') "
+      <> "ON CONFLICT (hex) DO NOTHING;"
   launchAff_ $ executeQuery query
-   
+
