@@ -21,4 +21,6 @@ rec {
     ${./check-ogmios.sh} 
   '';
 
+  lock-unlock = import ./lock-unlock.nix inputs;
+
 }

@@ -1,5 +1,6 @@
 {
   description = "congested-testnet";
+  inputs.nixpkgs-unstable.url = github:NixOS/nixpkgs/nixos-unstable;
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.iohk-nix.url = github:input-output-hk/iohk-nix/v2.2;
   inputs.iogx.url = github:input-output-hk/iogx/be20493284255d15192b3e98ad8b4d51a73b2c8c;
@@ -52,6 +53,8 @@
             ];
             config.allowBroken = true;
           };
+          pkgs-unstable = import inputs.nixpkgs-unstable { inherit system; config.allowBroken = true; };
+
 
           cardano = pkgs.stdenv.mkDerivation {
             pname = "cardano-binary-source";
@@ -72,10 +75,11 @@
             '';
           };
 
-          inputs'' = inputs // { inherit cardano-tag cardano pkgs; };
-          inherit (import ./spammer/nix inputs') psProjectFor;
+          inputs'' = inputs // { inherit cardano-tag cardano pkgs system; };
+          inherit (import ./spammer/nix inputs'') spammer;
+          psProjectFor = spammer.psProjectFor;
           ctl-runtime = (psProjectFor pkgs).devShell.buildInputs;
-          inputs' = inputs'' // { inherit ctl-runtime; };
+          inputs' = inputs'' // { inherit ctl-runtime spammer; };
 
           devShell = with pkgs; mkShell {
             buildInputs = [
@@ -86,8 +90,7 @@
               libsodium
               secp256k1
               yq
-              # dbeaver
-            ] ++ (with pkgs.python310Packages; [cbor jupyterlab pandas psycopg2 matplotlib tabulate])
+            ] ++ (with pkgs-unstable.python310Packages; [ pycardano cbor jupyterlab pandas psycopg2 matplotlib tabulate ])
             # ++ onchain-outputs.devShell.${system}.buildInputs
             ++ [ inputs.aiken.outputs.packages.${system}.aiken ]
             ++ ctl-runtime;

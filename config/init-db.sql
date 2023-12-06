@@ -6,3 +6,8 @@ CREATE TABLE pkeys (
     time TIMESTAMP NULL
 );
 
+CREATE TABLE scripts (
+    hex VARCHAR(255) PRIMARY KEY,
+    time TIMESTAMP NULL
+);
+

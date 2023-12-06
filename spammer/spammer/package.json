@@ -47,7 +47,8 @@
     "ws": "8.4.0",
     "xhr2": "0.2.1",
     "pg": "8.11.3",
-    "prom-client": "15.0.0" 
+    "prom-client": "15.0.0" ,
+    "cbor" : "9.0.1" 
 
   },
   "devDependencies": {

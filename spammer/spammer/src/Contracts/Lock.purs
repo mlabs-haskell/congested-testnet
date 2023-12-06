@@ -9,7 +9,7 @@ import Contract.PlutusData (unitDatum, unitRedeemer)
 import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
 import Contract.Scripts (Validator(..), validatorHash)
 import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptV2FromEnvelope)
-import Contract.Transaction (awaitTxConfirmed, plutusV2Script, submitTxFromConstraints)
+import Contract.Transaction (awaitTxConfirmed, plutusV1Script, plutusV2Script, submitTxFromConstraints)
 import Contract.TxConstraints (DatumPresence(..), TxConstraints, mustPayToScript, mustSpendScriptOutput)
 import Contract.Utxos (utxosAt)
 import Contract.Value (lovelaceValueOf)
@@ -25,12 +25,11 @@ import Data.UInt (fromInt)
 import Effect.Exception (error)
 import Spammer.Utils (decodeCborHexToBytes)
 
--- s = "4e4d01000033222220051200120011"
-s = "4e4d0200003222253330044a229309b2b2b9a1"
+s = "5850584e0100003222253330043253330055333005533300553330054a229445280a5114a0294452808008a50323300100148000894ccc018cdc42405000229444cc008008cdc0000a400429309b2b2b9a01"
 getValidator :: Contract Validator
 getValidator = do
   arr <- liftMaybe (error "no parse") (decodeCborHexToBytes s)
-  pure $ wrap <<< plutusV2Script $ arr
+  pure $ wrap <<< plutusV1Script $ arr
 
 
 lock :: Contract Unit 

@@ -29,7 +29,9 @@ You can edit this file as you like.
   , "argonaut"
   , "strings"
   , "bignumber"
+  , "node-process"
+  , "stringutils"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs", "exe/**/*.purs", "test/**/*.purs" ]
+, sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]
 }
