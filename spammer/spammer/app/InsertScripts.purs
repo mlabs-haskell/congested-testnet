@@ -1,4 +1,4 @@
-module Utils.InsertScripts where
+module InsertScripts where
 
 import Contract.Prelude
 
@@ -19,9 +19,9 @@ main = do
   content <- readTextFile UTF8 scripts_fpath
   let
 
-    query = "INSERT INTO scripts (hex) VALUES "
-      <> foldl (\values line -> values <> " (" <> quotes line <> ") ,") "" (lines content)
-      <> "('') "
+    query = "INSERT INTO scripts (hex, time) VALUES "
+      <> foldl (\values line -> values <> " (" <> quotes line <> " , NOW() ) ,") "" (lines content)
+      <> "('' , NOW()) "
       <> "ON CONFLICT (hex) DO NOTHING;"
   launchAff_ $ executeQuery query
 

@@ -11,3 +11,4 @@ CREATE TABLE scripts (
     time TIMESTAMP NULL
 );
 
+
