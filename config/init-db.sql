@@ -7,8 +7,14 @@ CREATE TABLE pkeys (
 );
 
 CREATE TABLE scripts (
-    hex VARCHAR(255) PRIMARY KEY,
+    script BYTEA PRIMARY KEY,
     time TIMESTAMP NULL
 );
 
 
+CREATE TABLE tx (
+    txhash BYTEA PRIMARY KEY,
+    id INT NOT NULL,
+    pkey BYTEA ,
+    time TIMESTAMP 
+);

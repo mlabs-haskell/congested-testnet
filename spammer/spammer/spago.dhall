@@ -31,6 +31,7 @@ You can edit this file as you like.
   , "bignumber"
   , "node-process"
   , "stringutils"
+  , "control"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]

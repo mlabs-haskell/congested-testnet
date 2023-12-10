@@ -19,9 +19,11 @@ main = do
   content <- readTextFile UTF8 scripts_fpath
   let
 
-    query = "INSERT INTO scripts (hex, time) VALUES "
-      <> foldl (\values line -> values <> " (" <> quotes line <> " , NOW() ) ,") "" (lines content)
+    bytea line = "decode( " <> quotes line <> ", 'hex' )"
+
+    query = "INSERT INTO scripts (script, time) VALUES "
+      <> foldl (\values line -> values <> " ( " <> bytea line <> " , NOW() ) ,") "" (lines content)
       <> "('' , NOW()) "
-      <> "ON CONFLICT (hex) DO NOTHING;"
+      <> "ON CONFLICT (script) DO NOTHING;"
   launchAff_ $ executeQuery query
 

@@ -23,22 +23,31 @@ type CountNullWallets = Array
   { count :: Number
   }
 
-getWallet' :: Contract KeyWallet
+getWallet' :: Aff (Maybe KeyWallet)
 getWallet' = do
   let
     query' =
-      """ UPDATE pkeys 
+      """    
+                 WITH cte AS (
+                      SELECT pkey 
+                      FROM  pkeys 
+                      WHERE time = (SELECT MIN(time) FROM pkeys)
+                      LIMIT 1
+                  )
+                   UPDATE pkeys 
                    SET time = NOW() 
-                   WHERE time = (SELECT time FROM pkeys ORDER BY time LIMIT 1)
-                   RETURNING pkey;
+                   FROM cte
+                   WHERE pkeys.pkey = cte.pkey
+                   RETURNING pkeys.pkey;
                """
-  json <- liftContractAffM "cannot get keyWallet" $ pure <$> executeQuery query'
+  json <- executeQuery query'
   result :: PrivKeyQueryResult <- liftEffect $ liftJsonDecodeError (decodeJson json)
-  res <- liftMaybe (error "empty array in getWallet'") $ head result
-  let
-    pkey = PrivatePaymentKey (getPrivateKeyFromHex res.pkey)
-    keyWallet = privateKeysToKeyWallet pkey Nothing
-  pure keyWallet
+  pure do
+    x <- head result
+    let
+      pkey = PrivatePaymentKey (getPrivateKeyFromHex x.pkey)
+      keyWallet = privateKeysToKeyWallet pkey Nothing
+    pure keyWallet
 
 generateNewWalletDb :: Contract Unit
 generateNewWalletDb = do
