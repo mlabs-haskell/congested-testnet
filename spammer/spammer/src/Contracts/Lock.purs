@@ -75,10 +75,10 @@ lock = do
               -- lookups = validator pars.validator
               valHash = validatorHash pars.validator
               constraints =
-                mustPayToScript valHash unitDatum DatumWitness pars.value
-                  <> mustSpendPubKeyOutput txInput
+                -- mustPayToScript valHash unitDatum DatumWitness pars.value <>
+                  mustSpendPubKeyOutput txInput
                   <>
-                    mustPayToPubKey (wrap pHash) (lovelaceValueOf $ BInt.fromInt 2_100_000)
+                    mustPayToPubKey (wrap pHash) (lovelaceValueOf $ BInt.fromInt 1_000_000)
             log $ show utxos
             txId <- submitTxFromConstraints lookups constraints
             pure unit

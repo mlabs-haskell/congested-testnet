@@ -20,12 +20,11 @@ fn add_num(s,t) {
 //}
  
 validator {
-  fn always_true(_datum : Data, _redeemer : Data, _context : Data ) {
-  let res = add_num(0,20)
-  True && True && True && True && res  
+//  fn always_true(_datum : Data, _redeemer : Data, _context : Data ) {
+//  let res = add_num(0,20)
+//  True && True && True && True && res  
+//  }
+  fn mint(_redeemer : Data, _context : Data ) {
+  True 
   }
 }
-// 510100003222253330044a229309b2b2b9a1
-// 581801000032222533300453330044a229445280a4c26cacae69
-// 5820010000322225333004533300453330044a229445280a5114a029309b2b2b9a01
-// 58270100003222253330045333004533300453330044a229445280a5114a029445280a4c26cacae681

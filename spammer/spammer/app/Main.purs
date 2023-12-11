@@ -15,6 +15,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
 import Spammer.Contracts.Lock (lock)
+import Spammer.Contracts.Mint (mint)
 import Spammer.Db (executeQuery)
 import Spammer.Prometheus (getAvgMemPoolUsage)
 import Spammer.Query.PubKeys (getPubKeyHash)
@@ -28,7 +29,8 @@ main = do
   fiber_env <- launchAff do
     env <- updateEnvForLock defaultSpammerEnv
     runContract config do
-      execStateT lock env
+      -- execStateT lock env
+      execStateT mint env
   launchAff_ do
     s <- joinFiber fiber_env
     runContract config do

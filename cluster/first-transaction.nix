@@ -21,8 +21,10 @@ pkgs.writeShellApplication {
           --out-file "/tmp/genesis-utxos.json"
 
     TXIN=$(jq "keys[0]" "/tmp/genesis-utxos.json" --raw-output)
-    SEND_AMT=2000000
+    SEND_AMT=20000000
     TXOUT="$(cat /tmp/genesis.addr)+$SEND_AMT"
+    TXOUT2="$(cat /tmp/genesis.addr)+$SEND_AMT"
+    TXOUT3="$(cat /tmp/genesis.addr)+$SEND_AMT"
 
     cardano-cli transaction build \
           --socket-path "$CARDANO_NODE_SOCKET_PATH" \
@@ -30,6 +32,8 @@ pkgs.writeShellApplication {
           --change-address "$(cat /tmp/genesis.addr)" \
           --tx-in "$TXIN" \
           --tx-out "$TXOUT" \
+          --tx-out "$TXOUT2" \
+          --tx-out "$TXOUT3" \
           --out-file "/tmp/tx.body" \
           --witness-override 2
 

@@ -12,21 +12,15 @@
   },
   "validators": [
     {
-      "title": "always_true.always_true",
-      "datum": {
-        "title": "_datum",
-        "schema": {
-          "$ref": "#/definitions/Data"
-        }
-      },
+      "title": "always_true.mint",
       "redeemer": {
         "title": "_redeemer",
         "schema": {
           "$ref": "#/definitions/Data"
         }
       },
-      "compiledCode": "584e0100003222253330043253330055333005533300553330054a229445280a5114a0294452808008a50323300100148000894ccc018cdc42405000229444cc008008cdc0000a400429309b2b2b9a01",
-      "hash": "20cbaab9d291a3049ebabf3ce4c281a5df1c58866f26da9c1444b212"
+      "compiledCode": "51010000322253330034a229309b2b2b9a01",
+      "hash": "d8906ca5c7ba124a0407a32dab37b2c82b13b3dcd9111e42940dcea4"
     }
   ],
   "definitions": {
