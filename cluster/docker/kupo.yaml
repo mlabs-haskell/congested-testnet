@@ -16,3 +16,21 @@ services:
                    --since origin \
                    --match '*/*' \
                    --workdir /data"
+
+  kupo-2:
+    image: cardanosolutions/kupo:v2.7.0
+    networks:
+      mynet:
+        aliases:
+          - kupo-2.local
+    ports:
+      - 1443:1442
+    volumes:
+      - ${TESTNET_CONFIG}:/config
+    entrypoint: "/bin/kupo \
+                   --node-socket /config/sockets/node-relay-2-socket/node.socket \
+                   --node-config /config/configuration.yaml \
+                   --host 0.0.0.0 \
+                   --since origin \
+                   --match '*/*' \
+                   --workdir /data"

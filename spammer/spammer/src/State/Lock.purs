@@ -11,13 +11,8 @@ import Spammer.Query.Scripts (getValidator)
 import Spammer.Query.Utxos (getUtxos')
 import Spammer.Query.Wallet (getWallet')
 import Spammer.State.Types (SpammerEnv(..), defaultSpammerEnv)
-import Spammer.Utils (liftJsonDecodeError)
+import Spammer.State.Update (updateEnvValidator, updateEnvValue, updateEnvWallet)
 
 updateEnvForLock :: SpammerEnv -> Aff SpammerEnv
-updateEnvForLock (SpammerEnv env) = do
-  validator <- getValidator
-  wallet <- getWallet'
-  utxos <- getUtxos'
-  let value = pure $ lovelaceValueOf (fromInt 1_000_000)
-  pure <<< wrap $ (unwrap defaultSpammerEnv) { validator = validator, wallet = wallet, value = value, utxos = utxos }
+updateEnvForLock = updateEnvWallet >=> updateEnvValue >=> updateEnvValidator
 

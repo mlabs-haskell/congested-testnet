@@ -19,6 +19,7 @@ exports._executeQuery = function (queryString) {
             L = result.length
             onSuccess(result[L-1].rows)
             } else { 
+            // console.log(result.rows)
             onSuccess(result.rows)
             }
         })

@@ -13,7 +13,7 @@ import Data.BigInt (BigInt, toString)
 import Effect.Exception (error)
 import Spammer.Db (executeQuery)
 import Spammer.Keys (genPrivateKey, getHexFromEd25519Hash, getPrivateKeyFromHex, getPrivateKeyHex, getPubKeyHashHex, getPubKeyHex)
-import Spammer.Utils (liftJsonDecodeError, quotes)
+import Spammer.Query.Utils (liftJsonDecodeError, quotes)
 
 type PrivKeyQueryResult = Array
   { pkey :: String

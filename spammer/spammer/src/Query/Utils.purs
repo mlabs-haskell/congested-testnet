@@ -1,4 +1,4 @@
-module Spammer.Utils where
+module Spammer.Query.Utils where
 
 import Contract.Prelude
 
@@ -18,6 +18,12 @@ liftJsonDecodeError eitherErrA = do
 
 quotes :: String -> String
 quotes x = "'" <> x <> "'"
+
+commas :: String -> String
+commas x = "," <> x <> ","
+
+bytea :: String -> String
+bytea x = "decode( " <> quotes x <> ",'hex')"
 
 decodeCborHexToBytes :: String -> Maybe ByteArray
 decodeCborHexToBytes cborHex = do

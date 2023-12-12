@@ -36,19 +36,18 @@ defaultSynchronizationParams =
       { errorOnTimeout: false, beforeTxConfirmed: true }
   }
 
-config :: ContractParams
-config =
+config :: Int -> Int -> ContractParams
+config ogmiosPort kupoPort =
   let
     pkey = PrivatePaymentKey (getPrivateKeyFromHex "815f8272944a975701c7aa7e81969673e9a7973ce7b15b911be9bd4304f94139")
   in
     { backendParams: CtlBackendParams
-        { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1" }
-        , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt 1442 }
+        { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1", port = fromInt ogmiosPort }
+        , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt kupoPort }
         }
         Nothing
     , networkId: TestnetId
     , logLevel: Debug
-    -- , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../tmp/wallet0.skey") Nothing  
     , walletSpec: Just $ UseKeys (PrivatePaymentKeyValue pkey) Nothing
     , customLogger: Nothing
     , suppressLogs: true

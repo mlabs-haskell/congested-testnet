@@ -6,15 +6,16 @@ CREATE TABLE pkeys (
     time TIMESTAMP NULL
 );
 
-CREATE TABLE scripts (
-    script BYTEA PRIMARY KEY,
-    time TIMESTAMP NULL
+CREATE TABLE validators (
+    id SERIAL ,
+    validator BYTEA PRIMARY KEY,
+    time TIMESTAMP  
 );
 
 
-CREATE TABLE tx (
-    txhash BYTEA PRIMARY KEY,
-    id INT NOT NULL,
-    pkey BYTEA ,
+CREATE TABLE txlocked (
+    txHash BYTEA PRIMARY KEY,
+    txOutInd INT,
+    valId INT, 
     time TIMESTAMP 
 );

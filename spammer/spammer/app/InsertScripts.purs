@@ -10,7 +10,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 import Node.Process (argv)
 import Spammer.Db (executeQuery)
-import Spammer.Utils (quotes)
+import Spammer.Query.Utils (bytea)
 
 main :: Effect Unit
 main = do
@@ -19,11 +19,10 @@ main = do
   content <- readTextFile UTF8 scripts_fpath
   let
 
-    bytea line = "decode( " <> quotes line <> ", 'hex' )"
 
-    query = "INSERT INTO scripts (script, time) VALUES "
-      <> foldl (\values line -> values <> " ( " <> bytea line <> " , NOW() ) ,") "" (lines content)
+    query = "INSERT INTO validators (validator, time) VALUES "
+      <> foldl (\values line -> values <> " ( " <>  bytea line <> " , NOW() ) ,") "" (lines content)
       <> "('' , NOW()) "
-      <> "ON CONFLICT (script) DO NOTHING;"
+      <> "ON CONFLICT (validator) DO NOTHING;"
   launchAff_ $ executeQuery query
 

@@ -32,6 +32,8 @@ You can edit this file as you like.
   , "node-process"
   , "stringutils"
   , "control"
+  , "sequences"
+  , "safely"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]

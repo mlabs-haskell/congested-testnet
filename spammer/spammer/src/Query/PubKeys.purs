@@ -9,7 +9,7 @@ import Data.Argonaut (decodeJson)
 import Data.Array (head)
 import Spammer.Db (executeQuery)
 import Spammer.Keys (getEd25519HashFromPubKeyHex)
-import Spammer.Utils (liftJsonDecodeError)
+import Spammer.Query.Utils (liftJsonDecodeError)
 
 type Result = Array { pubkey :: String }
 

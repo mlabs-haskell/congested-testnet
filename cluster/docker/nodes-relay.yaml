@@ -26,3 +26,30 @@ services:
                   chmod 777 /socket/node.socket;
                   wait
                   "
+  node-relay-2:
+    image: inputoutput/cardano-node:${CARDANO_TAG}
+    networks:
+       mynet:    
+          aliases:
+            - node-relay-2.local
+    expose:
+      - 3000
+      - 12789
+    # ports:
+    #   - "12789:12789"
+    #   - "12788:12788"
+    volumes:
+      - node-relay-2-db:/data/db
+      - ${TESTNET_CONFIG}/sockets/node-relay-2-socket:/socket
+      - ${TESTNET_CONFIG}:/config
+    entrypoint: sh -c "cardano-node run \
+                  --config                          '/config/configuration.yaml' \
+                  --topology                        '/config/topology-relay-2.json' \
+                  --database-path                   '/data/db' \
+                  --socket-path                     '/socket/node.socket' \
+                  --port                            '3000'
+                  &
+                  while ! [ -S /socket/node.socket ]; do sleep 1; done;
+                  chmod 777 /socket/node.socket;
+                  wait
+                  "

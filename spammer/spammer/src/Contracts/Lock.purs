@@ -3,14 +3,16 @@ module Spammer.Contracts.Lock where
 import Contract.Prelude
 
 import Contract.Address (NetworkId(..), scriptHashAddress)
+import Contract.BalanceTxConstraints (mustNotSpendUtxosWithOutRefs)
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.PlutusData (unitDatum, unitRedeemer)
 import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
 import Contract.Scripts (Validator(..), validatorHash)
 import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptV2FromEnvelope)
-import Contract.Transaction (awaitTxConfirmed, plutusV1Script, plutusV2Script, submitTxFromConstraints)
+import Contract.Transaction (TransactionInput(..), awaitTxConfirmed, balanceTx, balanceTxWithConstraints, plutusV1Script, plutusV2Script, signTransaction, submit, submitTxFromConstraints)
 import Contract.TxConstraints (DatumPresence(..), TxConstraints, mustPayToPubKey, mustPayToScript, mustSpendPubKeyOutput, mustSpendScriptOutput)
+import Contract.UnbalancedTx (mkUnbalancedTx)
 import Contract.Utxos (UtxoMap, utxosAt)
 import Contract.Value (Value, lovelaceValueOf)
 import Contract.Wallet (KeyWallet, getWalletUtxos, withKeyWallet)
@@ -19,30 +21,33 @@ import Control.Alternative (guard)
 import Control.Monad.Cont (lift)
 import Control.Monad.Error.Class (liftMaybe)
 import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
-import Control.Monad.RWS (get)
 import Control.Monad.State (StateT)
+import Control.Monad.State.Trans (modify, get, modify_)
 import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
 import Ctl.Internal.Contract.Wallet (ownPubKeyHashes)
-import Ctl.Internal.Serialization.Types (BigInt, TransactionHash)
-import Data.Array (head, take)
+import Data.Array (head, take, length)
 import Data.BigInt as BInt
 import Data.Map (fromFoldable, keys, toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Number (infinity)
-import Data.Set (findMax)
+import Data.Sequence (Seq)
+import Data.Set as Set
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 import Effect.Exception (error)
 import Spammer.Query.Scripts (getValidator)
+import Spammer.Query.TxLocked (insertTxLocked)
 import Spammer.Query.Wallet (getWallet')
 import Spammer.State.Types (SpammerEnv(..))
-import Spammer.Utils (decodeCborHexToBytes)
+import Spammer.State.Update (updateTxInputsUsed)
+import Spammer.Query.Utils (decodeCborHexToBytes)
 
 newtype LockParams = LockParams
   { wallet :: KeyWallet
   , validator :: Validator
+  , valId :: String
   , value :: Value
-  , mutxos :: Maybe UtxoMap
+  , txInputsUsed :: Seq TransactionInput
   }
 
 derive instance Newtype LockParams _
@@ -51,9 +56,9 @@ derive instance Generic LockParams _
 extractLockPars :: SpammerEnv -> Maybe LockParams
 extractLockPars (SpammerEnv env) = do
   wallet <- env.wallet
-  validator <- env.validator
+  (validator /\ valId) <- env.validator
   value <- env.value
-  pure <<< LockParams $ { wallet, validator, value, mutxos: env.utxos }
+  pure <<< LockParams $ { wallet, valId, validator, value, txInputsUsed: env.txInputsUsed }
 
 lock :: StateT SpammerEnv Contract Unit
 lock = do
@@ -62,24 +67,24 @@ lock = do
   case mpars of
     Nothing -> pure unit
     Just (LockParams pars) -> do
-      lift $ withKeyWallet pars.wallet do
-        mutxos <- getInputUtxos pars.mutxos
-        case mutxos of
-          Nothing -> pure unit
-          Just utxos -> do
-            txInput <- liftMaybe (error "no txId") (findMax $ keys utxos)
-            ahash <- ownPubKeyHashes
-            pHash <- liftMaybe (error "no phash") (head ahash)
-            let
-              lookups = unspentOutputs utxos <> validator pars.validator
-              -- lookups = validator pars.validator
-              valHash = validatorHash pars.validator
-              constraints =
-                -- mustPayToScript valHash unitDatum DatumWitness pars.value <>
-                  mustSpendPubKeyOutput txInput
-                  <>
-                    mustPayToPubKey (wrap pHash) (lovelaceValueOf $ BInt.fromInt 1_000_000)
-            log $ show utxos
-            txId <- submitTxFromConstraints lookups constraints
-            pure unit
+      (txInputs /\ txHash) <- lift lock'
+      modify_ (updateTxInputsUsed txInputs)
+      lift $ insertTxLocked txHash "0" pars.valId
+      where
+      lock' = withKeyWallet pars.wallet do
+        let
+          lookups = validator pars.validator
+          valHash = validatorHash pars.validator
+          constraints = mustPayToScript valHash unitDatum DatumWitness pars.value
+          balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
+
+        unbalancedTx <- mkUnbalancedTx lookups constraints
+        balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
+        signedBalancedTx <- signTransaction balancedTx
+        txHash <- submit signedBalancedTx
+        let
+          txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
+          txInputs = txBody.inputs
+
+        pure $ txInputs /\ txHash
 

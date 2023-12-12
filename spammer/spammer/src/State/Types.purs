@@ -2,21 +2,26 @@ module Spammer.State.Types where
 
 import Contract.Prelude
 
-import Contract.Scripts (MintingPolicy)
-import Contract.Utxos (UtxoMap)
-import Contract.Value (TokenName, Value)
+import Contract.Value (Value)
 import Contract.Wallet (KeyWallet)
 import Ctl.Internal.Types.Scripts (Validator)
+import Ctl.Internal.Types.Transaction (TransactionInput)
+import Data.Sequence (Seq, empty)
 
 newtype SpammerEnv = SpammerEnv
   { wallet :: Maybe KeyWallet
-  , validator :: Maybe Validator
-  , policy :: Maybe MintingPolicy 
+  , validator :: Maybe (Validator /\ String)
   , value :: Maybe Value
-  , utxos :: Maybe UtxoMap
+  , txInputsUsed :: Seq TransactionInput
   }
 
-defaultSpammerEnv = SpammerEnv { wallet: Nothing, validator: Nothing, value: Nothing, utxos: Nothing, policy : Nothing}
+defaultSpammerEnv :: SpammerEnv
+defaultSpammerEnv = SpammerEnv
+  { wallet: Nothing
+  , validator: Nothing
+  , value: Nothing
+  , txInputsUsed: empty
+  }
 
 derive instance Newtype SpammerEnv _
 
