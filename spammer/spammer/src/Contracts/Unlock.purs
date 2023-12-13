@@ -10,10 +10,10 @@ import Contract.PlutusData (unitDatum, unitRedeemer)
 import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
 import Contract.Scripts (Validator(..), validatorHash)
 import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptV2FromEnvelope)
-import Contract.Transaction (TransactionInput(..), awaitTxConfirmed, balanceTx, balanceTxWithConstraints, plutusV1Script, plutusV2Script, signTransaction, submit, submitTxFromConstraints)
+import Contract.Transaction (TransactionInput(..), TransactionOutput(..), awaitTxConfirmed, balanceTx, balanceTxWithConstraints, plutusV1Script, plutusV2Script, signTransaction, submit, submitTxFromConstraints)
 import Contract.TxConstraints (DatumPresence(..), TxConstraints, mustPayToPubKey, mustPayToScript, mustSpendPubKeyOutput, mustSpendScriptOutput)
 import Contract.UnbalancedTx (mkUnbalancedTx)
-import Contract.Utxos (UtxoMap, utxosAt)
+import Contract.Utxos (UtxoMap, getUtxo, utxosAt)
 import Contract.Value (Value, lovelaceValueOf)
 import Contract.Wallet (KeyWallet, getWalletUtxos, withKeyWallet)
 import Contracts.Utils (getInputUtxos)
@@ -27,7 +27,8 @@ import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
 import Ctl.Internal.Contract.Wallet (ownPubKeyHashes)
 import Data.Array (head, take, length)
 import Data.BigInt as BInt
-import Data.Map (fromFoldable, keys, toUnfoldable)
+import Data.List (List)
+import Data.Map (empty, fromFoldable, keys, singleton, toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Number (infinity)
 import Data.Sequence (Seq)
@@ -47,49 +48,60 @@ newtype UnLockParams = UnLockParams
   { wallet :: KeyWallet
   , validator :: Validator
   , txInputsUsed :: Seq TransactionInput
+  , utxoLocked :: UtxoMap 
   }
 
 derive instance Newtype UnLockParams _
 derive instance Generic UnLockParams _
 
-extractUnLockPars :: SpammerEnv -> Maybe UnLockParams
+extractUnLockPars :: SpammerEnv -> Contract (Maybe UnLockParams)
 extractUnLockPars (SpammerEnv env) = do
-  wallet <- env.wallet
-  (validator /\ _) <- env.validator
-  pure <<< UnLockParams $ { wallet, validator, txInputsUsed: env.txInputsUsed }
+  txLockedResult <- hush <$> try getTxLocked
+  let
+    isEmpty = isNothing txLockedResult
+    validator' = if isEmpty then fst <$> env.validator else _.validator <$> txLockedResult
+  mUtxoLocked :: Maybe UtxoMap <- case validator' of 
+    Nothing -> pure Nothing 
+    Just v -> case txLockedResult of 
+     Nothing -> do 
+      let addr = scriptHashAddress (validatorHash v) Nothing  
+      pure <$> utxosAt addr    
+     Just x -> do
+        mouts <- getUtxo x.txLocked
+        pure do
+           output :: TransactionOutput <- mouts
+           pure $ singleton x.txLocked (wrap {output, scriptRef : Nothing})
+  pure do
+    wallet <- env.wallet
+    validator <- validator'
+    utxoLocked <- mUtxoLocked
+    pure  <<< UnLockParams $ { wallet, validator, txInputsUsed: env.txInputsUsed, utxoLocked }
+
+
+
 
 unlock :: StateT SpammerEnv Contract Unit
 unlock = do
   env <- get
-  let mpars = extractUnLockPars env
+  mpars <- lift $ extractUnLockPars env
   case mpars of
     Nothing -> pure unit
     Just (UnLockParams pars) -> do
-      result <- lift $ hush <$> try getTxLocked
-      if isNothing result then
-      txInputs <- lift unlock'
-      -- modify_ (updateTxInputsUsed txInputs) 
-      pure unit
+      (txInputs /\ _ ) <- lift unlock'
+      modify_ (updateTxInputsUsed txInputs)
         where
           unlock' = withKeyWallet pars.wallet do
-
-             let
-                validator' = if isNothing result then pars.validator else result.validator 
-                lookups = validator validator
-                valHash = validatorHash pars.validator
-            --   constraints = mustPayToScript valHash unitDatum DatumWitness pars.value
-            --   balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
-            --
-            -- unbalancedTx <- mkUnbalancedTx lookups constraints
-            -- balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
-            -- signedBalancedTx <- signTransaction balancedTx
-            -- txHash <- submit signedBalancedTx 
-            -- log $ show unbalancedTx
-            -- log $ show (unwrap $ unwrap balancedTx).body
-            -- let
-            --   txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
-            --   txInputs = txBody.inputs
-            -- log $ show txInputs
-            --
-            -- pure txInputs 
-            pure unit
+           let
+            lookups = validator pars.validator <> unspentOutputs pars.utxoLocked 
+            txInputSpend :: List TransactionInput
+            txInputSpend = Set.toUnfoldable <<< keys $ pars.utxoLocked   
+            constraints = mconcat $ (\k  ->  mustSpendScriptOutput k unitRedeemer ) <$> txInputSpend    
+            balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
+           unbalancedTx <- mkUnbalancedTx lookups constraints
+           balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
+           signedBalancedTx <- signTransaction balancedTx
+           txHash <- submit signedBalancedTx 
+           let
+            txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
+            txInputs = txBody.inputs
+           pure $ txInputs /\ txHash

@@ -31,7 +31,7 @@ insertTxLocked txHash txOutInd valId = liftContractAffM "error insert txlocked" 
 
 type Result = Array { txhash :: String, txoutind :: Int, hex :: String}
 
-getTxLocked :: Contract {txUnlock :: TransactionInput, validator :: Validator} 
+getTxLocked :: Contract {txLocked :: TransactionInput, validator :: Validator} 
 getTxLocked = liftContractAffM "error get txlocked" do
   let
     query' = """
@@ -48,5 +48,5 @@ getTxLocked = liftContractAffM "error get txlocked" do
     let validator = wrap <<<  plutusV2Script $ vbytes
         transactionId = wrap bytes
         index = fromInt x.txoutind 
-    pure $ {txUnlock : TransactionInput {index, transactionId}, validator}
+    pure $ {txLocked : TransactionInput {index, transactionId}, validator}
 
