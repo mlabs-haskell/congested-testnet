@@ -38,7 +38,7 @@ loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do 
     env'  <- updateEnvForLock env 
     env'' <- runContract config1 do
-      execStateT (replicateM_ 10 (lock)) env'
+      execStateT (replicateM_ 100 (unlock)) env'
     log $ show $ uncons ((unwrap env'').txInputsUsed)
     pure env''
     -- log "finish"
