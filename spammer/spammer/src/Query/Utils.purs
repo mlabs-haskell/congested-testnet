@@ -4,6 +4,9 @@ import Contract.Prelude
 
 import Aeson (JsonDecodeError)
 import Contract.Monad (Contract)
+import Contract.Prim.ByteArray (byteArrayToHex)
+import Contract.Scripts (Validator(..))
+import Contract.TextEnvelope (TextEnvelopeType(..), plutusScriptV2FromEnvelope)
 import Ctl.Internal.Types.ByteArray (ByteArray, hexToByteArray)
 import Ctl.Internal.Types.Cbor (toByteArray)
 import Data.Argonaut (class DecodeJson, printJsonDecodeError)
@@ -29,4 +32,9 @@ decodeCborHexToBytes :: String -> Maybe ByteArray
 decodeCborHexToBytes cborHex = do
   cborBa <- hexToByteArray cborHex
   hush $ toByteArray $ wrap $ wrap cborBa
+
+decodeAikenHexToScriptHex :: String -> Maybe String
+decodeAikenHexToScriptHex aikenHex = do
+  bytes <- decodeCborHexToBytes aikenHex
+  pure <<< byteArrayToHex $ bytes
 

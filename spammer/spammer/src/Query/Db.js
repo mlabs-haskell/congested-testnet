@@ -11,7 +11,7 @@ exports._executeQuery = function (queryString) {
     })
     return client.connect()
         .then(() => {
-            console.log(queryString)
+            // console.log(queryString)
             return client.query(queryString);
         })
         .then(result => {

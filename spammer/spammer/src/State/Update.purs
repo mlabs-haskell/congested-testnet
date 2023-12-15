@@ -9,7 +9,7 @@ import Contract.Value (lovelaceValueOf)
 import Ctl.Internal.Serialization.Types (TransactionHash)
 import Data.Argonaut (Json)
 import Data.BigInt (fromInt)
-import Data.Sequence (fromFoldable, append)
+import Data.Sequence (fromFoldable, append, length, take)
 import Spammer.Query.Scripts (getValidator)
 import Spammer.Query.Utxos (getUtxos')
 import Spammer.Query.Wallet (getWallet')
@@ -32,7 +32,10 @@ updateEnvWallet env = do
   pure <<< wrap $ (unwrap env) { wallet = wallet }
 
 updateTxInputsUsed :: forall f. Foldable f => f TransactionInput -> SpammerEnv -> SpammerEnv
-updateTxInputsUsed inputs (SpammerEnv env) = wrap $ env { txInputsUsed = env.txInputsUsed `append` seq }
-  where
-  seq = fromFoldable inputs
+updateTxInputsUsed inputs (SpammerEnv env) =
+  let
+    newInputs = fromFoldable inputs
+    newSeq = take 100 $ env.txInputsUsed `append` newInputs
+  in
+    wrap $ env { txInputsUsed = newSeq }
 

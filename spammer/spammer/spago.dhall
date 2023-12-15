@@ -34,6 +34,7 @@ You can edit this file as you like.
   , "control"
   , "sequences"
   , "safely"
+  , "lists"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]

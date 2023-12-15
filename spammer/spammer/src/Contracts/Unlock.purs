@@ -38,7 +38,7 @@ import Data.UInt (fromInt)
 import Effect.Aff (try)
 import Effect.Exception (error)
 import Spammer.Query.Scripts (getValidator)
-import Spammer.Query.TxLocked (getTxLocked)
+import Spammer.Query.TxLocked (clearTxLocked, getTxLocked)
 import Spammer.Query.Utils (decodeCborHexToBytes)
 import Spammer.Query.Wallet (getWallet')
 import Spammer.State.Types (SpammerEnv(..))
@@ -48,7 +48,7 @@ newtype UnLockParams = UnLockParams
   { wallet :: KeyWallet
   , validator :: Validator
   , txInputsUsed :: Seq TransactionInput
-  , utxoLocked :: UtxoMap 
+  , utxoLocked :: UtxoMap
   }
 
 derive instance Newtype UnLockParams _
@@ -60,25 +60,22 @@ extractUnLockPars (SpammerEnv env) = do
   let
     isEmpty = isNothing txLockedResult
     validator' = if isEmpty then fst <$> env.validator else _.validator <$> txLockedResult
-  mUtxoLocked :: Maybe UtxoMap <- case validator' of 
-    Nothing -> pure Nothing 
-    Just v -> case txLockedResult of 
-     Nothing -> do 
-      let addr = scriptHashAddress (validatorHash v) Nothing  
-      pure <$> utxosAt addr    
-     Just x -> do
+  mUtxoLocked :: Maybe UtxoMap <- case validator' of
+    Nothing -> pure Nothing
+    Just v -> case txLockedResult of
+      Nothing -> do
+        let addr = scriptHashAddress (validatorHash v) Nothing
+        pure <$> utxosAt addr
+      Just x -> do
         mouts <- getUtxo x.txLocked
         pure do
-           output :: TransactionOutput <- mouts
-           pure $ singleton x.txLocked (wrap {output, scriptRef : Nothing})
+          output :: TransactionOutput <- mouts
+          pure $ singleton x.txLocked (wrap { output, scriptRef: Nothing })
   pure do
     wallet <- env.wallet
     validator <- validator'
     utxoLocked <- mUtxoLocked
-    pure  <<< UnLockParams $ { wallet, validator, txInputsUsed: env.txInputsUsed, utxoLocked }
-
-
-
+    pure <<< UnLockParams $ { wallet, validator, txInputsUsed: env.txInputsUsed, utxoLocked }
 
 unlock :: StateT SpammerEnv Contract Unit
 unlock = do
@@ -87,21 +84,28 @@ unlock = do
   case mpars of
     Nothing -> pure unit
     Just (UnLockParams pars) -> do
-      (txInputs /\ _ ) <- lift unlock'
-      modify_ (updateTxInputsUsed txInputs)
-        where
-          unlock' = withKeyWallet pars.wallet do
-           let
-            lookups = validator pars.validator <> unspentOutputs pars.utxoLocked 
-            txInputSpend :: List TransactionInput
-            txInputSpend = Set.toUnfoldable <<< keys $ pars.utxoLocked   
-            constraints = mconcat $ (\k  ->  mustSpendScriptOutput k unitRedeemer ) <$> txInputSpend    
-            balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
-           unbalancedTx <- mkUnbalancedTx lookups constraints
-           balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
-           signedBalancedTx <- signTransaction balancedTx
-           txHash <- submit signedBalancedTx 
-           let
-            txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
-            txInputs = txBody.inputs
-           pure $ txInputs /\ txHash
+      unlockResult <- lift $ try unlock'
+      case unlockResult of
+        Left _ -> do 
+           lift $ log "unlock failed" 
+           pure unit
+        Right (txInputs /\ _) -> modify_ (updateTxInputsUsed txInputs)
+      where
+      unlock' = withKeyWallet pars.wallet do
+        let
+          lookups = validator pars.validator <> unspentOutputs pars.utxoLocked
+
+          txInputSpend :: List TransactionInput
+          txInputSpend = Set.toUnfoldable <<< keys $ pars.utxoLocked
+          constraints = mconcat $ (\k -> mustSpendScriptOutput k unitRedeemer) <$> txInputSpend
+          balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
+        unbalancedTx <- mkUnbalancedTx lookups constraints
+        balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
+        signedBalancedTx <- signTransaction balancedTx
+        txHash <- submit signedBalancedTx
+        let
+          txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
+          txInputs = txBody.inputs
+        clearTxLocked pars.utxoLocked
+        log "unlock successfully"
+        pure $ txInputs /\ txHash

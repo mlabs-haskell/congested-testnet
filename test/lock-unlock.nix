@@ -11,8 +11,6 @@ pkgs.writeShellApplication {
     cd "$ROOT"
 
 
-
-
     # User-defined variables
     PAYMENT_SKEY="$CONFIG/utxo-keys/utxo1.skey"
 

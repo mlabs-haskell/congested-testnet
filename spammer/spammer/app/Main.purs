@@ -17,6 +17,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
 import Spammer.Contracts.Lock (lock)
+import Spammer.Contracts.Unlock (unlock)
 import Spammer.Db (executeQuery)
 import Spammer.Prometheus (getAvgMemPoolUsage)
 import Spammer.Query.PubKeys (getPubKeyHash)
@@ -37,8 +38,7 @@ loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do 
     env'  <- updateEnvForLock env 
     env'' <- runContract config1 do
-      -- execStateT (replicateM_ 18 lock ) env'
-      execStateT (lock *> lock) env'
+      execStateT (replicateM_ 10 (lock)) env'
     log $ show $ uncons ((unwrap env'').txInputsUsed)
     pure env''
     -- log "finish"
