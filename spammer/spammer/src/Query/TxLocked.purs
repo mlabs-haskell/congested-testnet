@@ -62,11 +62,10 @@ getTxLocked = liftContractAffM "error get txlocked" do
       index = fromInt x.txoutind
     pure $ { txLocked: TransactionInput { index, transactionId }, validator }
 
-clearTxLocked :: UtxoMap -> Contract Unit
-clearTxLocked utxo = liftContractAffM "error clear txlocked" do
-  el <- liftMaybe (error "no utxo") $ findMax utxo
+clearTxLocked :: TransactionInput -> Contract Unit
+clearTxLocked txInput = liftContractAffM "error clear txlocked" do
   let
-    { index: txind, transactionId: TransactionHash txHashByte } = unwrap $ el.key
+    { index: txind, transactionId: TransactionHash txHashByte } = unwrap $ txInput 
     query' = "DELETE FROM txlocked WHERE txHash="
       <> bytea (byteArrayToHex txHashByte)
       <> " AND txoutind="

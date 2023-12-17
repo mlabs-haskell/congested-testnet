@@ -17,7 +17,7 @@ pkgs.writeShellApplication {
       echo "$RES"
     }
     
-    for i in $(seq 1 2); do
+    for i in $(seq 1000 1020); do
       cat > "validators/script.ak" <<- EOF
       validator {
         fn always_true(_datum : Data, _redeemer : Data, _context : Data ) {

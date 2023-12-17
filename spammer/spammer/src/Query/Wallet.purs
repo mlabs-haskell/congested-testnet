@@ -2,22 +2,23 @@ module Spammer.Query.Wallet where
 
 import Contract.Prelude
 
+import Contract.Address (PaymentPubKeyHash(..))
 import Contract.Monad (Contract, liftContractAffM)
 import Contract.Wallet (KeyWallet, PrivatePaymentKey(..), privateKeysToKeyWallet)
 import Contract.Wallet.Key (keyWalletPrivatePaymentKey)
 import Control.Monad.Error.Class (liftMaybe)
+import Ctl.Internal.Types.ByteArray (hexToByteArrayUnsafe)
 import Ctl.Internal.Types.PubKeyHash (PaymentPubKeyHash)
 import Data.Argonaut (decodeJson)
 import Data.Array (head)
 import Data.BigInt (BigInt, toString)
 import Effect.Exception (error)
 import Spammer.Db (executeQuery)
-import Spammer.Keys (genPrivateKey, getHexFromEd25519Hash, getPrivateKeyFromHex, getPrivateKeyHex, getPubKeyHashHex, getPubKeyHex)
+import Spammer.Keys (genPrivateKey, getEd25519HashFromPubKeyHex, getEdHash, getHexFromEd25519Hash, getPrivateKeyFromHex, getPrivateKeyHex, getPubKeyHashHex, getPubKeyHex)
 import Spammer.Query.Utils (liftJsonDecodeError, quotes)
 
 type PrivKeyQueryResult = Array
-  { pkey :: String
-  }
+  { pkey :: String }
 
 type CountNullWallets = Array
   { count :: Number
@@ -30,15 +31,15 @@ getWallet' = do
       """    
                  WITH cte AS (
                       SELECT pkey 
-                      FROM  pkeys 
-                      WHERE time = (SELECT MIN(time) FROM pkeys)
+                      FROM wallets 
+                      WHERE time = (SELECT MIN(time) FROM wallets)
                       LIMIT 1
                   )
-                   UPDATE pkeys 
+                   UPDATE wallets 
                    SET time = NOW() 
                    FROM cte
-                   WHERE pkeys.pkey = cte.pkey
-                   RETURNING pkeys.pkey;
+                   WHERE wallets.pkey = cte.pkey
+                   RETURNING encode(wallets.pkey, 'hex') as pkey;
                """
   json <- executeQuery query'
   result :: PrivKeyQueryResult <- liftEffect $ liftJsonDecodeError (decodeJson json)
@@ -49,6 +50,13 @@ getWallet' = do
       keyWallet = privateKeysToKeyWallet pkey Nothing
     pure keyWallet
 
+genNewPubKeyHash :: Contract PaymentPubKeyHash 
+genNewPubKeyHash = do
+  newPrivKey <- liftEffect genPrivateKey
+  let edHash =  getEdHash newPrivKey 
+  pure <<< wrap <<< wrap  $ edHash
+
+
 generateNewWalletDb :: Contract Unit
 generateNewWalletDb = do
   newPrivKey <- liftEffect genPrivateKey
@@ -57,15 +65,7 @@ generateNewWalletDb = do
     newPubKeyHex = getPubKeyHex newPrivKey
     newPubKeyHashHex = getPubKeyHashHex newPrivKey
 
-    -- insertNewKeyDb = "INSERT INTO pkeys (pkey, pubkey, pubkeyhash, balance, time) VALUES "
-    --   <> "( "
-    --   <> quotes newPrivKeyHex
-    --   <> ","
-    --   <> quotes newPubKeyHex
-    --   <> ","
-    --   <> quotes newPubKeyHashHex
-    --   <> ", null, NOW()); "
-    insertNewKeyDb = "INSERT INTO pkeys (pkey, pubkey, pubkeyhash, balance, time) "
+    insertNewKeyDb = "INSERT INTO wallets (pkey, pubkey, pubkeyhash, time)"
       <> " SELECT "
       <> quotes newPrivKeyHex
       <> ","

@@ -17,14 +17,14 @@ defaultTimeParams =
       -- As clarified in Eternl discord, they synchronize with the server every 2
       -- minutes, so 125 seconds would probably be enough.
       -- For other wallets, it is not very important
-      { delay: Milliseconds 1_000.0, timeout: Seconds 125.0 }
+      { delay: Milliseconds 1.0, timeout: Seconds 125.0 }
   , syncBackend:
       -- Operations are costly, so the delay is 3 set to seconds
-      { delay: Milliseconds 3_000.0, timeout: Seconds 120.0 }
+      { delay: Milliseconds 3.0, timeout: Seconds 120.0 }
   , awaitTxConfirmed:
       -- CIP-30 calls are cheap, so the delay can be just 1 second
-      { delay: Milliseconds 1_000.0, timeout: Seconds infinity }
-  , waitUntilSlot: { delay: Milliseconds 1_000.0 }
+      { delay: Milliseconds 1.0, timeout: Seconds infinity }
+  , waitUntilSlot: { delay: Milliseconds 1_0.0 }
   }
 
 defaultSynchronizationParams :: ContractSynchronizationParams

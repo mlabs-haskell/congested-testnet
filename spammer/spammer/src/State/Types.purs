@@ -13,6 +13,8 @@ newtype SpammerEnv = SpammerEnv
   , validator :: Maybe (Validator /\ String)
   , value :: Maybe Value
   , txInputsUsed :: Seq TransactionInput
+  , counter :: Int
+  , addUtxo :: Boolean
   }
 
 defaultSpammerEnv :: SpammerEnv
@@ -21,6 +23,8 @@ defaultSpammerEnv = SpammerEnv
   , validator: Nothing
   , value: Nothing
   , txInputsUsed: empty
+  , counter : 1 
+  , addUtxo : false
   }
 
 derive instance Newtype SpammerEnv _

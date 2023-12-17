@@ -23,8 +23,12 @@ updateEnvValidator env = do
 
 updateEnvValue :: SpammerEnv -> Aff SpammerEnv
 updateEnvValue env = do
-  let value = pure $ lovelaceValueOf (fromInt 1_000_000)
+  let value = pure $ lovelaceValueOf (fromInt 1)
   pure <<< wrap $ (unwrap env) { value = value }
+
+
+addUtxoForNextTransaction :: Boolean -> SpammerEnv -> SpammerEnv 
+addUtxoForNextTransaction x (SpammerEnv env) = wrap $ env {addUtxo = x} 
 
 updateEnvWallet :: SpammerEnv -> Aff SpammerEnv
 updateEnvWallet env = do
@@ -35,7 +39,7 @@ updateTxInputsUsed :: forall f. Foldable f => f TransactionInput -> SpammerEnv -
 updateTxInputsUsed inputs (SpammerEnv env) =
   let
     newInputs = fromFoldable inputs
-    newSeq = take 100 $ env.txInputsUsed `append` newInputs
+    newSeq = take 2 $ env.txInputsUsed `append` newInputs
   in
     wrap $ env { txInputsUsed = newSeq }
 

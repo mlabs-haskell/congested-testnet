@@ -16,8 +16,8 @@ import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readFile, readTextFile)
 import Spammer.Config (config)
-import Spammer.Contracts.Lock (lock)
-import Spammer.Contracts.Unlock (unlock)
+import Spammer.Contracts.Lock1 (lock)
+import Spammer.Contracts.Unlock1 (unlock)
 import Spammer.Db (executeQuery)
 import Spammer.Prometheus (getAvgMemPoolUsage)
 import Spammer.Query.PubKeys (getPubKeyHash)
@@ -38,7 +38,7 @@ loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do 
     env'  <- updateEnvForLock env 
     env'' <- runContract config1 do
-      execStateT (replicateM_ 100 (unlock)) env'
+      execStateT (replicateM_ 1000 (lock *> unlock)) env'
     log $ show $ uncons ((unwrap env'').txInputsUsed)
     pure env''
     -- log "finish"

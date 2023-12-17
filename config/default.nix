@@ -13,7 +13,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
         mkdir -p "$ROOT"
         NETWORK_MAGIC=2
         SECURITY_PARAM=10
-        NUM_SPO_NODES=2
+        NUM_SPO_NODES=1
         INIT_SUPPLY=10020000000
         START_TIME="$(date -d "now + 5 seconds" +%s)" 
         cat > "$ROOT/byron.genesis.spec.json" <<EOF
@@ -101,10 +101,10 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
       cardano-cli genesis create-staked --genesis-dir "$ROOT" \
         --testnet-magic "$NETWORK_MAGIC" \
-        --gen-pools 2 \
+        --gen-pools 1 \
         --supply $SUPPLY \
         --supply-delegated $SUPPLY \
-        --gen-stake-delegs 2 \
+        --gen-stake-delegs 1 \
         --gen-utxo-keys 1 \
         --gen-genesis-keys 1
 
@@ -148,20 +148,20 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
   
       cp "$ROOT/pools/vrf1.skey" "$ROOT/node-spo1/vrf.skey"
-      cp "$ROOT/pools/vrf2.skey" "$ROOT/node-spo2/vrf.skey"
+      # cp "$ROOT/pools/vrf2.skey" "$ROOT/node-spo2/vrf.skey"
       cp "$ROOT/pools/opcert1.cert" "$ROOT/node-spo1/opcert.cert"
-      cp "$ROOT/pools/opcert2.cert" "$ROOT/node-spo2/opcert.cert"
+      # cp "$ROOT/pools/opcert2.cert" "$ROOT/node-spo2/opcert.cert"
 
       cp "$ROOT/pools/kes1.skey" "$ROOT/node-spo1/kes.skey"
-      cp "$ROOT/pools/kes2.skey" "$ROOT/node-spo2/kes.skey"
+      # cp "$ROOT/pools/kes2.skey" "$ROOT/node-spo2/kes.skey"
 
       # Byron related
 
       cp "$ROOT/byron-gen-command/delegate-keys.000.key" "$ROOT/node-spo1/byron-delegate.key"
-      cp "$ROOT/byron-gen-command/delegate-keys.001.key" "$ROOT/node-spo2/byron-delegate.key"
+      # cp "$ROOT/byron-gen-command/delegate-keys.001.key" "$ROOT/node-spo2/byron-delegate.key"
 
       cp "$ROOT/byron-gen-command/delegation-cert.000.json" "$ROOT/node-spo1/byron-delegation.cert"
-      cp "$ROOT/byron-gen-command/delegation-cert.001.json" "$ROOT/node-spo2/byron-delegation.cert"
+      # cp "$ROOT/byron-gen-command/delegation-cert.001.json" "$ROOT/node-spo2/byron-delegation.cert"
 
       # Prometheus
 
@@ -176,8 +176,8 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       PUBKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.vkey" | tail -c 66 | head -c -2)"
       PUBKEYHASH="$(cardano-cli address key-hash --payment-verification-key-file "$ROOT/utxo-keys/utxo1.vkey")"
       chmod 777 "$ROOT/init-sql-script/init-db.sql" 
-      echo "INSERT INTO pkeys (pkey, pubkey, pubkeyhash, balance, time) VALUES 
-      ('$PKEY', '$PUBKEY', '$PUBKEYHASH', $SUPPLY, NOW());" >> "$ROOT/init-sql-script/init-db.sql"
+      echo "INSERT INTO wallets (pkey, pubkey, pubkeyhash, time) VALUES 
+      (decode('$PKEY','hex'), decode('$PUBKEY','hex'), decode('$PUBKEYHASH','hex'), NOW());" >> "$ROOT/init-sql-script/init-db.sql"
     '';
   };
 }

@@ -1,7 +1,6 @@
 module Spammer.Keys where
 
 import Contract.Prelude
-
 import Aeson (JsonDecodeError)
 import Contract.Address (Ed25519KeyHash)
 import Ctl.Internal.Serialization.Types (PrivateKey)
@@ -14,6 +13,7 @@ foreign import getPrivateKeyHex :: PrivateKey -> CborHex
 foreign import getPubKeyHex :: PrivateKey -> CborHex
 foreign import getEd25519HashFromPubKeyHex :: CborHex -> Ed25519KeyHash
 foreign import getPubKeyHashHex :: PrivateKey -> CborHex
+foreign import getEdHash :: PrivateKey -> Ed25519KeyHash 
 foreign import getHexFromEd25519Hash :: Ed25519KeyHash -> CborHex
 
 -- | Typical key file format  

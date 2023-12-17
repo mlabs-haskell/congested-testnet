@@ -2,10 +2,12 @@ module Spammer.Query.Scripts where
 
 import Contract.Prelude
 
+import Contract.Monad (Contract, liftContractAffM)
 import Contract.Prim.ByteArray (byteArrayFromAscii)
 import Contract.Scripts (MintingPolicy(..), Validator, mintingPolicyHash)
 import Contract.Transaction (plutusV2Script)
 import Contract.Value (getCurrencySymbol, mpsSymbol, singleton', Value)
+import Control.Monad.Error.Class (try)
 import Ctl.Internal.Types.ByteArray (hexToByteArray)
 import Data.Argonaut (decodeJson)
 import Data.Array (head)
@@ -15,6 +17,11 @@ import Spammer.Db (executeQuery)
 import Spammer.Query.Utils (liftJsonDecodeError)
 
 type Result = Array { hex :: String, valid :: Int }
+
+getValidatorContract :: Contract (Maybe (Validator /\ String))
+getValidatorContract = hush <$> (try $ liftContractAffM "" getValidator)
+
+ 
 
 getValidator :: Aff (Maybe (Validator /\ String))
 getValidator = do
