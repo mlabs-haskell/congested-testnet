@@ -97,7 +97,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
 
       # Copy the cost mode
 
-      SUPPLY=1000000000000 
+      SUPPLY=90000000000000 
 
       cardano-cli genesis create-staked --genesis-dir "$ROOT" \
         --testnet-magic "$NETWORK_MAGIC" \
@@ -132,7 +132,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       rm "$ROOT/genesis/byron/genesis-wrong.json"
       cp "$ROOT/genesis/shelley/genesis.json" "$ROOT/genesis/shelley/copy-genesis.json"
 
-      jq -M '. + {slotLength:0.1, securityParam:10, activeSlotsCoeff:0.1, securityParam:10, epochLength:500, maxLovelaceSupply:10000000000000, updateQuorum:2}' "$ROOT/genesis/shelley/copy-genesis.json" > "$ROOT/genesis/shelley/copy2-genesis.json"
+      jq -M '. + {slotLength:0.1, securityParam:10, activeSlotsCoeff:0.1, securityParam:10, epochLength:60, maxLovelaceSupply:90000000000000, updateQuorum:2}' "$ROOT/genesis/shelley/copy-genesis.json" > "$ROOT/genesis/shelley/copy2-genesis.json"
       jq --raw-output '.protocolParams.protocolVersion.major = 7 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 0.7 | .protocolParams.rho = 0.1 | .protocolParams.tau = 0.1' "$ROOT/genesis/shelley/copy2-genesis.json" > "$ROOT/genesis/shelley/genesis.json"
 
       rm "$ROOT/genesis/shelley/copy2-genesis.json"
@@ -163,6 +163,7 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       cp "$ROOT/byron-gen-command/delegation-cert.000.json" "$ROOT/node-spo1/byron-delegation.cert"
       # cp "$ROOT/byron-gen-command/delegation-cert.001.json" "$ROOT/node-spo2/byron-delegation.cert"
 
+
       # Prometheus
 
       cp "${./prometheus.yml}" "$ROOT/prometheus.yml" 
@@ -170,6 +171,9 @@ inputs@{ pkgs, cardano, cardano-node, ... }:
       # Spammer db initial script
       mkdir -p "$ROOT/init-sql-script/"
       cp "${./init-db.sql}" "$ROOT/init-sql-script/init-db.sql"
+
+      # generate initial skey file for ctl 
+      jq '.type="PaymentSigningKeyShelley_ed25519"' < "$ROOT/utxo-keys/utxo1.skey" > "$ROOT/mainWallet.skey" 
       
       # insert utxo1 row 
       PKEY="$(jq ".cborHex" < "$ROOT/utxo-keys/utxo1.skey" | tail -c 66 | head -c -2 )"

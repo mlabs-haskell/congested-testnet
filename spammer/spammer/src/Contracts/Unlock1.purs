@@ -42,7 +42,7 @@ import Spammer.Query.TxLocked (clearTxLocked, getTxLocked)
 import Spammer.Query.Utils (decodeCborHexToBytes)
 import Spammer.Query.Wallet (getWallet')
 import Spammer.State.Types (SpammerEnv(..))
-import Spammer.State.Update (updateTxInputsUsed)
+import Spammer.State.Update (addUtxoForNextTransaction, updateTxInputsUsed)
 
 newtype UnLockParams = UnLockParams
   { wallet :: KeyWallet
@@ -73,8 +73,10 @@ unlock = do
       case unlockResult of
         Left e -> do 
            lift $ log $ show e
+           modify_ (addUtxoForNextTransaction true) 
+        Right (txInputs /\ _) -> do
            pure unit
-        Right (txInputs /\ _) -> pure unit
+           modify_ (addUtxoForNextTransaction false) 
           -- modify_ (updateTxInputsUsed txInputs)
       where
       unlock' = withKeyWallet pars.wallet do

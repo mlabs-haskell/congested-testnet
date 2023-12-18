@@ -42,6 +42,7 @@ getTxLocked = liftContractAffM "error get txlocked" do
             WITH cte AS (
               SELECT txHash, txOutInd, encode(validator, 'hex') as hex 
               FROM txlocked LEFT JOIN validators ON valId=id   
+              WHERE valId is not NULL
               ORDER BY txlocked.time ASC LIMIT 1
             )
             UPDATE txlocked 

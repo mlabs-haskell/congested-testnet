@@ -35,6 +35,8 @@ You can edit this file as you like.
   , "sequences"
   , "safely"
   , "lists"
+  , "node-http"
+  , "node-streams"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]

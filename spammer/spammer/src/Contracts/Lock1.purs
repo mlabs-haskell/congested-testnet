@@ -44,6 +44,7 @@ import Effect.Aff (try)
 import Effect.Exception (error)
 import Spammer.Query.Scripts (getValidator, getValidatorContract)
 import Spammer.Query.TxLocked (insertTxLocked)
+-- import Spammer.Query.TxRecentlyUsed (insertTxRecentlyUsed)
 import Spammer.Query.Utils (decodeCborHexToBytes)
 import Spammer.Query.Wallet (genNewPubKeyHash, getWallet')
 import Spammer.State.Types (SpammerEnv(..))
@@ -82,8 +83,8 @@ lock = do
            lift $ log $ show e 
            modify_ (addUtxoForNextTransaction true) 
         Right (txInputs /\ txHash /\ ind ) -> do 
-          modify_ (updateTxInputsUsed txInputs)
           modify_ (addUtxoForNextTransaction false) 
+          -- lift $ insertTxRecentlyUsed txInputs
           lift $ insertTxLocked txHash ind pars.valId
       where
       lock' = withKeyWallet pars.wallet do
@@ -95,11 +96,11 @@ lock = do
           lookups = validator pars.validator
           valHash = validatorHash pars.validator
 
-
           constraints = mustPayToScriptWithScriptRef valHash unitDatum DatumWitness 
                               (PlutusScriptRef $ unwrap pars.validator) pars.value <> 
                                 if (unwrap env).addUtxo then
-                                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 20_000_000)
+                                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+                                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
                                 else mempty
 
           balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.empty)
@@ -118,5 +119,4 @@ lock = do
         log "locked successfully"
 
         pure $ txInputs /\ txHash /\ show ind
-        -- pure $ txInputs /\ (TransactionHash $ hexToByteArrayUnsafe "1a") /\ show ind
 

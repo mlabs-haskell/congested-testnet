@@ -18,3 +18,9 @@ CREATE TABLE txlocked (
     valId INT, 
     time TIMESTAMP 
 );
+
+CREATE TABLE txRecentlyUsed (
+    txHash BYTEA PRIMARY KEY,
+    txOutInd INT,
+    time TIMESTAMP 
+);
