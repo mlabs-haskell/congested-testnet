@@ -23,8 +23,8 @@ defaultSpammerEnv = SpammerEnv
   , validator: Nothing
   , value: Nothing
   , txInputsUsed: empty
-  , counter : 1 
-  , addUtxo : false
+  , counter: 1
+  , addUtxo: false
   }
 
 derive instance Newtype SpammerEnv _

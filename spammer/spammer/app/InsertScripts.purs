@@ -20,13 +20,13 @@ main = do
   content <- readTextFile UTF8 scripts_fpath
   log $ show content
   let
-      mlines = traverseDefault decodeAikenHexToScriptHex $ filter (\x -> x /= "") $ (lines content)
+    mlines = traverseDefault decodeAikenHexToScriptHex $ filter (\x -> x /= "") $ (lines content)
   lines' <- liftMaybe (error "decode error in aiken hex") mlines
   log $ show lines'
 
   let
     query = "INSERT INTO validators (validator, time) VALUES "
-      <>  (Array.fold <<< intersperse "," $ (\line -> "(" <>  bytea line <> ",NOW())") <$> lines')
+      <> (Array.fold <<< intersperse "," $ (\line -> "(" <> bytea line <> ",NOW())") <$> lines')
       <> "ON CONFLICT (validator) DO NOTHING;"
   launchAff_ $ executeQuery query
 

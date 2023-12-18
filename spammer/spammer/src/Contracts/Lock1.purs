@@ -63,10 +63,10 @@ derive instance Generic LockParams _
 
 extractLockPars :: SpammerEnv -> Contract (Maybe LockParams)
 extractLockPars (SpammerEnv env) = do
-  mVal <- getValidatorContract 
+  mVal <- getValidatorContract
   pure do
     wallet <- env.wallet
-    (validator /\ valId) <- mVal 
+    (validator /\ valId) <- mVal
     value <- env.value
     pure <<< LockParams $ { wallet, valId, validator, value, txInputsUsed: env.txInputsUsed }
 
@@ -79,29 +79,31 @@ lock = do
     Just (LockParams pars) -> do
       lockResult <- lift $ try lock'
       case lockResult of
-        Left e -> do 
-           lift $ log $ show e 
-           modify_ (addUtxoForNextTransaction true) 
-        Right (txInputs /\ txHash /\ ind ) -> do 
-          modify_ (addUtxoForNextTransaction false) 
+        Left e -> do
+          lift $ log $ show e
+          modify_ (addUtxoForNextTransaction true)
+        Right (txInputs /\ txHash /\ ind) -> do
+          modify_ (addUtxoForNextTransaction false)
           -- lift $ insertTxRecentlyUsed txInputs
           lift $ insertTxLocked txHash ind pars.valId
       where
       lock' = withKeyWallet pars.wallet do
-        pkeyHash <- liftedM "no pubkeyHash" $ head <$> ownPaymentPubKeyHashes 
+        pkeyHash <- liftedM "no pubkeyHash" $ head <$> ownPaymentPubKeyHashes
         utxos <- liftedM "no utxos" $ getWalletUtxos
-        log $ show (Map.size utxos) 
+        log $ show (Map.size utxos)
 
         let
           lookups = validator pars.validator
           valHash = validatorHash pars.validator
 
-          constraints = mustPayToScriptWithScriptRef valHash unitDatum DatumWitness 
-                              (PlutusScriptRef $ unwrap pars.validator) pars.value <> 
-                                if (unwrap env).addUtxo then
-                                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-                                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
-                                else mempty
+          constraints =
+            mustPayToScriptWithScriptRef valHash unitDatum DatumWitness
+              (PlutusScriptRef $ unwrap pars.validator)
+              pars.value <>
+              if (unwrap env).addUtxo then
+                mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+                  mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
+              else mempty
 
           balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.empty)
 
@@ -113,7 +115,7 @@ lock = do
           txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
           txInputs = txBody.inputs
           txOutputs = txBody.outputs
-          ind = fromMaybe 0 $ Array.findIndex (isJust <<< _.scriptRef <<< unwrap) txOutputs 
+          ind = fromMaybe 0 $ Array.findIndex (isJust <<< _.scriptRef <<< unwrap) txOutputs
 
         log "================"
         log "locked successfully"

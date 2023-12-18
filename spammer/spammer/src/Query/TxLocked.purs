@@ -66,7 +66,7 @@ getTxLocked = liftContractAffM "error get txlocked" do
 clearTxLocked :: TransactionInput -> Contract Unit
 clearTxLocked txInput = liftContractAffM "error clear txlocked" do
   let
-    { index: txind, transactionId: TransactionHash txHashByte } = unwrap $ txInput 
+    { index: txind, transactionId: TransactionHash txHashByte } = unwrap $ txInput
     query' = "DELETE FROM txlocked WHERE txHash="
       <> bytea (byteArrayToHex txHashByte)
       <> " AND txoutind="

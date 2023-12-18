@@ -112,5 +112,5 @@ module Spammer.Contracts.Lock where
 --         log "locked successfully"
 --
 --         pure $ txInputs /\ txHash /\ show ind
-        -- pure $ txInputs /\ (wrap $ hexToByteArrayUnsafe "1a")
+-- pure $ txInputs /\ (wrap $ hexToByteArrayUnsafe "1a")
 

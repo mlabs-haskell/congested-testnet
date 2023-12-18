@@ -29,23 +29,17 @@ config1 = config 1337 1442
 config2 = config 1338 1443
 
 main :: Effect Unit
-main = do 
+main = do
   launchAff_ do
     loop defaultSpammerEnv
 
-
 loop :: SpammerEnv -> Aff SpammerEnv
-loop env = do 
-    env'  <- updateEnvForLock env 
-    env'' <- runContract config1 do
-      execStateT (replicateM_ 1 (lock )) env'
-    log $ show $ uncons ((unwrap env'').txInputsUsed)
-    pure env''
-    -- log "finish"
-    -- loop env''
-
-
-
-
-
+loop env = do
+  env' <- updateEnvForLock env
+  env'' <- runContract config1 do
+    execStateT (replicateM_ 1 (lock)) env'
+  log $ show $ uncons ((unwrap env'').txInputsUsed)
+  pure env''
+-- log "finish"
+-- loop env''
 

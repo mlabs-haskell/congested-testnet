@@ -48,7 +48,7 @@ newtype UnLockParams = UnLockParams
   { wallet :: KeyWallet
   , validator :: Validator
   , txInputsUsed :: Seq TransactionInput
-  , txLocked :: TransactionInput 
+  , txLocked :: TransactionInput
   }
 
 derive instance Newtype UnLockParams _
@@ -59,7 +59,7 @@ extractUnLockPars (SpammerEnv env) = do
   txLockedResult <- hush <$> try getTxLocked
   pure do
     wallet <- env.wallet
-    {validator , txLocked}  <- txLockedResult 
+    { validator, txLocked } <- txLockedResult
     pure <<< UnLockParams $ { wallet, validator, txInputsUsed: env.txInputsUsed, txLocked }
 
 unlock :: StateT SpammerEnv Contract Unit
@@ -71,24 +71,24 @@ unlock = do
     Just (UnLockParams pars) -> do
       unlockResult <- lift $ try unlock'
       case unlockResult of
-        Left e -> do 
-           lift $ log $ show e
-           modify_ (addUtxoForNextTransaction true) 
+        Left e -> do
+          lift $ log $ show e
+          modify_ (addUtxoForNextTransaction true)
         Right (txInputs /\ _) -> do
-           pure unit
-           modify_ (addUtxoForNextTransaction false) 
-          -- modify_ (updateTxInputsUsed txInputs)
+          pure unit
+          modify_ (addUtxoForNextTransaction false)
+      -- modify_ (updateTxInputsUsed txInputs)
       where
       unlock' = withKeyWallet pars.wallet do
-        mtxOutput <- getUtxo pars.txLocked 
-        txOutput <- liftMaybe (error "no utxos for locked utxo") mtxOutput 
+        mtxOutput <- getUtxo pars.txLocked
+        txOutput <- liftMaybe (error "no utxos for locked utxo") mtxOutput
         let
-          scriptRef = Just <<< PlutusScriptRef <<< unwrap $ pars.validator 
-          transactionOutputWithRefScript = TransactionOutputWithRefScript {output : txOutput, scriptRef}
-          inputWithRefScript = SpendInput <<< TransactionUnspentOutput $ {input : pars.txLocked, output : transactionOutputWithRefScript}
-          utxomap = singleton pars.txLocked transactionOutputWithRefScript 
-          lookups = unspentOutputs utxomap 
-          constraints = mustSpendScriptOutputUsingScriptRef pars.txLocked unitRedeemer inputWithRefScript 
+          scriptRef = Just <<< PlutusScriptRef <<< unwrap $ pars.validator
+          transactionOutputWithRefScript = TransactionOutputWithRefScript { output: txOutput, scriptRef }
+          inputWithRefScript = SpendInput <<< TransactionUnspentOutput $ { input: pars.txLocked, output: transactionOutputWithRefScript }
+          utxomap = singleton pars.txLocked transactionOutputWithRefScript
+          lookups = unspentOutputs utxomap
+          constraints = mustSpendScriptOutputUsingScriptRef pars.txLocked unitRedeemer inputWithRefScript
           balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable pars.txInputsUsed)
         unbalancedTx <- mkUnbalancedTx lookups constraints
         balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints

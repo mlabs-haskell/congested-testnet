@@ -19,21 +19,24 @@ import Effect.Aff (error)
 import Spammer.Db (executeQuery)
 import Spammer.Query.Utils (bytea, liftJsonDecodeError, quotes)
 
-insertTxRecentlyUsed:: Set.Set TransactionInput -> Contract Unit
-insertTxRecentlyUsed txInputs= liftContractAffM "error insert txRecentlyUsed" do
+insertTxRecentlyUsed :: Set.Set TransactionInput -> Contract Unit
+insertTxRecentlyUsed txInputs = liftContractAffM "error insert txRecentlyUsed" do
   let
     arrInputs :: Array TransactionInput
     arrInputs = Set.toUnfoldable txInputs
-    txHash x = byteArrayToHex <<< unwrap $ x 
-    value (TransactionInput {index,transactionId}) =  
-      "(" <> 
-        (bytea <<< txHash $ transactionId) <> "," <>
-          (show <<< toInt $ index) <> "," <>
-          "NOW()" <>
-       ")"
+    txHash x = byteArrayToHex <<< unwrap $ x
+    value (TransactionInput { index, transactionId }) =
+      "("
+        <> (bytea <<< txHash $ transactionId)
+        <> ","
+        <> (show <<< toInt $ index)
+        <> ","
+        <> "NOW()"
+        <>
+          ")"
 
-
-    query' = "INSERT INTO txRecentlyUsed (txHash, txOutInd, time) VALUES" <> 
-             (fold <<< intersperse "," $ value <$> arrInputs) <> ";"
+    query' = "INSERT INTO txRecentlyUsed (txHash, txOutInd, time) VALUES"
+      <> (fold <<< intersperse "," $ value <$> arrInputs)
+      <> ";"
   _ <- executeQuery query'
   pure <<< pure $ unit

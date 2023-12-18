@@ -26,9 +26,8 @@ updateEnvValue env = do
   let value = pure $ lovelaceValueOf (fromInt 1)
   pure <<< wrap $ (unwrap env) { value = value }
 
-
-addUtxoForNextTransaction :: Boolean -> SpammerEnv -> SpammerEnv 
-addUtxoForNextTransaction x (SpammerEnv env) = wrap $ env {addUtxo = x} 
+addUtxoForNextTransaction :: Boolean -> SpammerEnv -> SpammerEnv
+addUtxoForNextTransaction x (SpammerEnv env) = wrap $ env { addUtxo = x }
 
 updateEnvWallet :: SpammerEnv -> Aff SpammerEnv
 updateEnvWallet env = do

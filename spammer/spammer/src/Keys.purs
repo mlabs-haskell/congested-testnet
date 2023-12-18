@@ -13,7 +13,7 @@ foreign import getPrivateKeyHex :: PrivateKey -> CborHex
 foreign import getPubKeyHex :: PrivateKey -> CborHex
 foreign import getEd25519HashFromPubKeyHex :: CborHex -> Ed25519KeyHash
 foreign import getPubKeyHashHex :: PrivateKey -> CborHex
-foreign import getEdHash :: PrivateKey -> Ed25519KeyHash 
+foreign import getEdHash :: PrivateKey -> Ed25519KeyHash
 foreign import getHexFromEd25519Hash :: Ed25519KeyHash -> CborHex
 foreign import getEd25519HashFromPubKeyHexEffect :: CborHex -> Effect Ed25519KeyHash
 

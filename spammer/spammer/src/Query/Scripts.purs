@@ -21,8 +21,6 @@ type Result = Array { hex :: String, valid :: Int }
 getValidatorContract :: Contract (Maybe (Validator /\ String))
 getValidatorContract = hush <$> (try $ liftContractAffM "" getValidator)
 
- 
-
 getValidator :: Aff (Maybe (Validator /\ String))
 getValidator = do
   let

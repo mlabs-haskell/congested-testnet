@@ -50,12 +50,11 @@ getWallet' = do
       keyWallet = privateKeysToKeyWallet pkey Nothing
     pure keyWallet
 
-genNewPubKeyHash :: Contract PaymentPubKeyHash 
+genNewPubKeyHash :: Contract PaymentPubKeyHash
 genNewPubKeyHash = do
   newPrivKey <- liftEffect genPrivateKey
-  let edHash =  getEdHash newPrivKey 
-  pure <<< wrap <<< wrap  $ edHash
-
+  let edHash = getEdHash newPrivKey
+  pure <<< wrap <<< wrap $ edHash
 
 generateNewWalletDb :: Contract Unit
 generateNewWalletDb = do

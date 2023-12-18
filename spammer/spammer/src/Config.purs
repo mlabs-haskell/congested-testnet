@@ -38,18 +38,18 @@ defaultSynchronizationParams =
 
 config :: Int -> Int -> ContractParams
 config ogmiosPort kupoPort =
-    { backendParams: CtlBackendParams
-        { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1", port = fromInt ogmiosPort }
-        , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt kupoPort }
-        }
-        Nothing
-    , networkId: TestnetId
-    , logLevel: Debug
-    , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../cardano-conf/mainWallet.skey") Nothing
-    , customLogger: Nothing
-    , suppressLogs: true
-    , hooks: emptyHooks
-    , timeParams: defaultTimeParams
-    , synchronizationParams: defaultSynchronizationParams
-    }
+  { backendParams: CtlBackendParams
+      { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1", port = fromInt ogmiosPort }
+      , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt kupoPort }
+      }
+      Nothing
+  , networkId: TestnetId
+  , logLevel: Debug
+  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../cardano-conf/mainWallet.skey") Nothing
+  , customLogger: Nothing
+  , suppressLogs: true
+  , hooks: emptyHooks
+  , timeParams: defaultTimeParams
+  , synchronizationParams: defaultSynchronizationParams
+  }
 
