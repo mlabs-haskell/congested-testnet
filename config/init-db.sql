@@ -13,14 +13,16 @@ CREATE TABLE validators (
 
 
 CREATE TABLE txlocked (
-    txHash BYTEA PRIMARY KEY,
+    txHash BYTEA ,
     txOutInd INT,
     valId INT, 
-    time TIMESTAMP 
+    time TIMESTAMP ,
+    PRIMARY KEY (txHash, txOutInd)
 );
 
 CREATE TABLE txRecentlyUsed (
-    txHash BYTEA PRIMARY KEY,
+    txHash BYTEA,
     txOutInd INT,
-    time TIMESTAMP 
+    time TIMESTAMP,
+    PRIMARY KEY (txHash, txOutInd)
 );

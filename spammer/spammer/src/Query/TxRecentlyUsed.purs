@@ -3,7 +3,7 @@ module Spammer.Query.TxRecentlyUsed where
 import Contract.Prelude
 
 import Contract.Monad (liftContractAffM, Contract)
-import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArray)
+import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArray, hexToByteArrayUnsafe)
 import Contract.Scripts (Validator)
 import Contract.Transaction (TransactionHash(..), TransactionInput(..), plutusV2Script)
 import Contract.Utxos (UtxoMap, getUtxo, utxosAt)
@@ -37,6 +37,24 @@ insertTxRecentlyUsed txInputs = liftContractAffM "error insert txRecentlyUsed" d
 
     query' = "INSERT INTO txRecentlyUsed (txHash, txOutInd, time) VALUES"
       <> (fold <<< intersperse "," $ value <$> arrInputs)
+      <> " ON CONFLICT (txhash, txOutInd) DO NOTHING"
       <> ";"
   _ <- executeQuery query'
   pure <<< pure $ unit
+
+type Result = Array { txhash :: String, txoutind :: Int }
+
+getTxRecentlyUsed :: Contract (Set.Set TransactionInput) 
+getTxRecentlyUsed = liftContractAffM "error get txRecentlyUsed" do
+  let
+    query' = "SELECT encode(txHash, 'hex') as txhash, txOutInd FROM txRecentlyUsed;"
+  json <- executeQuery query'
+  result :: Result <- liftEffect $ liftJsonDecodeError (decodeJson json)
+  let
+      toTransaction {txhash, txoutind} = 
+        TransactionInput {index : fromInt txoutind, transactionId : wrap <<< hexToByteArrayUnsafe $ txhash}  
+  pure <<< pure <<< Set.fromFoldable $ toTransaction <$> result
+
+
+
+

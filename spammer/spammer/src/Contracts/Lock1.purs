@@ -44,7 +44,7 @@ import Effect.Aff (try)
 import Effect.Exception (error)
 import Spammer.Query.Scripts (getValidator, getValidatorContract)
 import Spammer.Query.TxLocked (insertTxLocked)
--- import Spammer.Query.TxRecentlyUsed (insertTxRecentlyUsed)
+import Spammer.Query.TxRecentlyUsed (getTxRecentlyUsed, insertTxRecentlyUsed)
 import Spammer.Query.Utils (decodeCborHexToBytes)
 import Spammer.Query.Wallet (genNewPubKeyHash, getWallet')
 import Spammer.State.Types (SpammerEnv(..))
@@ -55,7 +55,7 @@ newtype LockParams = LockParams
   , validator :: Validator
   , value :: Value
   , valId :: String
-  , txInputsUsed :: Seq TransactionInput
+  , txInputsUsed :: Set.Set TransactionInput
   }
 
 derive instance Newtype LockParams _
@@ -64,11 +64,12 @@ derive instance Generic LockParams _
 extractLockPars :: SpammerEnv -> Contract (Maybe LockParams)
 extractLockPars (SpammerEnv env) = do
   mVal <- getValidatorContract
+  txInputsUsed <- getTxRecentlyUsed 
   pure do
     wallet <- env.wallet
     (validator /\ valId) <- mVal
     value <- env.value
-    pure <<< LockParams $ { wallet, valId, validator, value, txInputsUsed: env.txInputsUsed }
+    pure <<< LockParams $ { wallet, valId, validator, value, txInputsUsed }
 
 lock :: StateT SpammerEnv Contract Unit
 lock = do
@@ -84,7 +85,7 @@ lock = do
           modify_ (addUtxoForNextTransaction true)
         Right (txInputs /\ txHash /\ ind) -> do
           modify_ (addUtxoForNextTransaction false)
-          -- lift $ insertTxRecentlyUsed txInputs
+          lift $ insertTxRecentlyUsed txInputs
           lift $ insertTxLocked txHash ind pars.valId
       where
       lock' = withKeyWallet pars.wallet do
@@ -105,7 +106,7 @@ lock = do
                   mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
               else mempty
 
-          balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.empty)
+          balanceConstraints = mustNotSpendUtxosWithOutRefs (pars.txInputsUsed)
 
         unbalancedTx <- mkUnbalancedTx lookups constraints
         balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
