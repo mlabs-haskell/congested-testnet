@@ -47,7 +47,10 @@ type Result = Array { txhash :: String, txoutind :: Int }
 getTxRecentlyUsed :: Contract (Set.Set TransactionInput) 
 getTxRecentlyUsed = liftContractAffM "error get txRecentlyUsed" do
   let
-    query' = "SELECT encode(txHash, 'hex') as txhash, txOutInd FROM txRecentlyUsed;"
+    query' = """
+        DELETE FROM txRecentlyUsed WHERE time < NOW() - INTERVAL '2 minute';  
+        SELECT encode(txHash, 'hex') as txhash, txOutInd FROM txRecentlyUsed;
+        """
   json <- executeQuery query'
   result :: Result <- liftEffect $ liftJsonDecodeError (decodeJson json)
   let

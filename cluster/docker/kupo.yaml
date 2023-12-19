@@ -9,6 +9,7 @@ services:
       - 1442:1442
     volumes:
       - ${TESTNET_CONFIG}:/config
+      - kupo-db:/data
     entrypoint: "/bin/kupo \
                    --node-socket /config/sockets/node-relay-1-socket/node.socket \
                    --node-config /config/configuration.yaml \

@@ -8,5 +8,6 @@ volumes:
   node-relay-2-db:
   prom-data:
   postgres:
+  kupo-db:
 
 

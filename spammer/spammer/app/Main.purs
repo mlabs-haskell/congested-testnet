@@ -4,7 +4,7 @@ import Contract.Prelude
 
 import Aeson (class DecodeAeson, class EncodeAeson, JsonDecodeError, decodeJsonString, getField)
 import Contract.Monad (launchAff_, liftContractAffM, runContract, throwContractError)
-import Contract.Wallet (getWalletUtxos, ownPaymentPubKeyHashes, withKeyWallet)
+import Contract.Wallet (getWalletUtxos, ownPaymentPubKeyHashes, withKeyWallet) 
 import Control.Monad.Maybe.Trans (runMaybeT)
 import Control.Monad.State (StateT, evalStateT, execStateT, get, lift)
 import Control.Safely (replicateM_)
@@ -37,7 +37,7 @@ loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do
   env' <- updateEnvForLock env
   env'' <- runContract config1 do
-    execStateT (replicateM_ 100 (lock)) env'
+    execStateT (replicateM_ 1 (lock)) env'
   log $ show $ uncons ((unwrap env'').txInputsUsed)
   pure env''
 -- log "finish"
