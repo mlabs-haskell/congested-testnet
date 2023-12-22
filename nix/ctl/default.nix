@@ -1,4 +1,4 @@
-{ inputs, self,  ... }:
+{ inputs, self, ... }:
 {
   perSystem = { system, ... }:
     let
@@ -14,6 +14,7 @@
     in
     {
       devShells.ctl = psProject.devShell;
+      # packages.faucet = psProject
       apps.purs-docs = psProject.launchSearchablePursDocs { };
     };
 }

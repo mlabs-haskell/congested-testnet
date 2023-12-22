@@ -1,8 +1,23 @@
-{inputs, ...} : {
-  imports = [./nixos-generators.nix];
+{ inputs, ... }:
+{
+
   flake.nixosModules = {
-      services.xserver.enable = true;
-      services.xserver.displayManager.gdm.enable = true;
-      services.xserver.desktopManager.gnome.enable = true;
+    imports = [ ./desktop.nix ];
   };
+
+  perSystem = { system, pkgs, self', ... }:
+    {
+      packages.vm = inputs.nixos-generators.nixosGenerate {
+        inherit system;
+        modules = [
+          inputs.arion.nixosModules.arion
+          ./vars.nix
+          ./desktop.nix
+          ./user.nix
+          ./congested-testnet
+        ];
+        format = "vm";
+      };
+    };
 }
+# ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} down  
