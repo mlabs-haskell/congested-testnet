@@ -3,13 +3,12 @@ module Spammer.Config (config) where
 import Contract.Prelude
 
 import Contract.Address (NetworkId(..))
-import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKey(..), PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
+import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
 import Data.Maybe (Maybe(..))
 import Data.Number (infinity)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
-import Spammer.Keys (getPrivateKeyFromHex)
 
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =

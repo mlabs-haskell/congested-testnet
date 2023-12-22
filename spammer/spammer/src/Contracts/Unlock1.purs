@@ -2,47 +2,29 @@ module Spammer.Contracts.Unlock1 where
 
 import Contract.Prelude
 
-import Contract.Address (NetworkId(..), scriptHashAddress)
 import Contract.BalanceTxConstraints (mustNotSpendUtxosWithOutRefs)
-import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
-import Contract.Monad (Contract, launchAff_, runContract)
-import Contract.PlutusData (unitDatum, unitRedeemer)
-import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
-import Contract.Scripts (Validator(..), validatorHash)
-import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptV2FromEnvelope)
-import Contract.Transaction (ScriptRef(..), TransactionInput(..), TransactionOutput(..), TransactionOutputWithRefScript(..), TransactionUnspentOutput(..), awaitTxConfirmed, balanceTx, balanceTxWithConstraints, plutusV1Script, plutusV2Script, signTransaction, submit, submitTxFromConstraints)
-import Contract.TxConstraints (DatumPresence(..), InputWithScriptRef(..), TxConstraints, mustPayToPubKey, mustPayToScript, mustSpendPubKeyOutput, mustSpendScriptOutput, mustSpendScriptOutputUsingScriptRef)
+import Contract.Monad (Contract)
+import Contract.PlutusData (unitRedeemer)
+import Contract.ScriptLookups (unspentOutputs)
+import Contract.Scripts (Validator)
+import Contract.Transaction (ScriptRef(..), TransactionInput, TransactionOutputWithRefScript(..), TransactionUnspentOutput(..), balanceTxWithConstraints, signTransaction, submit)
+import Contract.TxConstraints (InputWithScriptRef(..), mustSpendScriptOutputUsingScriptRef)
 import Contract.UnbalancedTx (mkUnbalancedTx)
-import Contract.Utxos (UtxoMap, getUtxo, utxosAt)
-import Contract.Value (Value, lovelaceValueOf)
-import Contract.Wallet (KeyWallet, getWalletUtxos, withKeyWallet)
-import Contracts.Utils (getInputUtxos)
-import Control.Alternative (guard)
+import Contract.Utxos (getUtxo)
+import Contract.Wallet (KeyWallet, withKeyWallet)
 import Control.Monad.Cont (lift)
 import Control.Monad.Error.Class (liftMaybe)
-import Control.Monad.Maybe.Trans (MaybeT, runMaybeT)
 import Control.Monad.State (StateT, modify_)
-import Control.Monad.State.Trans (modify, get)
-import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
-import Ctl.Internal.Contract.Wallet (ownPubKeyHashes)
-import Data.Array (head, take, length)
-import Data.BigInt as BInt
-import Data.List (List)
-import Data.Map (empty, fromFoldable, keys, singleton, toUnfoldable)
+import Control.Monad.State.Trans (get)
+import Data.Map (singleton)
 import Data.Maybe (Maybe(..))
-import Data.Number (infinity)
 import Data.Sequence (Seq)
 import Data.Set as Set
-import Data.Time.Duration (Milliseconds(..), Seconds(..))
-import Data.UInt (fromInt)
 import Effect.Aff (try)
 import Effect.Exception (error)
-import Spammer.Query.Scripts (getValidator)
 import Spammer.Query.TxLocked (clearTxLocked, getTxLocked)
-import Spammer.Query.Utils (decodeCborHexToBytes)
-import Spammer.Query.Wallet (getWallet')
 import Spammer.State.Types (SpammerEnv(..))
-import Spammer.State.Update (addUtxoForNextTransaction, updateTxInputsUsed)
+import Spammer.State.Update (addUtxoForNextTransaction)
 
 newtype UnLockParams = UnLockParams
   { wallet :: KeyWallet
@@ -74,7 +56,7 @@ unlock = do
         Left e -> do
           lift $ log $ show e
           modify_ (addUtxoForNextTransaction true)
-        Right (txInputs /\ _) -> do
+        Right (_ /\ _) -> do
           pure unit
           modify_ (addUtxoForNextTransaction false)
       -- modify_ (updateTxInputsUsed txInputs)

@@ -3,21 +3,14 @@ module Spammer.Query.TxRecentlyUsed where
 import Contract.Prelude
 
 import Contract.Monad (liftContractAffM, Contract)
-import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArray, hexToByteArrayUnsafe)
-import Contract.Scripts (Validator)
-import Contract.Transaction (TransactionHash(..), TransactionInput(..), plutusV2Script)
-import Contract.Utxos (UtxoMap, getUtxo, utxosAt)
-import Control.Monad.Error.Class (liftMaybe)
+import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArrayUnsafe)
 import Ctl.Internal.Types.Transaction (TransactionInput(..))
 import Data.Argonaut (decodeJson)
-import Data.Array (fold, head, intersperse)
-import Data.Map (findMax)
-import Data.Map.Internal (keys)
+import Data.Array as Array 
 import Data.Set as Set
 import Data.UInt (fromInt, toInt)
-import Effect.Aff (error)
 import Spammer.Db (executeQuery)
-import Spammer.Query.Utils (bytea, liftJsonDecodeError, quotes)
+import Spammer.Query.Utils (bytea, liftJsonDecodeError)
 
 insertTxRecentlyUsed :: Set.Set TransactionInput -> Contract Unit
 insertTxRecentlyUsed txInputs = liftContractAffM "error insert txRecentlyUsed" do
@@ -36,7 +29,7 @@ insertTxRecentlyUsed txInputs = liftContractAffM "error insert txRecentlyUsed" d
           ")"
 
     query' = "INSERT INTO txRecentlyUsed (txHash, txOutInd, time) VALUES"
-      <> (fold <<< intersperse "," $ value <$> arrInputs)
+      <> (Array.fold <<< Array.intersperse "," $ value <$> arrInputs)
       <> " ON CONFLICT (txhash, txOutInd) DO NOTHING"
       <> ";"
   _ <- executeQuery query'

@@ -2,9 +2,7 @@ module Spammer.Db (executeQuery) where
 
 import Contract.Prelude
 
-import Control.Promise (Promise, toAffE)
 import Data.Argonaut (Json)
-import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 

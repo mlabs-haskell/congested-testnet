@@ -4,14 +4,14 @@ import Contract.Prelude
 
 import Contract.Address (NetworkId(..), scriptHashAddress)
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
-import Contract.Monad (Contract, launchAff_, liftContractAffM, runContract)
+import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.PlutusData (unitDatum, unitRedeemer)
-import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArray, hexToByteArrayUnsafe)
-import Contract.ScriptLookups (ScriptLookups, unspentOutputs, validator)
+import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArrayUnsafe)
+import Contract.ScriptLookups (unspentOutputs, validator)
 import Contract.Scripts (Validator(..), validatorHash)
 import Contract.TextEnvelope (TextEnvelopeType(..), decodeTextEnvelope, plutusScriptV2FromEnvelope)
 import Contract.Transaction (plutusV2Script, submitTxFromConstraints)
-import Contract.TxConstraints (DatumPresence(..), TxConstraints, mustPayToScript, mustSpendScriptOutput)
+import Contract.TxConstraints (DatumPresence(..), mustPayToScript, mustSpendScriptOutput)
 import Contract.Utxos (utxosAt)
 import Contract.Value (lovelaceValueOf)
 import Contract.Wallet (getWalletUtxos, withKeyWallet)
@@ -24,8 +24,8 @@ import Data.Number (infinity)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 import Effect.Exception (error)
-import Spammer.Query.Wallet (getWallet')
 import Spammer.Query.Utils (decodeCborHexToBytes)
+import Spammer.Query.Wallet (getWallet')
 
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
@@ -71,6 +71,7 @@ config =
 
 foreign import spamScript :: String
 
+s :: String
 s = "581a581801000032222533300453330044a229445280a4c26cacae69"
 
 getValidator' :: Contract Validator

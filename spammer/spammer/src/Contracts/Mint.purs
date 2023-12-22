@@ -1,6 +1,5 @@
 module Spammer.Contracts.Mint where
 
-import Contract.Prelude
 
 -- import Contract.Address (NetworkId(..), scriptHashAddress)
 -- import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)

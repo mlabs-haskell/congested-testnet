@@ -1,6 +1,5 @@
 module Spammer.State.Mint where
 
-import Contract.Prelude
 -- import Aeson (Aeson, decodeAeson)
 -- import Contract.Prim.ByteArray (ByteArray(..))
 -- import Contract.Value (lovelaceValueOf, singleton)

@@ -3,14 +3,10 @@ module Spammer.Query.Utils where
 import Contract.Prelude
 
 import Aeson (JsonDecodeError)
-import Contract.Monad (Contract)
 import Contract.Prim.ByteArray (byteArrayToHex)
-import Contract.Scripts (Validator(..))
-import Contract.TextEnvelope (TextEnvelopeType(..), plutusScriptV2FromEnvelope)
 import Ctl.Internal.Types.ByteArray (ByteArray, hexToByteArray)
 import Ctl.Internal.Types.Cbor (toByteArray)
 import Data.Argonaut (class DecodeJson, printJsonDecodeError)
-import Data.BigInt (BigInt)
 import Effect.Exception (throw)
 
 liftJsonDecodeError :: forall a. DecodeJson a => Either JsonDecodeError a -> Effect a

@@ -5,18 +5,13 @@ import Contract.Prelude
 import Contract.Monad (liftContractAffM, Contract)
 import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArray)
 import Contract.Scripts (Validator)
-import Contract.Transaction (TransactionHash(..), TransactionInput(..), plutusV2Script)
-import Contract.Utxos (UtxoMap, getUtxo, utxosAt)
-import Control.Monad.Error.Class (liftMaybe)
+import Contract.Transaction (TransactionHash(..), plutusV2Script)
 import Ctl.Internal.Types.Transaction (TransactionInput(..))
 import Data.Argonaut (decodeJson)
 import Data.Array (head)
-import Data.Map (findMax)
-import Data.Map.Internal (keys)
 import Data.UInt (fromInt, toInt)
-import Effect.Aff (error)
 import Spammer.Db (executeQuery)
-import Spammer.Query.Utils (bytea, liftJsonDecodeError, quotes)
+import Spammer.Query.Utils (bytea, liftJsonDecodeError)
 
 insertTxLocked :: TransactionHash -> String -> String -> Contract Unit
 insertTxLocked txHash txOutInd valId = liftContractAffM "error insert txlocked" do

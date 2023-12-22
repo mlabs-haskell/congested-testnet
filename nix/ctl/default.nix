@@ -14,7 +14,9 @@
     in
     {
       devShells.ctl = psProject.devShell;
-      # packages.faucet = psProject
+      packages.faucet = psProject.buildPursProject {
+      # main = "Faucet";
+      }; 
       apps.purs-docs = psProject.launchSearchablePursDocs { };
     };
 }
