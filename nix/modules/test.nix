@@ -1,8 +1,8 @@
-{ self', ...}:
-{ lib, config, ... }: 
+{ self', ... }:
+{ lib, config, ... }:
 {
 
   environment.systemPackages = [
-      self'.packages.faucet
+    self'.packages.faucet
   ];
 }

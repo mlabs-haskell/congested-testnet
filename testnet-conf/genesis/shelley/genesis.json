@@ -1,0 +1,70 @@
+{
+  "systemStart": "2023-12-19T14:55:54.410554353Z",
+  "networkMagic": 2,
+  "networkId": "Testnet",
+  "activeSlotsCoeff": 0.1,
+  "securityParam": 10,
+  "epochLength": 60,
+  "slotsPerKESPeriod": 129600,
+  "maxKESEvolutions": 60,
+  "slotLength": 0.1,
+  "updateQuorum": 2,
+  "maxLovelaceSupply": 90000000000000,
+  "protocolParams": {
+    "minFeeA": 44,
+    "minFeeB": 155381,
+    "maxBlockBodySize": 65536,
+    "maxTxSize": 16384,
+    "maxBlockHeaderSize": 1100,
+    "keyDeposit": 0,
+    "poolDeposit": 0,
+    "eMax": 18,
+    "nOpt": 100,
+    "a0": 0.0,
+    "rho": 0.1,
+    "tau": 0.1,
+    "protocolVersion": {
+      "major": 7,
+      "minor": 0
+    },
+    "minPoolCost": 0,
+    "decentralisationParam": 0.7,
+    "extraEntropy": {
+      "tag": "NeutralNonce"
+    },
+    "minUTxOValue": 1000000
+  },
+  "genDelegs": {
+    "cbdeb8183242a60c07fad86613a2d9e75f3c8af4217d54691283ff2c": {
+      "delegate": "2820b27a9ef7c0040ec269a2d3676d1d786c836e5e3495220fb02939",
+      "vrf": "484ea67aefe91385316c83214d4339a3d05159357b854606f081c64de93124d4"
+    }
+  },
+  "initialFunds": {
+    "606b790fa3f81303a702a78efab88034b9d54f8954a2ba18206c48c168": 81000000000000,
+    "000024ccf7638d18ed86c984d6376a1377a39449f9491a090a563a775b7d316f35dab69cc79910c9cf8f01ffd58acba22a3cdc6eaf41b17099": 81000000000000
+  },
+  "staking": {
+    "pools": {
+      "73142a93b51b5d6fdbd54dab69692824e31c46f715577452eda21e5d": {
+        "cost": 0,
+        "margin": 0.0,
+        "metadata": null,
+        "owners": [],
+        "pledge": 0,
+        "publicKey": "73142a93b51b5d6fdbd54dab69692824e31c46f715577452eda21e5d",
+        "relays": [],
+        "rewardAccount": {
+          "credential": {
+            "key hash": "f5754d8a35ef9adf20862b707b6ffedb663f5c4dde13140a771480c7"
+          },
+          "network": "Testnet"
+        },
+        "vrf": "9935f81c9cc18a48e00739f692ff89903996b3ff560d08985dcc42c95c1a6c85"
+      }
+    },
+    "stake": {
+      "7d316f35dab69cc79910c9cf8f01ffd58acba22a3cdc6eaf41b17099": "73142a93b51b5d6fdbd54dab69692824e31c46f715577452eda21e5d"
+    }
+  }
+}

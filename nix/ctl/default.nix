@@ -15,19 +15,19 @@
     {
       devShells.ctl = psProject.devShell;
       packages.faucet =
-      let
-        compiled = psProject.buildPursProject {}; 
-        nodeModules = psProject.mkNodeModules {};
-      in
-          pkgs.writeShellApplication {
-            name = "faucet";
-            runtimeInputs = [];
-            text = ''
-              #!/bin/sh
-               export NODE_PATH="${nodeModules}/lib/node_modules"
-               ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
-            '';
-          };
+        let
+          compiled = psProject.buildPursProject { };
+          nodeModules = psProject.mkNodeModules { };
+        in
+        pkgs.writeShellApplication {
+          name = "faucet";
+          runtimeInputs = [ ];
+          text = ''
+            #!/bin/sh
+             export NODE_PATH="${nodeModules}/lib/node_modules"
+             ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
+          '';
+        };
 
       apps.purs-docs = psProject.launchSearchablePursDocs { };
     };

@@ -3,7 +3,7 @@
     {
       "accessPoints": [
         {
-          "address": "node-spo-1",
+          "address": "node-spo-1.local",
           "port": 3000
         }
       ],

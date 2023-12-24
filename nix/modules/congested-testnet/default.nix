@@ -1,32 +1,34 @@
-{self',...}:
+{ self', ... }:
 { pkgs, config, ... }: {
   system.stateVersion = "22.11";
   environment.systemPackages = [
     pkgs.arion
     pkgs.docker-client
-   ( 
-        let
-          pkgs' = pkgs // {congested.faucet = self'.packages.faucet;};
-          arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs';};
-          in
-          pkgs.writeShellApplication {
-            name = "start";
-            runtimeInputs = [ pkgs.arion pkgs.docker ];
-            text = ''
-              #!/bin/sh
-              echo ${arion-compose}
-              cat ${arion-compose}
-              ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} up -d 
-              ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} logs -f 
-              '';
-            }
-      )
-        (let
-          pkgs' = pkgs // {congested.faucet = self'.packages.faucet;};
-          in
-        pkgs'.congested.faucet)
+    (
+      let
+        pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
+        arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs'; };
+      in
+      pkgs.writeShellApplication {
+        name = "start";
+        runtimeInputs = [ pkgs.arion pkgs.docker ];
+        text = ''
+          #!/bin/sh
+          echo ${arion-compose}
+          cat ${arion-compose}
+          ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} up -d 
+          ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} logs -f 
+        '';
+      }
+    )
+    (
+      let
+        pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
+      in
+      pkgs'.congested.faucet
+    )
 
-  
+
   ];
 
   virtualisation.docker.enable = false;
@@ -41,8 +43,8 @@
       after = [ "network.target" "podman.service" ];
       serviceConfig =
         let
-          pkgs' = pkgs // {congested.faucet = self'.packages.faucet;};
-          arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs';};
+          pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
+          arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs'; };
           start = pkgs.writeShellApplication {
             name = "start";
             runtimeInputs = [ pkgs.arion pkgs.docker ];
