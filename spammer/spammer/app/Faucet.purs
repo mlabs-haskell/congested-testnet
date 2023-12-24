@@ -43,7 +43,7 @@ main = do
   server <- createServer faucet
   let
     backlog = Nothing
-    hostname = "localhost"
+    hostname = "0.0.0.0"
     port = 8000
     options = { backlog, hostname, port }
   listen server options (log "start faucet")

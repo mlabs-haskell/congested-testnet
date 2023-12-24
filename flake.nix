@@ -35,6 +35,7 @@
         ./nix/shell
         ./nix/ctl
         ./nix/modules
+        ./nix/cardano
       ];
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
     };
