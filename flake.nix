@@ -2,11 +2,7 @@
   description = "congested-testnet";
   inputs.flake-utils.url = github:numtide/flake-utils;
   inputs.flake-parts.url = github:hercules-ci/flake-parts;
-  inputs.arion = {
-    url = github:hercules-ci/arion;
-    inputs.flake-parts.follows = "flake-parts";
-    inputs.nixpkgs.follows = "nixpkgs";
-  };
+  inputs.arion.url = github:hercules-ci/arion;
   inputs.cardano-node.url = github:input-output-hk/cardano-node/8.1.2;
   inputs.aiken.url = github:aiken-lang/aiken;
   inputs.ctl = {

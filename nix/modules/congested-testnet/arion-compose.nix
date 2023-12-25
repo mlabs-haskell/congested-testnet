@@ -1,23 +1,29 @@
 { pkgs, ... }:
 let
-  cardanoSocket-relay="node-relay-1-socket";
-  cardanoData-relay="node-relay-1-data";
-  cardanoSocket-spo="node-spo-1-socket";
-  cardanoData-spo="node-spo-1-data";
+  cardanoSocket-relay = "node-relay-1-socket";
+  cardanoData-relay = "node-relay-1-data";
+  cardanoSocket-spo = "node-spo-1-socket";
+  cardanoData-spo = "node-spo-1-data";
+  spo-port = 3001;
+  relay-port = 3000;
+  bindPort = port: "${toString port}:${toString port}";
 in
 {
-  project.name = "congested-testnet";
-  docker-compose.raw.volumes = {
-  "${cardanoSocket-relay}" = {};
-  "${cardanoData-relay}" = {};
-  "${cardanoSocket-spo}" = {};
-  "${cardanoData-spo}" = {};
+  project.name = "testnet";
+  networks.default.ipam.config = [{subnet = "192.168.224.0/20";}]; 
+
+  docker-compose.volumes = {
+      "${cardanoSocket-relay}" = {};
+      "${cardanoData-relay}" = {};
+      "${cardanoSocket-spo}" = {};
+      "${cardanoData-spo}" = {};
   };
+
   # services.prometheus = {
   #   # image = "prom/prometheus:v2.43.1";
   #   # pots = "9090:9090";
   #   service.image = "crccheck/hello-world";
-  #   service.ports = [ "80:8000" ];
+  #   service.ports = [ "8000:8000" ];
   # };
 
   # services.faucet = {
@@ -31,69 +37,90 @@ in
   #      service.stop_signal = "SIGINT";
   #    };
 
-  services = { 
+  services = {
 
-
-  node-relay-1 = {
-    image.enableRecommendedContents = true;
-    service = {
-      useHostStore = true;
-      command = [
-        "sh"
-        "-c"
-        ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
-          --config                          ${pkgs.congested.testnet-conf}/configuration.yaml \
-          --topology                        ${pkgs.congested.testnet-conf}/topology-relay-1.json \
-          --database-path                   /data/db \
-          --socket-path                     /socket/node.socket \
-          --port                            3000
-       ''
-      ];
-      ports = [
-        "3000:3000"
-      ];
-      volumes = [
-        "${cardanoSocket-relay}:/socket"
-        "${cardanoData-relay}:/data"
-      ];
+    node-relay-1 = {
+      # image.enableRecommendedContents = true;
+      service = {
+        image = "inputoutput/cardano-node:8.1.2";
+        # useHostStore = true;
+        networks.default.ipv4_address = "192.168.224.3";
+        entrypoint = ''
+         sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-relay-1.json --database-path  /data/db --socket-path /socket/node.socket --port ${toString relay-port} & wait"
+         '';
+       #  command = [
+       #    "sh"
+       #    "-c"
+       #    ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
+       #    --config                          /config/configuration.yaml \
+       #    --topology                        /config/topology-relay-1.json \
+       #    --database-path                   /data/db \
+       #    --socket-path                     /socket/node.socket \
+       #    --port                            ${toString relay-port}
+       # ''
+       #  ];
+        ports = [
+          (bindPort relay-port)
+        ];
+        volumes = [
+          "${cardanoSocket-relay}:/socket"
+          "${cardanoData-relay}:/data"
+          "${pkgs.congested.testnet-conf}:/config"
+        ];
+      };
     };
-  };
-
-  node-spo-1 = {
-    image.enableRecommendedContents = true;
-    service = {
-      useHostStore = true;
-      command = [
-        "sh"
-        "-c"
-        ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
-          --config                          ${pkgs.congested.testnet-conf}/configuration.yaml \
-          --topology                        ${pkgs.congested.testnet-conf}/topology-spo-1.json \
-          --database-path                   /data/db \
-          --socket-path                     /socket/node.socket \
-          --port                            3000 \
-          --shelley-kes-key                 ${pkgs.congested.testnet-conf}/configuration.yaml \ 
-
-       ''
-                  # --topology                        '/config/topology-spo-1.json' \
-                  # --database-path                   'db' \
-                  # --shelley-kes-key                 '/config/node-spo1/kes.skey' \
-                  # --shelley-vrf-key                 '/config/node-spo1/vrf.skey' \
-                  # --byron-delegation-certificate    '/config/node-spo1/byron-delegation.cert' \
-                  # --byron-signing-key               '/config/node-spo1/byron-delegate.key' \
-                  # --shelley-operational-certificate '/config/node-spo1/opcert.cert' \
-                  # --config                          '/config/configuration.yaml' \
-                  # --port                            '3000'"
-      ];
-      ports = [
-        "3000:3000"
-      ];
-      volumes = [
-        "${cardanoSocket-spo}:/socket"
-        "${cardanoData-spo}:/data"
-      ];
+    node-spo-1 = {
+      service = {
+        image = "inputoutput/cardano-node:8.1.2";
+        networks.default.ipv4_address = "192.168.224.4";
+        entrypoint = ''
+        sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-spo-1.json --database-path /data/db --socket-path /socket/node.socket --port ${toString spo-port} --shelley-kes-key /config/pools/kes1.skey --shelley-operational-certificate /config/pools/opcert1.cert --shelley-vrf-key /config/pools/vrf1.skey --byron-signing-key  /config/byron-gen-command/delegate-keys.000.key --byron-delegation-certificate  /config/byron-gen-command/delegation-cert.000.json & wait"
+        '';
+        ports = [
+          (bindPort spo-port)
+        ];
+        volumes = [
+          "${cardanoSocket-spo}:/socket"
+          "${cardanoData-spo}:/data"
+          "${pkgs.congested.testnet-conf}:/config"
+        ];
+      };
     };
-  };
+
+    # node-spo-1 = {
+    #   image.enableRecommendedContents = true;
+    #   service = {
+    #     # image = "inputoutput/cardano-node:8.1.2";
+    #     # networks.net.aliases = ["node-spo-1.local"];
+    #     useHostStore = true;
+    #     command = [
+    #       "sh"
+    #       "-c"
+    #       # ''cardano-node run  \
+    #       ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
+    #       --config                          /config/configuration.yaml \
+    #       --topology                        /config/topology-spo-1.json \
+    #       --database-path                   /data/db \
+    #       --socket-path                     /socket/node.socket \
+    #       --port                            ${toString spo-port} \
+    #       --shelley-kes-key                 /config/pools/kes1.skey \
+    #       --shelley-operational-certificate /config/pools/opcert1.cert \
+    #       --shelley-vrf-key                 /config/pools/vrf1.skey \
+    #       --byron-signing-key               /config/byron-gen-command/delegate-keys.000.key \
+    #       --byron-delegation-certificate    /config/byron-gen-command/delegation-cert.000.json
+    #
+    #    ''
+    #     ];
+    #     ports = [
+    #       (bindPort spo-port)
+    #     ];
+    #     volumes = [
+    #       "${cardanoSocket-spo}:/socket"
+    #       "${cardanoData-spo}:/data"
+    #       "${pkgs.congested.testnet-conf}:/config"
+    #     ];
+    #   };
+    # };
   };
 
 }

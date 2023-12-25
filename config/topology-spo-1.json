@@ -3,7 +3,7 @@
     {
       "accessPoints": [
         {
-          "address": "node-relay-1.local",
+          "address": "127.0.0.11",
           "port": 3000
         }
       ],
