@@ -23,27 +23,27 @@ services:
                   --config                          '/config/configuration.yaml' \
                   --port                            '3000'"
 
-  node-spo-2:
-    image: inputoutput/cardano-node:${CARDANO_TAG}
-    networks:
-       mynet:    
-          aliases:
-            - node-spo-2.local
-    expose:
-      - 3000
-      - 12789
-    volumes:
-      - node-spo-2-db:/db
-      - ${TESTNET_CONFIG}/node-spo2:/socket
-      - ${TESTNET_CONFIG}:/config
-    entrypoint: "cardano-node run \
-                  --topology                        '/config/topology-spo-2.json' \
-                  --database-path                   'db' \
-                  --shelley-kes-key                 '/config/node-spo2/kes.skey' \
-                  --shelley-vrf-key                 '/config/node-spo2/vrf.skey' \
-                  --byron-delegation-certificate    '/config/node-spo2/byron-delegation.cert' \
-                  --byron-signing-key               '/config/node-spo2/byron-delegate.key' \
-                  --shelley-operational-certificate '/config/node-spo2/opcert.cert' \
-                  --config                          '/config/configuration.yaml' \
-                  --port                            '3000'"
-
+  # node-spo-2:
+  #   image: inputoutput/cardano-node:${CARDANO_TAG}
+  #   networks:
+  #      mynet:    
+  #         aliases:
+  #           - node-spo-2.local
+  #   expose:
+  #     - 3000
+  #     - 12789
+  #   volumes:
+  #     - node-spo-2-db:/db
+  #     - ${TESTNET_CONFIG}/node-spo2:/socket
+  #     - ${TESTNET_CONFIG}:/config
+  #   entrypoint: "cardano-node run \
+  #                 --topology                        '/config/topology-spo-2.json' \
+  #                 --database-path                   'db' \
+  #                 --shelley-kes-key                 '/config/node-spo2/kes.skey' \
+  #                 --shelley-vrf-key                 '/config/node-spo2/vrf.skey' \
+  #                 --byron-delegation-certificate    '/config/node-spo2/byron-delegation.cert' \
+  #                 --byron-signing-key               '/config/node-spo2/byron-delegate.key' \
+  #                 --shelley-operational-certificate '/config/node-spo2/opcert.cert' \
+  #                 --config                          '/config/configuration.yaml' \
+  #                 --port                            '3000'"
+  #

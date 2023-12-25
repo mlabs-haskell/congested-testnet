@@ -18,7 +18,6 @@
         format = "vm";
       };
       packages.arion = inputs'.arion.packages.arion;
-      packages.runnet =  ;
       packages.check =
         let
           pkgs' = pkgs // {
@@ -39,7 +38,6 @@
             chmod o-rx /tmp/testnet-conf/pools/vrf1.skey 
             chmod g-rwx /tmp/testnet-conf/pools/vrf1.skey 
             jq < ${arion-compose}
-            cp ${arion-compose} /tmp/debug.yaml
             
             arion --prebuilt-file ${arion-compose} down -v  
             arion --prebuilt-file ${arion-compose} up -d --remove-orphans

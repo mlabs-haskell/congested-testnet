@@ -4,7 +4,7 @@ let
   cardanoData-relay = "node-relay-1-data";
   cardanoSocket-spo = "node-spo-1-socket";
   cardanoData-spo = "node-spo-1-data";
-  spo-port = 3001;
+  spo-port = 3000;
   relay-port = 3000;
   bindPort = port: "${toString port}:${toString port}";
 in
@@ -45,6 +45,7 @@ in
         image = "inputoutput/cardano-node:8.1.2";
         # useHostStore = true;
         networks.default.ipv4_address = "192.168.224.3";
+        # networks.default.aliases = ["node-relay-1.local"];
         entrypoint = ''
          sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-relay-1.json --database-path  /data/db --socket-path /socket/node.socket --port ${toString relay-port} & wait"
          '';
@@ -59,9 +60,10 @@ in
        #    --port                            ${toString relay-port}
        # ''
        #  ];
-        ports = [
-          (bindPort relay-port)
-        ];
+        expose = [(toString relay-port)];
+        # ports = [
+        #   (bindPort relay-port)
+        # ];
         volumes = [
           "${cardanoSocket-relay}:/socket"
           "${cardanoData-relay}:/data"
@@ -72,13 +74,15 @@ in
     node-spo-1 = {
       service = {
         image = "inputoutput/cardano-node:8.1.2";
+        # networks.default.aliases = ["node-spo-1.local"];
         networks.default.ipv4_address = "192.168.224.4";
         entrypoint = ''
         sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-spo-1.json --database-path /data/db --socket-path /socket/node.socket --port ${toString spo-port} --shelley-kes-key /config/pools/kes1.skey --shelley-operational-certificate /config/pools/opcert1.cert --shelley-vrf-key /config/pools/vrf1.skey --byron-signing-key  /config/byron-gen-command/delegate-keys.000.key --byron-delegation-certificate  /config/byron-gen-command/delegation-cert.000.json & wait"
         '';
-        ports = [
-          (bindPort spo-port)
-        ];
+        expose = [(toString spo-port)];
+        # ports = [
+        #   (bindPort spo-port)
+        # ];
         volumes = [
           "${cardanoSocket-spo}:/socket"
           "${cardanoData-spo}:/data"
