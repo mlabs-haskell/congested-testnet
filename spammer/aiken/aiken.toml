@@ -1,13 +1,13 @@
 name = "onchain/aiken"
 version = "0.0.0"
-license = "Apache-2.0"
-description = "Aiken contracts for project 'onchain/aiken'"
+# license = "Apache-2.0"
+# description = "Aiken contracts for project 'onchain/aiken'"
 
-[repository]
-user = "onchain"
-project = "aiken"
-platform = "github"
-
+# [repository]
+# user = "onchain"
+# project = "aiken"
+# platform = "github"
+#
 [[dependencies]]
 name = "aiken-lang/stdlib"
 version = "1.7.0"

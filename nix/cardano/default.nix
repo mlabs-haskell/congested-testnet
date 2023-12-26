@@ -1,5 +1,6 @@
 { inputs, self, ... }:
 {
+  imports = [./aiken.nix];
   perSystem = { system, inputs', pkgs, ... }:
     {
       

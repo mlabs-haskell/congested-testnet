@@ -1,14 +1,12 @@
 {
   "preamble": {
     "title": "onchain/aiken",
-    "description": "Aiken contracts for project 'onchain/aiken'",
     "version": "0.0.0",
     "plutusVersion": "v2",
     "compiler": {
       "name": "Aiken",
       "version": "v1.0.20-alpha+unknown"
-    },
-    "license": "Apache-2.0"
+    }
   },
   "validators": [
     {
@@ -25,8 +23,8 @@
           "$ref": "#/definitions/Data"
         }
       },
-      "compiledCode": "581801000032222533300453330044a229445280a4c26cacae69",
-      "hash": "e3248ff0a4cc70c8002c92f72b0509e34bc3e9675b1826b7116f7da1"
+      "compiledCode": "585a010000322225333004323300100148000894ccc018cdc4240040022a66600ca66600ca66600ca66600ca66600ca66600c9445288a5014a229405288a5014a229405288a5014a229404cc008008cdc0000a400429309b2b2b9a01",
+      "hash": "ac86de60993e44f3a06cbe5c677df6cbee8a40e0d90d16464abb7d11"
     }
   ],
   "definitions": {
