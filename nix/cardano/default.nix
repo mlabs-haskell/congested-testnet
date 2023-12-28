@@ -9,9 +9,15 @@
       inputs'.cardano-node.legacyPackages.cardano-cli
       inputs'.cardano-node.legacyPackages.cardano-node
       pkgs.jq
+      pkgs.coreutils
     ];
     text = ''
       ROOT=$1
+      if [ -n "$(ls "$ROOT")" ]; then
+        echo "volume is not empty"
+        exit 0
+      fi
+
       cp ${./config/configuration.yaml} "$ROOT"/configuration.yaml
       cp ${./config/genesis.alonzo.spec.json} "$ROOT"/genesis.alonzo.spec.json
       cp ${./config/genesis.conway.spec.json} "$ROOT"/genesis.conway.spec.json
@@ -62,7 +68,6 @@
       # change some parameters in shelley genesis
 
       jq --argjson maxSupply "$MAX_SUPPLY" --argjson secParam "$SECURITY_PARAM" '.maxLovelaceSupply = $maxSupply | .slotLength = 0.1 | .securityParam = $secParam | .activeSlotsCoeff = 0.1 | .securityParam = $secParam | .epochLength = 60 | .updateQuorum =2 | .protocolParams.protocolVersion.major = 7 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 0.7 | .protocolParams.rho = 0.1 | .protocolParams.tau = 0.1' "$ROOT/genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/genesis.json"
-      ls "$ROOT"
     '';
   };
       
