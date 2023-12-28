@@ -22,20 +22,23 @@
         let
           pkgs' = pkgs // {
             arion' = self'.packages.arion;
-            congested.faucet = self'.packages.faucet;
-            congested.cardano-node = inputs'.cardano-node.legacyPackages.cardano-node;
-            congested.gen-testnet-conf = self'.packages.gen-testnet-conf;
+            congested = {
+              faucet = self'.packages.faucet;
+              cardano-node = inputs'.cardano-node.legacyPackages.cardano-node;
+              gen-testnet-conf = self'.packages.gen-testnet-conf;
+              ogmios = self'.packages.ogmios;
+            };
           };
           arion-compose = pkgs'.arion'.build { modules = [ ./congested-testnet/arion-compose.nix ]; pkgs = pkgs'; };
         in
         pkgs.writeShellApplication {
           name = "start";
-          runtimeInputs = [ pkgs'.arion' pkgs.yq];
+          runtimeInputs = [ pkgs'.arion' ];
           text = ''
             #!/bin/sh
             arion --prebuilt-file ${arion-compose} down -v  
             arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
-            arion --prebuilt-file ${arion-compose} logs node-relay-1 -f 
+            arion --prebuilt-file ${arion-compose} logs -f 
           '';
         };
     };

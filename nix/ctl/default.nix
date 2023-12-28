@@ -28,7 +28,7 @@
              ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
           '';
         };
-
+      packages.ogmios = inputs.ctl.inputs.ogmios-nixos.packages.${system}."ogmios:exe:ogmios";
       apps.purs-docs = psProject.launchSearchablePursDocs { };
     };
 }
