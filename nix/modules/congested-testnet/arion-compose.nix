@@ -8,6 +8,7 @@ let
   testnet-config = "testnet-config";
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
+  faucet-wallet = "faucet-wallet";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -29,6 +30,7 @@ in
     "${testnet-config}" = { };
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
+    "${faucet-wallet}" = { };
   };
 
 
@@ -61,6 +63,26 @@ in
         ];
         volumes = [
           "${testnet-config}:/testnet-config"
+        ];
+      };
+    };
+
+    make-faucet-wallet = {
+      image.enableRecommendedContents = true;
+      service = {
+        depends_on = ["testnet-config" "node-relay-1"];
+        useHostStore = true;
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.congested.make-faucet-wallet}/bin/make-faucet-wallet wallet socket config 
+          ''
+        ];
+        volumes = [
+          "${faucet-wallet}:/wallet"
+          "${socket-relay}:/socket"
+          "${testnet-config}:/config"
         ];
       };
     };

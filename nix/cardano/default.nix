@@ -1,6 +1,6 @@
 { inputs, self, ... }:
 {
-  imports = [ ./aiken.nix ];
+  imports = [ ./aiken.nix ./faucet.nix];
   perSystem = { system, inputs', pkgs, ... }:
     {
       packages.gen-testnet-conf = pkgs.writeShellApplication {
