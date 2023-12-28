@@ -35,7 +35,7 @@
             #!/bin/sh
             arion --prebuilt-file ${arion-compose} down -v  
             arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
-            arion --prebuilt-file ${arion-compose} logs testnet-config -f 
+            arion --prebuilt-file ${arion-compose} logs node-relay-1 -f 
           '';
         };
     };

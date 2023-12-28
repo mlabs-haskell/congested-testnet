@@ -32,7 +32,7 @@
       SECURITY_PARAM=10
       NUM_SPO_NODES=1
       INIT_SUPPLY=10000000000
-      START_TIME="$(date -d "now + 5 seconds" +%s)" 
+      START_TIME="$(date -d "now + 1 seconds" +%s)" 
 
       cardano-cli byron genesis genesis \
        --protocol-magic $NETWORK_MAGIC \
@@ -50,8 +50,7 @@
 
 
        SUPPLY=16446744073709551615
-       #max word64 integer
-       MAX_SUPPLY=18446744073709551615
+       MAX_SUPPLY=18346744073709551615
        chmod -R 777 "$ROOT"
 
 

@@ -5,9 +5,10 @@ let
   cardanoSocket-spo = "node-spo-1-socket";
   cardanoData-spo = "node-spo-1-data";
   testnet-config = "testnet-config";
-  spo-port = 3000;
-  relay-port = 3000;
-  bindPort = port: "${toString port}:${toString port}";
+  spo-port = "3000";
+  relay-port = "3000";
+  prometheus-port = "12789";
+  bindPort = port: "${port}:${port}";
 in
 {
   project.name = "testnet";
@@ -32,7 +33,9 @@ in
   #      service.stop_signal = "SIGINT";
   #    };
 
+
   services = {
+
     testnet-config = {
       image.enableRecommendedContents = true; 
       service = {
@@ -48,91 +51,46 @@ in
           "${testnet-config}:/testnet-config"
           ];
       };
-
     };
 
-    # node-relay-1 = {
-    #   service = {
-    #     image = "inputoutput/cardano-node:8.1.2";
-    #     networks.default.aliases = ["node-relay-1.local"];
-    #     entrypoint = ''
-    #      sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-relay-1.json --database-path  /data/db --socket-path /socket/node.socket --port ${toString relay-port} & wait"
-    #      '';
-    #    #  command = [
-    #    #    "sh"
-    #    #    "-c"
-    #    #    ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
-    #    #    --config                          /config/configuration.yaml \
-    #    #    --topology                        /config/topology-relay-1.json \
-    #    #    --database-path                   /data/db \
-    #    #    --socket-path                     /socket/node.socket \
-    #    #    --port                            ${toString relay-port}
-    #    # ''
-    #    #  ];
-    #     expose = [(toString relay-port)];
-    #     # ports = [
-    #     #   (bindPort relay-port)
-    #     # ];
-    #     volumes = [
-    #       "${cardanoSocket-relay}:/socket"
-    #       "${cardanoData-relay}:/data"
-    #       "${testnet-config}:/config"
-    #     ];
-    #   };
-    # };
-    # node-spo-1 = {
-    #   service = {
-    #     image = "inputoutput/cardano-node:8.1.2";
-    #     # networks.default.aliases = ["node-spo-1.local"];
-    #     entrypoint = ''
-    #     sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-spo-1.json --database-path /data/db --socket-path /socket/node.socket --port ${toString spo-port} --shelley-kes-key /config/pools/kes1.skey --shelley-operational-certificate /config/pools/opcert1.cert --shelley-vrf-key /config/pools/vrf1.skey --byron-signing-key  /config/byron-gen-command/delegate-keys.000.key --byron-delegation-certificate  /config/byron-gen-command/delegation-cert.000.json & wait"
-    #     '';
-    #     expose = [(toString spo-port)];
-    #     # ports = [
-    #     #   (bindPort spo-port)
-    #     # ];
-    #     volumes = [
-    #       "${cardanoSocket-spo}:/socket"
-    #       "${cardanoData-spo}:/data"
-    #       "${testnet-config}:/config"
-    #     ];
-    #   };
-    # };
 
-    # node-spo-1 = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     # image = "inputoutput/cardano-node:8.1.2";
-    #     # networks.net.aliases = ["node-spo-1.local"];
-    #     useHostStore = true;
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       # ''cardano-node run  \
-    #       ''${pkgs.congested.cardano-node}/bin/cardano-node run  \
-    #       --config                          /config/configuration.yaml \
-    #       --topology                        /config/topology-spo-1.json \
-    #       --database-path                   /data/db \
-    #       --socket-path                     /socket/node.socket \
-    #       --port                            ${toString spo-port} \
-    #       --shelley-kes-key                 /config/pools/kes1.skey \
-    #       --shelley-operational-certificate /config/pools/opcert1.cert \
-    #       --shelley-vrf-key                 /config/pools/vrf1.skey \
-    #       --byron-signing-key               /config/byron-gen-command/delegate-keys.000.key \
-    #       --byron-delegation-certificate    /config/byron-gen-command/delegation-cert.000.json
-    #
-    #    ''
-    #     ];
-    #     ports = [
-    #       (bindPort spo-port)
-    #     ];
-    #     volumes = [
-    #       "${cardanoSocket-spo}:/socket"
-    #       "${cardanoData-spo}:/data"
-    #       "${pkgs.congested.testnet-conf}:/config"
-    #     ];
-    #   };
-    # };
+    node-relay-1 = {
+      service = {
+        image = "inputoutput/cardano-node:8.1.2";
+        depends_on =["testnet-config"];
+        networks.default.aliases = ["node-relay-1.local"];
+        entrypoint = ''
+         sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-relay-1.json --database-path  /data/db --socket-path /socket/node.socket --port ${relay-port}"
+         '';
+        expose = [relay-port prometheus-port];
+        volumes = [
+          "${cardanoSocket-relay}:/socket"
+          "${cardanoData-relay}:/data"
+          "${testnet-config}:/config"
+        ];
+      };
+    };
+
+
+
+    node-spo-1 = {
+      service = {
+        depends_on =["testnet-config"];
+        image = "inputoutput/cardano-node:8.1.2";
+        networks.default.aliases = ["node-spo-1.local"];
+        entrypoint = ''
+        sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-spo-1.json --database-path /data/db --socket-path /socket/node.socket --port ${spo-port} --shelley-kes-key /config/pools/kes1.skey --shelley-operational-certificate /config/pools/opcert1.cert --shelley-vrf-key /config/pools/vrf1.skey --byron-signing-key  /config/byron-gen-command/delegate-keys.000.key --byron-delegation-certificate  /config/byron-gen-command/delegation-cert.000.json"
+        '';
+        expose = [spo-port prometheus-port];
+        volumes = [
+          "${cardanoSocket-spo}:/socket"
+          "${cardanoData-spo}:/data"
+          "${testnet-config}:/config"
+        ];
+      };
+    };
+
+
   };
 
 }

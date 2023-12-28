@@ -65,7 +65,7 @@ TurnOnLogMetrics: True
 
 # Global logging severity filter. Messages must have at least this severity to
 # pass. Typical values would be Warning, Notice, Info or Debug.
-minSeverity: Info 
+minSeverity: Debug 
 
 # Log items can be rendered with more or less verbose detail.
 # Verbosity ranges from MinimalVerbosity, NormalVerbosity to MaximalVerbosity
