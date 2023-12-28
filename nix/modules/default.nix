@@ -37,8 +37,9 @@
           text = ''
             #!/bin/sh
             arion --prebuilt-file ${arion-compose} down -v  
-            arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
-            arion --prebuilt-file ${arion-compose} logs -f 
+            # arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
+            # arion --prebuilt-file ${arion-compose} up -d --remove-orphans prometheus  node-relay-1 node-spo-1
+            # arion --prebuilt-file ${arion-compose} logs -f 
           '';
         };
     };
