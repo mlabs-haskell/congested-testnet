@@ -56,7 +56,7 @@ in
           "sh"
           "-c"
           ''
-            ${pkgs.congested.gen-testnet-conf}/bin/gen-testnet-conf  testnet-config 
+            ${pkgs.gen-testnet-conf}/bin/gen-testnet-conf  testnet-config 
           ''
         ];
         volumes = [
@@ -120,7 +120,7 @@ in
           "${pkgs.bash}/bin/sh"
           "-c"
           ''
-            ${pkgs.congested.ogmios}/bin/ogmios \
+            ${pkgs.ogmios}/bin/ogmios \
               --host ogmios \
               --port ${ogmios-port} \
               --node-socket /socket/node.socket \

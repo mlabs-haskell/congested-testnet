@@ -1,22 +1,32 @@
-{ inputs, ... }:
+{ self, inputs, ... }:
 {
   flake.nixosModules = {
     imports = [ ./desktop.nix ];
   };
 
+  flake.overlays.default = final: prev: {
+    faucet = self.packages.${final.system}.faucet;
+    cardano-node = inputs.cardano-node.legacyPackages.${final.system}.cardano-node;
+    gen-testnet-conf = self.packages.${final.system}.gen-testnet-conf;
+    ogmios = self.packages.${final.system}.ogmios;
+  };
+  
+  flake.nixosConfigurations = {
+    congested-testnet = inputs.nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+	inputs.arion.nixosModules.arion
+        ./congested-testnet
+	{ nixpkgs.overlays = [self.overlays.default];}
+      ];
+    };
+  };
+  
   perSystem = { system, pkgs, self', inputs', ... }:
     {
-      packages.vm = inputs.nixos-generators.nixosGenerate {
-        inherit system;
-        modules = [
-          inputs.arion.nixosModules.arion
-          ./vars.nix
-          ./desktop.nix
-          ./user.nix
-          (import ./congested-testnet { inherit self'; })
-        ];
-        format = "vm";
-      };
+      packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
+	modules = [ (import ./congested-testnet/vm.nix) ];
+      }).config.system.build.vm;
       packages.arion = inputs'.arion.packages.arion;
       packages.check =
         let
