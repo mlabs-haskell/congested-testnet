@@ -6,7 +6,7 @@ import Contract.Monad (liftContractAffM, Contract)
 import Contract.Prim.ByteArray (byteArrayToHex, hexToByteArrayUnsafe)
 import Ctl.Internal.Types.Transaction (TransactionInput(..))
 import Data.Argonaut (decodeJson)
-import Data.Array as Array 
+import Data.Array as Array
 import Data.Set as Set
 import Data.UInt (fromInt, toInt)
 import Spammer.Db (executeQuery)
@@ -37,20 +37,18 @@ insertTxRecentlyUsed txInputs = liftContractAffM "error insert txRecentlyUsed" d
 
 type Result = Array { txhash :: String, txoutind :: Int }
 
-getTxRecentlyUsed :: Contract (Set.Set TransactionInput) 
+getTxRecentlyUsed :: Contract (Set.Set TransactionInput)
 getTxRecentlyUsed = liftContractAffM "error get txRecentlyUsed" do
   let
-    query' = """
+    query' =
+      """
         DELETE FROM txRecentlyUsed WHERE time < NOW() - INTERVAL '2 minute';  
         SELECT encode(txHash, 'hex') as txhash, txOutInd FROM txRecentlyUsed;
         """
   json <- executeQuery query'
   result :: Result <- liftEffect $ liftJsonDecodeError (decodeJson json)
   let
-      toTransaction {txhash, txoutind} = 
-        TransactionInput {index : fromInt txoutind, transactionId : wrap <<< hexToByteArrayUnsafe $ txhash}  
+    toTransaction { txhash, txoutind } =
+      TransactionInput { index: fromInt txoutind, transactionId: wrap <<< hexToByteArrayUnsafe $ txhash }
   pure <<< pure <<< Set.fromFoldable $ toTransaction <$> result
-
-
-
 

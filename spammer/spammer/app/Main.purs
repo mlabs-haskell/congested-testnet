@@ -13,7 +13,7 @@ import Spammer.State.Lock (updateEnvForLock)
 import Spammer.State.Types (SpammerEnv, defaultSpammerEnv)
 
 config1 :: ContractParams 
-config1 = config 1337 1442
+config1 = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
 
 main :: Effect Unit
 main = do

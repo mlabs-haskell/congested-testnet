@@ -14,6 +14,7 @@
     in
     {
       devShells.ctl = psProject.devShell;
+
       packages.faucet =
         let
           compiled = psProject.buildPursProject { };
@@ -21,11 +22,10 @@
         in
         pkgs.writeShellApplication {
           name = "faucet";
-          runtimeInputs = [ ];
+          runtimeInputs = [ pkgs.coreutils ];
           text = ''
-            #!/bin/sh
-             export NODE_PATH="${nodeModules}/lib/node_modules"
-             ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
+            export NODE_PATH="${nodeModules}/lib/node_modules"
+            ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
           '';
         };
       packages.ogmios = inputs.ctl.inputs.ogmios-nixos.packages.${system}."ogmios:exe:ogmios";

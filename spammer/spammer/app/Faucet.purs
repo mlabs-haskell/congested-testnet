@@ -21,12 +21,13 @@ faucet req resp =
     reqStream = requestAsStream req
     respStream = responseAsStream resp
     method = requestMethod req
+    faucet_config = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
   in
     if method == "POST" then
       onDataString reqStream UTF8 \str -> do
         fiber <- launchAff $ try do
           body <- liftEffect $ strToResult str
-          runContract (config 1337 1442) (payToAddress body.pubKeyHex)
+          runContract faucet_config (payToAddress body.pubKeyHex)
         fiber1 <- launchAff do
           txHash <- joinFiber fiber
           liftEffect $ writeString respStream UTF8 ("\n" <> show txHash <> "\n") (log $ show txHash)

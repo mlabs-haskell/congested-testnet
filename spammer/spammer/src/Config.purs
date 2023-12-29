@@ -13,15 +13,10 @@ import Data.UInt (fromInt)
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
   { syncWallet:
-      -- As clarified in Eternl discord, they synchronize with the server every 2
-      -- minutes, so 125 seconds would probably be enough.
-      -- For other wallets, it is not very important
       { delay: Milliseconds 1.0, timeout: Seconds 125.0 }
   , syncBackend:
-      -- Operations are costly, so the delay is 3 set to seconds
       { delay: Milliseconds 3.0, timeout: Seconds 120.0 }
   , awaitTxConfirmed:
-      -- CIP-30 calls are cheap, so the delay can be just 1 second
       { delay: Milliseconds 1.0, timeout: Seconds infinity }
   , waitUntilSlot: { delay: Milliseconds 1_0.0 }
   }
@@ -35,16 +30,16 @@ defaultSynchronizationParams =
       { errorOnTimeout: false, beforeTxConfirmed: true }
   }
 
-config :: Int -> Int -> ContractParams
-config ogmiosPort kupoPort =
+config :: String -> String -> String -> Int -> Int -> ContractParams
+config walletPath ogmiosHost kupoHost ogmiosPort kupoPort =
   { backendParams: CtlBackendParams
-      { ogmiosConfig: defaultOgmiosWsConfig { host = "127.0.0.1", port = fromInt ogmiosPort }
-      , kupoConfig: defaultKupoServerConfig { path = Nothing, port = fromInt kupoPort }
+      { ogmiosConfig: defaultOgmiosWsConfig { host = ogmiosHost, port = fromInt ogmiosPort }
+      , kupoConfig: defaultKupoServerConfig { host = kupoHost, port = fromInt kupoPort }
       }
       Nothing
   , networkId: TestnetId
   , logLevel: Debug
-  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile "../../cardano-conf/mainWallet.skey") Nothing
+  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile walletPath) Nothing
   , customLogger: Nothing
   , suppressLogs: true
   , hooks: emptyHooks

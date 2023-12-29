@@ -9,6 +9,7 @@ let
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
   faucet-wallet = "faucet-wallet";
+  spammer-wallet = "spammer-wallet";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -16,6 +17,7 @@ let
   prometheus-port = "9090";
   ogmios-port = "1337";
   kupo-port = "1442";
+  faucet-port = "8000";
 
   bindPort = port: "${port}:${port}";
 in
@@ -31,23 +33,13 @@ in
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
+    "${spammer-wallet}" = { };
   };
 
 
-  # services.faucet = {
-  #      image.enableRecommendedContents = true;
-  #      service.useHostStore = true;
-  #      service.command = [ "sh" "-c" ''${pkgs.congested.faucet}/bin/faucet''];
-  #      service.ports = [
-  #        "8000:8000" 
-  #      ];
-  #      # service.environment.WEB_ROOT = "${pkgs.nix.doc}/share/doc/nix/manual";
-  #      service.stop_signal = "SIGINT";
-  #    };
 
 
   services = {
-
 
 
     testnet-config = {
@@ -70,7 +62,7 @@ in
     make-faucet-wallet = {
       image.enableRecommendedContents = true;
       service = {
-        depends_on = ["testnet-config" "node-relay-1"];
+        depends_on = [ "testnet-config" "node-relay-1" "ogmios" "kupo" ];
         useHostStore = true;
         command = [
           "sh"
@@ -86,6 +78,40 @@ in
         ];
       };
     };
+
+    spammer = {
+      image.enableRecommendedContents = true;
+      service = {
+        depends_on = [ "node-relay-1" "ogmios" "kupo" ];
+        useHostStore = true;
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.congested.gen-wallet}/bin/gen-wallet wallet 
+          ''
+        ];
+        volumes = [
+          "${spammer-wallet}:/wallet"
+        ];
+      };
+    };
+
+    # faucet = {
+    #   image.enableRecommendedContents = true;
+    #   service =
+    #     {
+    #       depends_on = [ "make-faucet-wallet" ];
+    #       networks.default.aliases = [ "faucet.local" ];
+    #       useHostStore = true;
+    #       command = [ "sh" "-c" ''${pkgs.congested.faucet}/bin/faucet'' ];
+    #       ports = [ (bindPort faucet-port) ];
+    #       expose = [ faucet-port ];
+    #       volumes = [
+    #         "${faucet-wallet}:/wallet"
+    #       ];
+    #     };
+    # };
 
 
 
@@ -132,8 +158,10 @@ in
     ogmios = {
       service = {
         depends_on = [ "testnet-config" ];
+        networks.default.aliases = [ "ogmios.local" ];
         useHostStore = true;
         ports = [ (bindPort ogmios-port) ];
+        expose = [ ogmios-port ];
         volumes = [
           "${testnet-config}:/config"
           "${socket-relay}:/socket"
@@ -159,7 +187,9 @@ in
     kupo = {
       service = {
         image = "cardanosolutions/kupo:v2.2.0";
+        networks.default.aliases = [ "kupo.local" ];
         ports = [ (bindPort kupo-port) ];
+        expose = [ kupo-port ];
         volumes = [
           "${testnet-config}:/config"
           "${socket-relay}:/socket"

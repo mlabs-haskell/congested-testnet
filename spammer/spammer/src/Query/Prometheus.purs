@@ -1,7 +1,6 @@
 -- module Spammer.Prometheus (getAvgMemPoolUsage) where
 module Spammer.Prometheus where
 
-
 import Effect.Aff (Aff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 

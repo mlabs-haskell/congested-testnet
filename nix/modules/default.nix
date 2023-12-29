@@ -28,6 +28,7 @@
               gen-testnet-conf = self'.packages.gen-testnet-conf;
               make-faucet-wallet = self'.packages.make-faucet-wallet;
               ogmios = self'.packages.ogmios;
+              gen-wallet = self'.packages.gen-wallet;
             };
           };
           arion-compose = pkgs'.arion'.build { modules = [ ./congested-testnet/arion-compose.nix ]; pkgs = pkgs'; };
@@ -37,11 +38,13 @@
           runtimeInputs = [ pkgs'.arion' ];
           text = ''
             #!/bin/sh
-            arion --prebuilt-file ${arion-compose} down -v  
-            # arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
-            arion --prebuilt-file ${arion-compose} up -d --remove-orphans make-faucet-wallet node-relay-1 node-spo-1
-            arion --prebuilt-file ${arion-compose} logs -f make-faucet-wallet
+            arion --prebuilt-file ${arion-compose} down spammer 
+            arion --prebuilt-file ${arion-compose} up -d spammer 
+            arion --prebuilt-file ${arion-compose} logs -f spammer 
           '';
+          # arion --prebuilt-file ${arion-compose} down -v  
+          # arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
+          # arion --prebuilt-file ${arion-compose} up -d --remove-orphans spammer  # make-faucet-wallet node-relay-1 node-spo-1
         };
     };
 }

@@ -42,7 +42,7 @@ derive instance Generic LockParams _
 extractLockPars :: SpammerEnv -> Contract (Maybe LockParams)
 extractLockPars (SpammerEnv env) = do
   mVal <- getValidatorContract
-  txInputsUsed <- getTxRecentlyUsed 
+  txInputsUsed <- getTxRecentlyUsed
   pure do
     wallet <- env.wallet
     (validator /\ valId) <- mVal
