@@ -2,44 +2,40 @@
 {
   perSystem = { system, inputs', pkgs, ... }:
     {
-      packages.generate-scripts =
+      packages.generate-scripts =  
         let
-          scripts = import ./scripts.nix { inherit pkgs; };
-          aiken-action = script: ''
-            cat ${script.code} > validators/always-true.ak
+          scripts  =  import ./scripts.nix { inherit pkgs;};
+            # echo ${builtins.readFile script.code} > validators/always-true.ak
+          aiken-action = script : ''
+            ${script.code}
+            aiken build
+            aiken blueprint convert > script.json
+            SCRIPT=$(jq '.cborHex' < script.json)
+            echo "$SCRIPT" >> scripts
+            echo ${toString script.count} >> counts
           '';
-          compileAll = pkgs.lib.strings.concatMapStrings aiken-action scripts;
+          compiledAll = pkgs.lib.strings.concatMapStrings aiken-action scripts; 
+
         in
-        pkgs.stdenv.mkDerivation {
+        pkgs.writeShellApplication {
           name = "generate-scripts";
-          buildInputs = [ inputs.aiken.packages.${system}.aiken pkgs.jq pkgs.unixtools.xxd ];
-          src = pkgs.runCommandNoCC "empty" { } "mkdir $out";
-          buildPhase = ''
-            cd $TMPDIR
+          runtimeInputs = [pkgs.coreutils inputs.aiken.packages.${system}.aiken pkgs.jq pkgs.unixtools.xxd ];
+          text = ''
+            WALLET=$1
+            # shellcheck disable=SC2034
+            VKEY=$2
+            TMPDIR=$(mktemp -d)
+
+            cd "$TMPDIR"
 
             # create project
             aiken new spammer/scripts
             cd scripts
             echo 'name="spammer/scripts"' > aiken.toml
             echo 'version="0.0.0"' >> aiken.toml
-            ${compileAll}
-    
-            aiken build
-            aiken blueprint convert > script.json
-            SCRIPT=$(jq '.cborHex' < script.json)
-            COMPILED_CODE=$(jq '.validators[0].compiledCode' < plutus.json)
-            SIZE_SCRIPT=$(($(expr length $SCRIPT)/2))
-
-            X=$(echo $SCRIPT | awk '{print substr( $0, 6, length($0)-6)}')
-            echo $X | xxd -r -p > script.flat 
-            echo $SCRIPT > $out  
-            echo $X >> $out  
-            aiken uplc unflat script.flat >> $out  
-
-            echo $SIZE_SCRIPT >> $out 
-            aiken check 2>> $out
-
-
+            ${compiledAll}
+            cp scripts "$WALLET"
+            mv counts "$WALLET"
           '';
         };
 

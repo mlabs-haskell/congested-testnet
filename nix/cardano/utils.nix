@@ -1,6 +1,6 @@
 { inputs, self, ... }:
 {
-  perSystem = { system, inputs', pkgs, ... }:
+  perSystem = { system, inputs', self', pkgs, ... }:
     let
       runtimeInputs = [
         inputs'.cardano-node.legacyPackages.cardano-cli
@@ -33,6 +33,9 @@
           echo "{\"pubKeyHex\": $PUBKEYHEX}"
 
           curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX }"
+
+          ${self.packages.generate-scripts "$ROOT" "$PUBKEYHEX"}
+          
 
 
 
