@@ -34,7 +34,7 @@ config :: String -> String -> String -> Int -> Int -> ContractParams
 config walletPath ogmiosHost kupoHost ogmiosPort kupoPort =
   { backendParams: CtlBackendParams
       { ogmiosConfig: defaultOgmiosWsConfig { host = ogmiosHost, port = fromInt ogmiosPort }
-      , kupoConfig: defaultKupoServerConfig { host = kupoHost, port = fromInt kupoPort }
+      , kupoConfig: defaultKupoServerConfig { host = kupoHost, port = fromInt kupoPort, path = Nothing }
       }
       Nothing
   , networkId: TestnetId
