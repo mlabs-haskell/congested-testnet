@@ -92,7 +92,8 @@ in
           ''
         ];
         volumes = [
-          "${spammer-wallet}:/wallet"
+          # "${spammer-wallet}:/wallet"
+          "/tmp/wallet:/wallet"
         ];
       };
     };

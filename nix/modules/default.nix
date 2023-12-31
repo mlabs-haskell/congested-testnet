@@ -42,12 +42,9 @@
             arion --prebuilt-file ${arion-compose} up -d spammer 
             arion --prebuilt-file ${arion-compose} logs -f spammer 
           '';
-            # arion --prebuilt-file ${arion-compose} down v 
+            # arion --prebuilt-file ${arion-compose} down -v 
             # arion --prebuilt-file ${arion-compose} up -d 
-          # arion --prebuilt-file ${arion-compose} logs -f spammer 
-          # arion --prebuilt-file ${arion-compose} down -v  
-          # arion --prebuilt-file ${arion-compose} up -d --remove-orphans 
-          # arion --prebuilt-file ${arion-compose} up -d --remove-orphans spammer  # make-faucet-wallet node-relay-1 node-spo-1
+            # arion --prebuilt-file ${arion-compose} logs -f 
         };
     };
 }

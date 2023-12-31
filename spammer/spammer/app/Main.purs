@@ -12,8 +12,8 @@ import Spammer.Contracts.Lock1 (lock)
 import Spammer.State.Lock (updateEnvForLock)
 import Spammer.State.Types (SpammerEnv, defaultSpammerEnv)
 
-config1 :: ContractParams 
-config1 = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
+config' :: ContractParams 
+config' = config "/tmp/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
 
 main :: Effect Unit
 main = do
@@ -23,7 +23,7 @@ main = do
 loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do
   env' <- updateEnvForLock env
-  env'' <- runContract config1 do
+  env'' <- runContract config' do
     execStateT (replicateM_ 1 (lock)) env'
   log $ show $ uncons ((unwrap env'').txInputsUsed)
   pure env''

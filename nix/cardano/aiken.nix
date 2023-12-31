@@ -11,8 +11,8 @@
             aiken build
             aiken blueprint convert > script.json
             SCRIPT=$(jq '.cborHex' < script.json)
-            echo "$SCRIPT" >> scripts
-            echo ${toString script.count} >> counts
+            echo "$SCRIPT" >> "../../scripts"
+            echo ${toString script.count} >> "../../counts"
           '';
           compiledAll = pkgs.lib.strings.concatMapStrings aiken-action scripts; 
 
@@ -24,7 +24,12 @@
             WALLET=$1
             # shellcheck disable=SC2034
             VKEY=$2
-            TMPDIR=$(mktemp -d)
+
+            # Remove both single and double quotes from VKEY
+            VKEY=$(echo "$VKEY" | tr -d '"')
+
+
+            TMPDIR=$(mktemp -d "$WALLET/tmp.XXXXXX")
 
             cd "$TMPDIR"
 
@@ -34,8 +39,8 @@
             echo 'name="spammer/scripts"' > aiken.toml
             echo 'version="0.0.0"' >> aiken.toml
             ${compiledAll}
-            cp scripts "$WALLET"
-            mv counts "$WALLET"
+            cd ../.. 
+            rm -rf tmp*
           '';
         };
 
