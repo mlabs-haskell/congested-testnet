@@ -48,7 +48,8 @@
     "xhr2": "0.2.1",
     "pg": "8.11.3",
     "prom-client": "15.0.0" ,
-    "cbor" : "9.0.1" 
+    "cbor" : "9.0.1" ,
+    "mathjs" : "12.2.1"
 
   },
   "devDependencies": {

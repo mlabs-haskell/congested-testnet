@@ -16,6 +16,22 @@ import Data.Maybe (Maybe)
 import Spammer.Db (executeQuery)
 import Spammer.Query.Utils (liftJsonDecodeError)
 
+
+foreign import _sampleValidator :: Effect String
+
+sampleValidator :: Effect (Maybe Validator)
+sampleValidator =  do
+  str <- _sampleValidator
+  if str == "" 
+  then pure Nothing
+  else
+    pure do
+      bytes <- hexToByteArray str
+      pure <<< wrap <<< plutusV2Script $ bytes
+     
+
+-- getValidatorFromDistribution = 
+
 type Result = Array { hex :: String, valid :: Int }
 
 getValidatorContract :: Contract (Maybe (Validator /\ String))
