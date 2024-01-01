@@ -30,7 +30,6 @@ sampleValidator =  do
       pure <<< wrap <<< plutusV2Script $ bytes
      
 
--- getValidatorFromDistribution = 
 
 type Result = Array { hex :: String, valid :: Int }
 
