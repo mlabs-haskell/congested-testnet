@@ -28,7 +28,7 @@ main = do
 loop :: SpammerEnv -> Aff SpammerEnv
 loop env = do
   runContract config' do
-    execStateT (replicateM_ 10 (lock)) env
+    execStateT (replicateM_ 1 (lock)) env
   -- log $ show $ uncons ((unwrap env'').txInputsUsed)
   -- pure env''
 

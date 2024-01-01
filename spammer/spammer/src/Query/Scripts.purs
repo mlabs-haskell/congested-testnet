@@ -14,7 +14,7 @@ import Data.Array (head)
 import Data.BigInt as BInt
 import Data.Maybe (Maybe)
 import Spammer.Db (executeQuery)
-import Spammer.Query.Utils (liftJsonDecodeError)
+import Spammer.Query.Utils (decodeCborHexToBytes, liftJsonDecodeError)
 
 
 foreign import _sampleValidator :: Effect String
@@ -26,7 +26,7 @@ sampleValidator =  do
   then pure Nothing
   else
     pure do
-      bytes <- hexToByteArray str
+      bytes <- decodeCborHexToBytes str
       pure <<< wrap <<< plutusV2Script $ bytes
      
 

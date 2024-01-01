@@ -58,12 +58,13 @@ lock' (LockParams pars) = do
   pkeyHash <- liftedM "no pubkeyHash" ownPaymentPubKeyHash  
   utxos <- liftedM "no utxos" $ getWalletUtxos
   log $ show (Map.size utxos)
+  log $ show $ pars.validator
   let
     lookups = maybe mempty validator pars.validator  
     constraints = 
           mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-            mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-            mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+            -- mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+            -- mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
             maybe mempty (\val -> mustPayToScriptWithScriptRef (validatorHash val) unitDatum DatumWitness
         (PlutusScriptRef $ unwrap val) (lovelaceValueOf $ BInt.fromInt 1)) pars.validator 
 
