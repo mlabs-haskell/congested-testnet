@@ -16,10 +16,6 @@ import Spammer.State.Update (countUtxos, loadAllLockedUtxos)
 config' :: ContractParams 
 config' = config "/tmp/wallet/wallet.skey" "localhost" "localhost" 1337 1442
 
--- main :: Effect Unit
--- main = do
---   launchAff_ do
---      runContract config' lock
 
 main :: Effect Unit
 main = do
