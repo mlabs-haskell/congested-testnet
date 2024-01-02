@@ -35,6 +35,7 @@ newtype LockParams = LockParams
   { 
    validator :: Maybe Validator
   , txInputsUsed :: Set.Set TransactionInput
+  , numberUtxos :: Int 
   }
 
 derive instance Newtype LockParams _
@@ -43,9 +44,7 @@ derive instance Generic LockParams _
 extractLockPars :: SpammerEnv -> Contract LockParams
 extractLockPars (SpammerEnv env) = do
   validator <- liftEffect sampleValidator 
-  pure <<< LockParams $ { validator, txInputsUsed : Set.fromFoldable env.txInputsUsed }
-
-
+  pure <<< LockParams $ { validator, txInputsUsed : Set.fromFoldable env.txInputsUsed, numberUtxos : env.numberUtxos }
 
 
 lock :: StateT SpammerEnv Contract Unit
@@ -61,21 +60,22 @@ lock = do
       maybe (pure unit) (\txLocked -> modify_ (updateTxLocked txLocked)) mTxLocked
 
 
+
 lock' :: LockParams -> Contract (Seq.Seq TransactionInput /\ Maybe UtxoMap)
 lock' (LockParams pars) = do
   pkeyHash <- liftedM "no pubkeyHash" ownPaymentPubKeyHash  
-  utxos <- liftedM "no utxos" $ getWalletUtxos
-  log $ show (Map.size utxos)
   let
     lookups = maybe mempty validator pars.validator  
-    constraints = 
-          mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-            mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-            mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
-            maybe mempty (\val -> mustPayToScriptWithScriptRef (validatorHash val) unitDatum DatumWitness
+    addutxos = mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+               mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) <>
+               mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000) 
+    lockOnScript = maybe mempty (\val -> mustPayToScriptWithScriptRef (validatorHash val) unitDatum DatumWitness
         (PlutusScriptRef $ unwrap val) (lovelaceValueOf $ BInt.fromInt 1)) pars.validator 
+    constraints = (if pars.numberUtxos < 10 then addutxos else mempty) <> lockOnScript
 
     balanceConstraints = mustNotSpendUtxosWithOutRefs (pars.txInputsUsed)
+
+  if constraints == mempty then log "====empty lock====" else pure unit
 
   unbalancedTx <- mkUnbalancedTx lookups constraints
   balancedTx <- balanceTxWithConstraints unbalancedTx balanceConstraints
@@ -86,11 +86,12 @@ lock' (LockParams pars) = do
     txInputsUsed = Seq.fromFoldable txBody.inputs
     mTxLocked = getLockedTx txHash (wrap txBody) 
 
-  log "================"
-  log $ show mTxLocked
+  -- log "================"
   log "locked successfully"
+  -- log $ show mTxLocked
 
-  pure $ txInputsUsed /\ mTxLocked 
+  pure $ txInputsUsed /\ mTxLocked  
+
 
 getLockedTx :: TransactionHash -> TxBody -> Maybe UtxoMap
 getLockedTx txHash (TxBody txBody) = do  

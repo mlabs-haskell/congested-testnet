@@ -13,8 +13,7 @@ type TxLocked = TransactionInput /\ InputWithScriptRef
 newtype SpammerEnv = SpammerEnv
   { 
     txInputsUsed :: Seq TransactionInput
-  , counter :: Int
-  , addUtxo :: Boolean
+  , numberUtxos :: Int 
   , txLocked :: Seq UtxoMap 
   }
 
@@ -22,8 +21,7 @@ defaultSpammerEnv :: SpammerEnv
 defaultSpammerEnv = SpammerEnv
   { 
   txInputsUsed: empty
-  , counter: 1
-  , addUtxo: false
+  , numberUtxos : 0
   , txLocked : empty
   }
 

@@ -19,7 +19,7 @@ import Data.Sequence as Seq
 import Data.Set as Set
 import Effect.Aff (try)
 import Spammer.State.Types (SpammerEnv(..))
-import Spammer.State.Update (updateTxInputsUsed)
+import Spammer.State.Update (deleteHeadTxLocked, updateTxInputsUsed)
 
 
 newtype UnLockParams = UnLockParams
@@ -49,9 +49,11 @@ utxoMapToInputs utxoMap = do
 extractUnLockPars :: SpammerEnv -> Contract (Maybe UnLockParams)
 extractUnLockPars (SpammerEnv env) = do
   let
-    mTxLocked =  Seq.head env.txLocked
-  pure do
-    txLocked <- mTxLocked
+    size = Seq.length env.txLocked
+  log "============== number Tx locked on script ==============="
+  log $ show size 
+  pure $ if size < 30 then Nothing else do
+    txLocked <- Seq.head env.txLocked
     pure <<< UnLockParams $ {txInputsUsed: env.txInputsUsed, txLocked }
 
 unlock :: StateT SpammerEnv Contract Unit
@@ -65,14 +67,12 @@ unlock = do
       case unlockResult of
         Left e -> do
           lift $ log $ show e
-          -- modify_ (addUtxoForNextTransaction true)
         Right txInputs -> do
-          pure unit
           modify_ (updateTxInputsUsed txInputs)
+          modify_ deleteHeadTxLocked 
 
 unlock' :: UnLockParams -> Contract (Set.Set TransactionInput) 
 unlock' (UnLockParams {txLocked, txInputsUsed}) = do
-  log $ show txLocked
   let
       mInputs = utxoMapToInputs txLocked 
   (transactionInput /\ inputWithScriptRef) <- liftedM "no inputs to unlock" (pure mInputs)
