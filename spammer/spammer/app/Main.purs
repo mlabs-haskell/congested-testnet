@@ -25,7 +25,8 @@ main = do
        spammer = runContract config' $ execStateT loop defaultSpammerEnv
        trySpammer = do 
           res <- try spammer
-          if isLeft res then trySpammer else pure unit
+          either (\e -> (log $ show e) *> trySpammer) (\_ -> pure unit) res
+
 
 
 

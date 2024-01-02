@@ -72,7 +72,8 @@ in
           ''
         ];
         volumes = [
-          "${faucet-wallet}:/wallet"
+          # "${faucet-wallet}:/wallet"
+          "/tmp/faucet:/wallet"
           "${socket-relay}:/socket"
           "${testnet-config}:/config"
         ];
@@ -93,6 +94,7 @@ in
         ];
         volumes = [
           # "${spammer-wallet}:/wallet"
+          # "${faucet-wallet}:/faucet"
           "/tmp/wallet:/wallet"
         ];
       };
@@ -109,7 +111,8 @@ in
     #       ports = [ (bindPort faucet-port) ];
     #       expose = [ faucet-port ];
     #       volumes = [
-    #         "${faucet-wallet}:/wallet"
+    #         # "${faucet-wallet}:/wallet"
+    #       "/tmp/faucet:/wallet"
     #       ];
     #     };
     # };

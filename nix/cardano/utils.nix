@@ -25,12 +25,12 @@
             --signing-key-file "$ROOT/wallet.skey" 
           cat "$ROOT/wallet.skey"
 
-          OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/utxo","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
-          echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat "ws://ogmios.local:1337"  | jq
+          # OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/utxo","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
+          # echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat "ws://ogmios.local:1337"  | jq
 
           PUBKEYHEX=$( jq '.cborHex' < "$ROOT/wallet.vkey" ) 
-          echo "$PUBKEYHEX"
-          echo "{\"pubKeyHex\": $PUBKEYHEX}"
+          # echo "$PUBKEYHEX"
+          # echo "{\"pubKeyHex\": $PUBKEYHEX}"
 
           curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX }"
 
