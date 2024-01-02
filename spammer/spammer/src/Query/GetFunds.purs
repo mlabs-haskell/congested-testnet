@@ -11,15 +11,15 @@ import Ctl.Internal.Types.TxConstraints (mustPayToPubKey)
 import Spammer.Config (config)
 import Data.BigInt as BInt
 
-config' :: ContractParams 
+config' :: ContractParams
 config' = config "/tmp/faucet/wallet.skey" "localhost" "localhost" 1337 1442
 
-getFundsFromFaucet :: PaymentPubKeyHash -> Effect Unit 
+getFundsFromFaucet :: PaymentPubKeyHash -> Effect Unit
 getFundsFromFaucet pkh = do
   launchAff_ do
     runContract config' do
-       let
-           constraints = mustPayToPubKey  pkh (lovelaceValueOf $ BInt.fromInt 1_000_000_000)
-       _ <- submitTxFromConstraints mempty constraints
-       pure unit
+      let
+        constraints = mustPayToPubKey pkh (lovelaceValueOf $ BInt.fromInt 1_000_000_000)
+      _ <- submitTxFromConstraints mempty constraints
+      pure unit
 

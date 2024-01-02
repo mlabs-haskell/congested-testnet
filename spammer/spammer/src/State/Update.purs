@@ -17,7 +17,6 @@ import Data.Sequence as Seq
 import Spammer.Query.Scripts (allValidators)
 import Spammer.State.Types (SpammerEnv(..))
 
-
 updateTxInputsUsed :: forall f. Foldable f => f TransactionInput -> SpammerEnv -> SpammerEnv
 updateTxInputsUsed inputs (SpammerEnv env) =
   let
@@ -26,57 +25,52 @@ updateTxInputsUsed inputs (SpammerEnv env) =
   in
     wrap $ env { txInputsUsed = newSeq }
 
-updateTxLocked ::  UtxoMap -> SpammerEnv -> SpammerEnv
+updateTxLocked :: UtxoMap -> SpammerEnv -> SpammerEnv
 updateTxLocked utxoMap (SpammerEnv env) =
   let
-    seq = Seq.singleton utxoMap 
-    newSeq =  env.txLocked `Seq.append` seq 
+    seq = Seq.singleton utxoMap
+    newSeq = env.txLocked `Seq.append` seq
   in
     wrap $ env { txLocked = newSeq }
 
-deleteHeadTxLocked :: SpammerEnv -> SpammerEnv 
-deleteHeadTxLocked (SpammerEnv env) = 
+deleteHeadTxLocked :: SpammerEnv -> SpammerEnv
+deleteHeadTxLocked (SpammerEnv env) =
   let
-      tail' = Seq.tail env.txLocked
+    tail' = Seq.tail env.txLocked
   in
-    SpammerEnv $ maybe env (\t -> env {txLocked = t}) tail'
-
+    SpammerEnv $ maybe env (\t -> env { txLocked = t }) tail'
 
 getUtxoFromValidator :: Validator -> Contract UtxoMap
 getUtxoFromValidator val = do
-  let 
-      valHash = validatorHash val 
-      address = scriptHashAddress valHash Nothing 
+  let
+    valHash = validatorHash val
+    address = scriptHashAddress valHash Nothing
   utxosAt address
 
-
-loadAllLockedUtxos :: StateT SpammerEnv Contract Unit 
+loadAllLockedUtxos :: StateT SpammerEnv Contract Unit
 loadAllLockedUtxos = do
   lockedInputs <- lift do
-    vals <- liftedM "no validators"  (liftEffect allValidators) 
-    allLockedUtxos :: UtxoMap <- foldM (\allUtxos val -> (Map.union allUtxos ) <$> (getUtxoFromValidator val)) Map.empty vals
+    vals <- liftedM "no validators" (liftEffect allValidators)
+    allLockedUtxos :: UtxoMap <- foldM (\allUtxos val -> (Map.union allUtxos) <$> (getUtxoFromValidator val)) Map.empty vals
 
-    let 
-        seqTuple = Map.toUnfoldable allLockedUtxos
-        seqOfUtxos :: Seq.Seq UtxoMap
-        seqOfUtxos =  (\(k /\ v) -> Map.singleton k v) <$> seqTuple  
-    pure $ seqOfUtxos 
+    let
+      seqTuple = Map.toUnfoldable allLockedUtxos
+
+      seqOfUtxos :: Seq.Seq UtxoMap
+      seqOfUtxos = (\(k /\ v) -> Map.singleton k v) <$> seqTuple
+    pure $ seqOfUtxos
   log "=============N total locked==================="
   log $ show $ Seq.length lockedInputs
-  modify_ (\(SpammerEnv x) -> wrap (x {txLocked = x.txLocked <> lockedInputs }))
-  
+  modify_ (\(SpammerEnv x) -> wrap (x { txLocked = x.txLocked <> lockedInputs }))
 
-
-countUtxos :: StateT SpammerEnv Contract Unit 
+countUtxos :: StateT SpammerEnv Contract Unit
 countUtxos = do
   count <- lift do
-    utxos <- liftedM "no utxos" $ getWalletUtxos 
+    utxos <- liftedM "no utxos" $ getWalletUtxos
     pure $ Map.size utxos
   log "============= total utxos in wallet=========="
   log $ show count
-  modify_ (\(SpammerEnv x) -> wrap (x {numberUtxos = count}))
-  SpammerEnv x <- get 
+  modify_ (\(SpammerEnv x) -> wrap (x { numberUtxos = count }))
+  SpammerEnv x <- get
   log $ show $ Seq.length x.txLocked
-
-
 

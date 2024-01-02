@@ -18,46 +18,41 @@ import Data.Maybe (Maybe(..))
 import Data.Sequence as Seq
 import Data.Set as Set
 import Effect.Aff (try)
-import Effect.Exception (message, name)
+import Effect.Exception (message)
 import Spammer.State.Types (SpammerEnv(..))
 import Spammer.State.Update (deleteHeadTxLocked, updateTxInputsUsed)
 
-
 newtype UnLockParams = UnLockParams
-  { 
-   txInputsUsed :: Seq.Seq TransactionInput
-  , txLocked :: UtxoMap 
+  { txInputsUsed :: Seq.Seq TransactionInput
+  , txLocked :: UtxoMap
   }
 
 derive instance Newtype UnLockParams _
 derive instance Generic UnLockParams _
 
-
 utxoMapToInputs :: UtxoMap -> Maybe (TransactionInput /\ InputWithScriptRef)
 utxoMapToInputs utxoMap = do
   rec <- Map.findMax utxoMap
   let
-    transactionInput = rec.key  
+    transactionInput = rec.key
     transactionOutputWithRefScript = rec.value
-    transactionUnspentOutput = wrap {input : transactionInput, output : transactionOutputWithRefScript} 
-    inputWithScriptRef = SpendInput transactionUnspentOutput 
+    transactionUnspentOutput = wrap { input: transactionInput, output: transactionOutputWithRefScript }
+    inputWithScriptRef = SpendInput transactionUnspentOutput
   pure (transactionInput /\ inputWithScriptRef)
-  
-
-
-  
 
 extractUnLockPars :: SpammerEnv -> Contract (Maybe UnLockParams)
 extractUnLockPars (SpammerEnv env) = do
   let
     size = Seq.length env.txLocked
   log "============== all Tx locked  ==============="
-  log $ show size 
+  log $ show size
   log $ show $ Map.keys <$> (Seq.last env.txLocked)
   log $ show $ Map.keys <$> (Seq.head env.txLocked)
-  pure $ if size < 5 then Nothing else do
-    txLocked <- Seq.head env.txLocked
-    pure <<< UnLockParams $ {txInputsUsed: env.txInputsUsed, txLocked }
+  pure $
+    if size < 5 then Nothing
+    else do
+      txLocked <- Seq.head env.txLocked
+      pure <<< UnLockParams $ { txInputsUsed: env.txInputsUsed, txLocked }
 
 unlock :: StateT SpammerEnv Contract Unit
 unlock = do
@@ -70,19 +65,19 @@ unlock = do
       case unlockResult of
         Left e -> do
           -- case message e of
-              -- "Could not get 
+          -- "Could not get 
           lift $ log $ show $ message e
         Right txInputs -> do
           modify_ (updateTxInputsUsed txInputs)
-          modify_ deleteHeadTxLocked 
+          modify_ deleteHeadTxLocked
 
-unlock' :: UnLockParams -> Contract (Set.Set TransactionInput) 
-unlock' (UnLockParams {txLocked, txInputsUsed}) = do
+unlock' :: UnLockParams -> Contract (Set.Set TransactionInput)
+unlock' (UnLockParams { txLocked, txInputsUsed }) = do
   let
-      mInputs = utxoMapToInputs txLocked 
+    mInputs = utxoMapToInputs txLocked
   (transactionInput /\ inputWithScriptRef) <- liftedM "no inputs to unlock" (pure mInputs)
   let
-    lookups = unspentOutputs txLocked 
+    lookups = unspentOutputs txLocked
     constraints = mustSpendScriptOutputUsingScriptRef transactionInput unitRedeemer inputWithScriptRef
     balanceConstraints = mustNotSpendUtxosWithOutRefs (Set.fromFoldable txInputsUsed)
   unbalancedTx <- mkUnbalancedTx lookups constraints
@@ -93,4 +88,4 @@ unlock' (UnLockParams {txLocked, txInputsUsed}) = do
     txBody = unwrap <<< _.body <<< unwrap <<< unwrap $ signedBalancedTx
     txInputs = txBody.inputs
   log "unlock successfully"
-  pure $  txInputs 
+  pure $ txInputs

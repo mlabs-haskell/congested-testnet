@@ -9,20 +9,17 @@ import Data.Sequence (Seq, empty)
 
 type TxLocked = TransactionInput /\ InputWithScriptRef
 
-
 newtype SpammerEnv = SpammerEnv
-  { 
-    txInputsUsed :: Seq TransactionInput
-  , numberUtxos :: Int 
-  , txLocked :: Seq UtxoMap 
+  { txInputsUsed :: Seq TransactionInput
+  , numberUtxos :: Int
+  , txLocked :: Seq UtxoMap
   }
 
 defaultSpammerEnv :: SpammerEnv
 defaultSpammerEnv = SpammerEnv
-  { 
-  txInputsUsed: empty
-  , numberUtxos : 0
-  , txLocked : empty
+  { txInputsUsed: empty
+  , numberUtxos: 0
+  , txLocked: empty
   }
 
 derive instance Newtype SpammerEnv _
