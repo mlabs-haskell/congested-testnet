@@ -23,5 +23,7 @@ try {
 const data = getValidatorsCounts(fscripts, fcounts) 
 
 exports._sampleValidator = () => mathjs.pickRandom(data[0],data[1]) 
+exports._allValidators = () => data[0].slice(1)  
+
 
 

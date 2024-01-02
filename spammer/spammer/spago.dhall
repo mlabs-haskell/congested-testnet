@@ -40,4 +40,5 @@ You can edit this file as you like.
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs"]
+-- , sources = ["app/Faucet.purs", "src/Contracts/Faucet.purs","src/Keys.purs", "src/Config.purs"]
 }

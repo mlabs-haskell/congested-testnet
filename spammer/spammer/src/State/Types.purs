@@ -2,15 +2,20 @@ module Spammer.State.Types where
 
 import Contract.Prelude
 
+import Contract.TxConstraints (InputWithScriptRef)
+import Contract.Utxos (UtxoMap)
 import Ctl.Internal.Types.Transaction (TransactionInput)
 import Data.Sequence (Seq, empty)
 
+type TxLocked = TransactionInput /\ InputWithScriptRef
+
+
 newtype SpammerEnv = SpammerEnv
   { 
-  txInputsUsed :: Seq TransactionInput
+    txInputsUsed :: Seq TransactionInput
   , counter :: Int
   , addUtxo :: Boolean
-  , txLocked :: Seq TransactionInput
+  , txLocked :: Seq UtxoMap 
   }
 
 defaultSpammerEnv :: SpammerEnv

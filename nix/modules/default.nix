@@ -38,13 +38,13 @@
           runtimeInputs = [ pkgs'.arion' ];
           text = ''
             #!/bin/sh
+            # arion --prebuilt-file ${arion-compose} down -v 
+            # arion --prebuilt-file ${arion-compose} up -d 
+            # arion --prebuilt-file ${arion-compose} logs -f 
             arion --prebuilt-file ${arion-compose} down spammer 
             arion --prebuilt-file ${arion-compose} up -d spammer 
             arion --prebuilt-file ${arion-compose} logs -f spammer 
           '';
-            # arion --prebuilt-file ${arion-compose} down -v 
-            # arion --prebuilt-file ${arion-compose} up -d 
-            # arion --prebuilt-file ${arion-compose} logs -f 
         };
     };
 }
