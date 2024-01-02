@@ -17,7 +17,7 @@ import Contract.Wallet (getWalletUtxos, ownPaymentPubKeyHash)
 import Control.Monad.Cont (lift)
 import Control.Monad.State (StateT)
 import Control.Monad.State.Trans (get, modify_)
-import Ctl.Internal.Cardano.Types.Value as Cardano.Value 
+import Ctl.Internal.Cardano.Types.Value as Cardano.Value
 import Ctl.Internal.Plutus.Types.Value as Plutus.Value
 import Data.Array as Array
 import Data.BigInt as BInt
@@ -25,8 +25,11 @@ import Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.Sequence as Seq
 import Data.Set as Set
+import Data.String (Pattern(..), contains)
 import Data.UInt as UInt
 import Effect.Aff (try)
+import Effect.Exception (message)
+import Spammer.Contracts.GetFunds (getFundsFromFaucet)
 import Spammer.Query.Scripts (sampleValidator)
 import Spammer.State.Types (SpammerEnv(..))
 import Spammer.State.Update (updateTxInputsUsed, updateTxLocked)
@@ -54,7 +57,15 @@ lock = do
   lockResult <- lift $ try (lock' pars)
   case lockResult of
     Left e -> do
-      lift $ log $ show e
+      let
+        message' = message e
+      if contains (Pattern "Insufficient balance") message' 
+      then do
+         pkh <- lift $ liftedM "no own pKeyHash" ownPaymentPubKeyHash
+         log "request faucet" 
+         lift <<< liftEffect $ getFundsFromFaucet pkh
+      else
+         log $  message e
     Right (txInputsUsed /\ mTxLocked ) -> do
       modify_ (updateTxInputsUsed txInputsUsed)
       maybe (pure unit) (\txLocked -> modify_ (updateTxLocked txLocked)) mTxLocked

@@ -6,6 +6,7 @@ import Contract.Config (ContractParams)
 import Contract.Monad (Contract, launchAff_, runContract)
 import Control.Monad.State (StateT, execStateT)
 import Control.Safely (replicateM_)
+import Effect.Aff (try)
 import Spammer.Config (config)
 import Spammer.Contracts.Lock (lock)
 import Spammer.Contracts.Unlock (unlock)
@@ -23,8 +24,14 @@ config' = config "/tmp/wallet/wallet.skey" "localhost" "localhost" 1337 1442
 main :: Effect Unit
 main = do
   launchAff_ do
-    runContract config' do
-      execStateT loop defaultSpammerEnv
+     trySpammer
+     where
+       spammer = runContract config' $ execStateT loop defaultSpammerEnv
+       trySpammer = do 
+          res <- try spammer
+          if isLeft res then trySpammer else pure unit
+
+
 
 loop ::  StateT SpammerEnv Contract Unit 
 loop = do

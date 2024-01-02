@@ -18,6 +18,7 @@ import Data.Maybe (Maybe(..))
 import Data.Sequence as Seq
 import Data.Set as Set
 import Effect.Aff (try)
+import Effect.Exception (message, name)
 import Spammer.State.Types (SpammerEnv(..))
 import Spammer.State.Update (deleteHeadTxLocked, updateTxInputsUsed)
 
@@ -50,9 +51,11 @@ extractUnLockPars :: SpammerEnv -> Contract (Maybe UnLockParams)
 extractUnLockPars (SpammerEnv env) = do
   let
     size = Seq.length env.txLocked
-  log "============== number Tx locked on script ==============="
+  log "============== all Tx locked  ==============="
   log $ show size 
-  pure $ if size < 30 then Nothing else do
+  log $ show $ Map.keys <$> (Seq.last env.txLocked)
+  log $ show $ Map.keys <$> (Seq.head env.txLocked)
+  pure $ if size < 5 then Nothing else do
     txLocked <- Seq.head env.txLocked
     pure <<< UnLockParams $ {txInputsUsed: env.txInputsUsed, txLocked }
 
@@ -66,7 +69,9 @@ unlock = do
       unlockResult <- lift $ try (unlock' pars)
       case unlockResult of
         Left e -> do
-          lift $ log $ show e
+          -- case message e of
+              -- "Could not get 
+          lift $ log $ show $ message e
         Right txInputs -> do
           modify_ (updateTxInputsUsed txInputs)
           modify_ deleteHeadTxLocked 
