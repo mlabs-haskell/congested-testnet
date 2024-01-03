@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 exports._queryAvgMemPoolUsage = function (onError, onSuccess) {
-    const prometheusURL = 'http://localhost:9090'; 
+    const prometheusURL = 'prometheus.local:9090'; 
     const prometheusQuery = 'avg(avg_over_time(cardano_node_metrics_mempoolBytes_int[1d]))';
     query =`${prometheusURL}/api/v1/query?query=${prometheusQuery}` 
     fetch(query)

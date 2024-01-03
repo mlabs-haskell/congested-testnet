@@ -29,6 +29,7 @@
               make-faucet-wallet = self'.packages.make-faucet-wallet;
               ogmios = self'.packages.ogmios;
               gen-wallet = self'.packages.gen-wallet;
+              spammer = self'.packages.spammer;
             };
           };
           arion-compose = pkgs'.arion'.build { modules = [ ./congested-testnet/arion-compose.nix ]; pkgs = pkgs'; };
@@ -38,13 +39,13 @@
           runtimeInputs = [ pkgs'.arion' ];
           text = ''
             #!/bin/sh
-            # arion --prebuilt-file ${arion-compose} down -v 
-            # arion --prebuilt-file ${arion-compose} up -d 
-            # arion --prebuilt-file ${arion-compose} logs -f 
-            arion --prebuilt-file ${arion-compose} down spammer 
-            arion --prebuilt-file ${arion-compose} up -d spammer 
-            arion --prebuilt-file ${arion-compose} logs -f spammer 
+            arion --prebuilt-file ${arion-compose} down -v 
+            arion --prebuilt-file ${arion-compose} up -d 
+            arion --prebuilt-file ${arion-compose} logs -f spammer faucet
           '';
+            # arion --prebuilt-file ${arion-compose} down spammer 
+            # arion --prebuilt-file ${arion-compose} up -d spammer 
+            # arion --prebuilt-file ${arion-compose} logs -f spammer 
         };
     };
 }

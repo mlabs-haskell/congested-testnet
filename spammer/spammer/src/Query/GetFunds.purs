@@ -13,7 +13,7 @@ import Effect.Aff (try)
 import Spammer.Config (config)
 
 config' :: ContractParams
-config' = config "/tmp/faucet/wallet.skey" "localhost" "localhost" 1337 1442
+config' = config "/faucet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
 
 getFundsFromFaucet :: PaymentPubKeyHash -> Effect Unit
 getFundsFromFaucet pkh = do

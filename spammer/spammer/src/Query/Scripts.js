@@ -1,8 +1,8 @@
 const fs = require('fs');
 const mathjs = require('mathjs');
 
-const fscripts = "/tmp/wallet/scripts"
-const fcounts = "/tmp/wallet/counts"
+const fscripts = "/wallet/scripts"
+const fcounts = "/wallet/counts"
 
 function getValidatorsCounts(fscripts, fcounts) {
 try {

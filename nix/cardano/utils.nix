@@ -6,6 +6,7 @@
         inputs'.cardano-node.legacyPackages.cardano-cli
         pkgs.jq
         pkgs.coreutils
+        pkgs.gnugrep
         pkgs.websocat
         pkgs.curl
       ];
@@ -15,30 +16,31 @@
         text = ''
           ROOT=$1
 
-          # if [ -n "$(ls "$ROOT")" ]; then
-          #   echo "volume is not empty"
-          #   exit 0
-          # fi
+          if [ -n "$(ls "$ROOT")" ]; then
+            echo "volume is not empty"
+            exit 0
+          fi
 
           cardano-cli address key-gen \
             --verification-key-file "$ROOT/wallet.vkey" \
             --signing-key-file "$ROOT/wallet.skey" 
           cat "$ROOT/wallet.skey"
 
-          # OGMIOS_REQUEST='{"params":{},"method":"queryLedgerState/utxo","jsonrpc":"2.0","id":"queryLedgerState/protocolParameters-5pyr568mlp9m1h8a"}'
-          # echo "$OGMIOS_REQUEST" | tr -d "\n" | websocat "ws://ogmios.local:1337"  | jq
-
           PUBKEYHEX=$( jq '.cborHex' < "$ROOT/wallet.vkey" ) 
-          # echo "$PUBKEYHEX"
-          # echo "{\"pubKeyHex\": $PUBKEYHEX}"
+          while true; do
+            response=$(curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}")
 
-          curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX }"
+            if echo "$response" | grep -q "Right"; then
+                echo "Success: got funds"
+                break
+            else
+                echo "Fail: no funds"
+                sleep 1
+            fi
+          done
 
           ${self'.packages.generate-scripts}/bin/generate-scripts "$ROOT" "$PUBKEYHEX"
           
-
-
-
           echo "=============================================================================="
         '';
       };

@@ -14,7 +14,7 @@ import Spammer.State.Types (SpammerEnv, defaultSpammerEnv)
 import Spammer.State.Update (countUtxos, loadAllLockedUtxos)
 
 config' :: ContractParams 
-config' = config "/tmp/wallet/wallet.skey" "localhost" "localhost" 1337 1442
+config' = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
 
 
 main :: Effect Unit

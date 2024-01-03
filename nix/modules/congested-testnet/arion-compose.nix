@@ -72,8 +72,7 @@ in
           ''
         ];
         volumes = [
-          # "${faucet-wallet}:/wallet"
-          "/tmp/faucet:/wallet"
+          "${faucet-wallet}:/wallet"
           "${socket-relay}:/socket"
           "${testnet-config}:/config"
         ];
@@ -89,34 +88,32 @@ in
           "sh"
           "-c"
           ''
-            ${pkgs.congested.gen-wallet}/bin/gen-wallet wallet 
+            ${pkgs.congested.spammer}/bin/spammer wallet 
           ''
         ];
         volumes = [
-          # "${spammer-wallet}:/wallet"
-          # "${faucet-wallet}:/faucet"
-          "/tmp/wallet:/wallet"
+          "${spammer-wallet}:/wallet"
+          "${faucet-wallet}:/faucet"
         ];
       };
     };
 
-    # faucet = {
-    #   image.enableRecommendedContents = true;
-    #   service =
-    #     {
-    #       depends_on = [ "make-faucet-wallet" ];
-    #       networks.default.aliases = [ "faucet.local" ];
-    #       useHostStore = true;
-    #       command = [ "sh" "-c" ''${pkgs.congested.faucet}/bin/faucet'' ];
-    #       ports = [ (bindPort faucet-port) ];
-    #       expose = [ faucet-port ];
-    #       volumes = [
-    #         # "${faucet-wallet}:/wallet"
-    #       "/tmp/faucet:/wallet"
-    #       ];
-    #     };
-    # };
-    #
+    faucet = {
+      image.enableRecommendedContents = true;
+      service =
+        {
+          depends_on = [ "make-faucet-wallet" ];
+          networks.default.aliases = [ "faucet.local" ];
+          useHostStore = true;
+          command = [ "sh" "-c" ''${pkgs.congested.faucet}/bin/faucet'' ];
+          ports = [ (bindPort faucet-port) ];
+          expose = [ faucet-port ];
+          volumes = [
+            "${faucet-wallet}:/wallet"
+          ];
+        };
+    };
+
 
 
     node-relay-1 = {
@@ -224,6 +221,7 @@ in
       service = {
         useHostStore = true;
         image = "prom/prometheus:v2.43.1";
+        networks.default.aliases = [ "prometheus.local" ];
         ports = [ (bindPort prometheus-port) ];
         volumes = [
           "${prometheus-db}:/prometheus"
