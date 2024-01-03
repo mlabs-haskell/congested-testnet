@@ -1,10 +1,9 @@
 {
   description = "congested-testnet";
-  inputs.flake-utils.url = github:numtide/flake-utils;
-  inputs.flake-parts.url = github:hercules-ci/flake-parts;
-  inputs.arion.url = github:hercules-ci/arion;
-  inputs.cardano-node.url = github:input-output-hk/cardano-node/8.1.2;
-  inputs.aiken.url = github:aiken-lang/aiken;
+  inputs.flake-parts.url = "github:hercules-ci/flake-parts";
+  inputs.arion.url = "github:hercules-ci/arion";
+  inputs.cardano-node.url = "github:input-output-hk/cardano-node/8.1.2";
+  inputs.aiken.url = "github:aiken-lang/aiken";
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
@@ -13,16 +12,12 @@
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
   inputs.CHaP = {
-    url = github:input-output-hk/cardano-haskell-packages?ref=repo;
+    url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
     flake = false;
   };
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
-  };
-  inputs.nixos-generators = {
-    url = "github:nix-community/nixos-generators";
-    inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs:
@@ -35,6 +30,7 @@
         ./nix/research
       ];
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      flake.herculesCI.ciSystems = [ "x86_64-linux" ];
     };
 
   nixConfig = {

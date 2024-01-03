@@ -1,74 +1,22 @@
-{ self', ... }:
-{ pkgs, config, ... }: {
-  system.stateVersion = "22.11";
-  environment.systemPackages = [
-    pkgs.arion
-    pkgs.docker-client
-    (
-      let
-        pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
-        arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs'; };
-      in
-      pkgs.writeShellApplication {
-        name = "start";
-        runtimeInputs = [ pkgs.arion pkgs.docker ];
-        text = ''
-          #!/bin/sh
-          echo ${arion-compose}
-          cat ${arion-compose}
-          ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} up -d 
-          ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} logs -f 
-        '';
-      }
-    )
-    (
-      let
-        pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
-      in
-      pkgs'.congested.faucet
-    )
-
-
-  ];
+{
+  imports = [./digital-ocean.nix];
+  
+  system.stateVersion = "23.11";
 
   virtualisation.docker.enable = false;
   virtualisation.podman.enable = true;
   virtualisation.podman.dockerSocket.enable = true;
   virtualisation.podman.defaultNetwork.settings.dns_enabled = true;
 
-  systemd.services.congested-testnet =
-    {
-      description = "congested-testnet";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" "podman.service" ];
-      serviceConfig =
-        let
-          pkgs' = pkgs // { congested.faucet = self'.packages.faucet; };
-          arion-compose = pkgs.arion.build { modules = [ ./arion-compose.nix ]; pkgs = pkgs'; };
-          start = pkgs.writeShellApplication {
-            name = "start";
-            runtimeInputs = [ pkgs.arion pkgs.docker ];
-            text = ''
-              #!/bin/sh
-              ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} up -d
-            '';
-          };
-          stop = pkgs.writeShellApplication {
-            name = "stop";
-            runtimeInputs = [ pkgs.arion pkgs.docker ];
-            text = ''
-              #!/bin/sh
-              ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} down
-            '';
-          };
-        in
-        {
-          Type = "forking";
-          ExecStart = "${start}/bin/start";
-          ExecStop = "${stop}/bin/stop";
-        };
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzCmDCtlGscpesHuoiruVWD2IjYEFtaIl9Y2JZGiOAyf3V17KPx0MikcknfmxSHi399SxppiaXQHxo/1wjGxXkXNTTv6h1fBuqwhJE6C8+ZSV+gal81vEnXX+/9w2FQqtVgnG2/mO7oJ0e3FY+6kFpOsGEhYexoGt/UxIpAZoqIN+CWNhJIASUkneaZWtgwiL8Afb59kJQ2E7WbBu+PjYZ/s5lhPobhlkz6s8rkhItvYdiSHT0DPDKvp1oEbxsxd4E4cjJFbahyS8b089NJd9gF5gs0b74H/2lUUymnl63cV37Mp4iXB4rtE69MbjqsGEBKTPumLualmc8pOGBHqWIdhAqGdZQeBajcb6VK0E3hcU0wBB+GJgm7KUzlAHGdC3azY0KlHMrLaZN0pBrgCVR6zBNWtZz2B2qMBZ8Cw+K4vut8GuspdXZscID10U578GxQvJAB9CdxNUtrzSmKX2UtZPB1udWjjIAlejzba4MG73uXgQEdv0NcuHNwaLuCWxTUT5QQF18IwlJ23Mg8aPK8ojUW5A+kGHAu9wtgZVcX1nS5cmYKSgLzcP1LA1l9fTJ1vqBSuy38GTdUzfzz7AbnkRfGPj2ALDgyx17Rc5ommjc1k0gFoeIqiLaxEs5FzDcRyo7YvZXPsGeIqNCYwQWw3+U+yUEJby8bxGb2d/6YQ== andreaciceri@mlabs.city"
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDKvzcswvJ4iXTpp2sT78/dldAox07fS47qVOZeZxS9aDLB1GugyBciW0ps6THZzqr3w1H2IjJKUppjavDKc54U6W3Bt84NJwOaoFYDtCBPRs+2dQqdk68E+3NO4mw7V2fdk5qiIvJKubF5PrdiYzsoGe9G4i/QDOPts51VER1b5wNcs7hF36FjRxm7HgyVybuG5S8fVTl8KcKeZiy4arPCyqMsnwgmsIXeUg0uXx2ZKYmkZVx+gu5GeJyZqjOJb/t0ujbU1DFa7q3d1rkI5+BhY5/kCLEBnZGuDrt1S8w5m7OVqIV0fogVEt2wFL0YKTwkkh8i6nZ+bKQTG7H9apkZvsTitIef3V/z8ajwckiBarD1NJJKtsEczJVcohfVFVr8hcXs+bqnIMRZgulJzrjp4DyPsHNd6lTB+ASLY6hQMAdoD4elR18HtyF8AEZFw+3MTWWn4YOTAY+cmdm0nNFlo8BJnYgrqCsaeWbaKOTvnPj+rSpkNw+zD7MqXhHESkM= maxim@maxim"
+  ];
+  
+  virtualisation.arion = {
+    backend = "podman-socket";
+    projects.congested-testnet.settings = {
+      imports = [ ./arion-compose.nix ];
     };
-
-  users.extraUsers.testnet.extraGroups = [ "podman" ];
+  };
 }
-# ${pkgs.arion}/bin/arion --prebuilt-file ${arion-compose} logs -f 
