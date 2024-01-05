@@ -1,9 +1,8 @@
 {
   description = "congested-testnet";
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
-  inputs.arion.url = "github:hercules-ci/arion";
-  inputs.cardano-node.url = "github:input-output-hk/cardano-node/8.1.2";
-  inputs.aiken.url = "github:aiken-lang/aiken";
+  inputs.arion.url = "github:hercules-ci/arion/f295eabd25b7c894ab405be784e2a010f83fde55";
+  inputs.aiken.url = "github:aiken-lang/aiken/7b452c21f01e5342b2c210e0a32f024c58ea2693";
   inputs.ctl = {
     type = "github";
     owner = "Plutonomicon";
@@ -11,10 +10,6 @@
     rev = "b212a58a544d979b5e49dfe5db7f623a2c69e25b";
   };
   inputs.nixpkgs.follows = "ctl/nixpkgs";
-  inputs.CHaP = {
-    url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
-    flake = false;
-  };
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
@@ -26,6 +21,7 @@
         ./nix/shell
         ./nix/ctl
         ./nix/modules
+        ./nix/containers
         ./nix/cardano
         ./nix/research
       ];

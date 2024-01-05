@@ -12,13 +12,18 @@
   # Virtual Machine configuration
   virtualisation = {
     graphics = false;
-    memorySize = 2048;
-    diskSize = 100000;
+    # memorySize = 8000;
+    # diskSize = 10000;
     forwardPorts = [
       {
         from = "host";
         host.port = 2222;
         guest.port = 22;
+      }
+      {
+        from = "host";
+        host.port = 11337;
+        guest.port = 1337;
       }
     ];
   };

@@ -1,4 +1,4 @@
-{ pkgs,  ... }:
+{ pkgs, ... }:
 let
   # trues = n: pkgs.lib.strings.concatStrings (pkgs.lib.strings.intersperse " && " (pkgs.lib.replicate n "True"));
   data = n_bytes: pkgs.lib.strings.concatStrings (pkgs.lib.replicate n_bytes "ff");
@@ -40,36 +40,36 @@ let
         }
        }
     EOF
-    '';
+  '';
 
 in
 [
   {
-   count = 66000;
-   code = "";
+    count = 66000;
+    code = "";
   }
   {
-   count = 3359;
-   code = code 1500 130;
+    count = 3359;
+    code = code 1500 130;
   }
   {
-   count = 150;
-   code = code 1700 2400; 
+    count = 150;
+    code = code 1700 2400;
   }
   {
     count = 686;
-    code = code 2700 500; 
+    code = code 2700 500;
   }
   {
     count = 5622;
-    code = code 3000 2; 
+    code = code 3000 2;
   }
   {
     count = 2679;
-    code = code 3900 1000; 
+    code = code 3900 1000;
   }
   {
     count = 1200;
-    code = code 4500 1000; 
+    code = code 4500 1000;
   }
 ]

@@ -14,38 +14,10 @@
     in
     {
       devShells.ctl = psProject.devShell;
-
-      packages.faucet =
-        let
-          compiled = psProject.buildPursProject { };
-          nodeModules = psProject.mkNodeModules { };
-        in
-        pkgs.writeShellApplication {
-          name = "faucet";
-          runtimeInputs = [ pkgs.coreutils ];
-          text = ''
-            export NODE_PATH="${nodeModules}/lib/node_modules"
-            ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Faucet").main()' 
-          '';
-        };
-      packages.spammer =
-        let
-          compiled = psProject.buildPursProject { };
-          nodeModules = psProject.mkNodeModules { };
-        in
-        pkgs.writeShellApplication {
-          name = "spammer";
-          runtimeInputs = [ pkgs.coreutils ];
-          text = ''
-            ${self'.packages.gen-wallet}/bin/gen-wallet "$1" 
-            sleep 3
-            echo "==== start ctl spammer ==========="
-            export NODE_PATH="${nodeModules}/lib/node_modules"
-            ${pkgs.nodejs}/bin/node -e 'require("${compiled}/output/Main").main()' 
-            echo "=================================="
-          '';
-        };
+      packages.compiled = psProject.buildPursProject { };
+      packages.nodeModules = psProject.mkNodeModules { };
       packages.ogmios = inputs.ctl.inputs.ogmios-nixos.packages.${system}."ogmios:exe:ogmios";
+      packages.kupo = inputs.ctl.inputs.kupo-nixos.packages.${system}.kupo;
       apps.purs-docs = psProject.launchSearchablePursDocs { };
     };
 }

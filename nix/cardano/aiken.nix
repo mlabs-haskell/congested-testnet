@@ -2,31 +2,32 @@
 {
   perSystem = { system, inputs', pkgs, ... }:
     {
-      packages.generate-scripts =  
+      packages.generate-scripts =
         let
-          scripts  =  import ./scripts.nix { inherit pkgs;};
-            # echo ${builtins.readFile script.code} > validators/always-true.ak
-          aiken-action =script : if script.code == "" 
-          then ''
-           echo "" >> "../../scripts"
-           echo ${toString script.count} >> "../../counts"
+          scripts = import ./scripts.nix { inherit pkgs; };
+          # echo ${builtins.readFile script.code} > validators/always-true.ak
+          aiken-action = script:
+            if script.code == ""
+            then ''
+              echo "" >> "../../scripts"
+              echo ${toString script.count} >> "../../counts"
 
-          '' 
-          else  ''
-            ${script.code}
-            aiken build
-            aiken blueprint convert > script.json
-            SCRIPT=$(jq '.cborHex' < script.json)
-            SCRIPT=$(echo "$SCRIPT" | tr -d '"')
-            echo "$SCRIPT" >> "../../scripts"
-            echo ${toString script.count} >> "../../counts"
-          '';
-          compiledAll = pkgs.lib.strings.concatMapStrings aiken-action scripts; 
+            ''
+            else ''
+              ${script.code}
+              aiken build
+              aiken blueprint convert > script.json
+              SCRIPT=$(jq '.cborHex' < script.json)
+              SCRIPT=$(echo "$SCRIPT" | tr -d '"')
+              echo "$SCRIPT" >> "../../scripts"
+              echo ${toString script.count} >> "../../counts"
+            '';
+          compiledAll = pkgs.lib.strings.concatMapStrings aiken-action scripts;
 
         in
         pkgs.writeShellApplication {
           name = "generate-scripts";
-          runtimeInputs = [pkgs.coreutils inputs.aiken.packages.${system}.aiken pkgs.jq pkgs.unixtools.xxd ];
+          runtimeInputs = [ pkgs.coreutils inputs.aiken.packages.${system}.aiken pkgs.jq pkgs.unixtools.xxd ];
           text = ''
             WALLET=$1
             # shellcheck disable=SC2034
