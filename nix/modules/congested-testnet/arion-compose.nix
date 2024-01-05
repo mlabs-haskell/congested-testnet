@@ -98,39 +98,24 @@ in
     #   };
     # };
     #
-    # faucet = {
-    #   image.enableRecommendedContents = true;
-    #   service =
-    #     {
-    #       depends_on = [ "make-faucet-wallet" ];
-    #       networks.default.aliases = [ "faucet.local" ];
-    #       useHostStore = true;
-    #       command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
-    #       ports = [ (bindPort faucet-port) ];
-    #       expose = [ faucet-port ];
-    #       volumes = [
-    #         "${faucet-wallet}:/wallet"
-    #       ];
-    #     };
-    # };
-    #
-    #
-    #  node-relay-1 = {
-    #   service = {
-    #     image = "inputoutput/cardano-node:8.1.2";
-    #     depends_on = [ "testnet-config" ];
-    #     networks.default.aliases = [ "node-relay-1.local" ];
-    #     entrypoint = ''
-    #       sh -c "cardano-node run --config /config/configuration.yaml --topology /config/topology-relay-1.json --database-path  /data/db --socket-path /socket/node.socket --port ${relay-port}"
-    #     '';
-    #     expose = [ relay-port node-prometheus-port ];
-    #     volumes = [
-    #       "${socket-relay}:/socket"
-    #       "${data-relay}:/data"
-    #       "${testnet-config}:/config"
-    #     ];
-    #   };
-    # };
+    faucet = {
+      image.enableRecommendedContents = true;
+      service =
+        {
+          networks.default.aliases = [ "faucet.local" ];
+          useHostStore = true;
+          command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
+          ports = [ (bindPort faucet-port) ];
+          expose = [ faucet-port ];
+          volumes = [
+          "${faucet-wallet}:/wallet"
+          "${socket-relay}:/socket"
+          "${testnet-config}:/config"
+        ];
+        };
+    };
+
+
 
     node-relay-1 = {
       image.enableRecommendedContents = true;
@@ -198,58 +183,48 @@ in
     
     
     
-    # kupo = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     networks.default.aliases = [ "kupo.local" ];
-    #     useHostStore = true;
-    #     ports = [ (bindPort kupo-port) ];
-    #     expose = [ kupo-port ];
-    #     volumes = [
-    #       "${testnet-config}:/config"
-    #       "${socket-relay}:/socket"
-    #       "${kupo-db}:/kupo-db"
-    #     ];
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       ''
-    #       ${pkgs.kupo}/bin/kupo \
-    #       --node-config /config/configuration.yaml \
-    #       --node-socket /socket/node.socket \
-    #       --since origin \
-    #       --match "*/*" \
-    #       --host 0.0.0.0 \
-    #       --workdir kupo-db \
-    #       --prune-utxo \
-    #       --defer-db-indexes 
-    #       ''
-    #     ];
-    #   };
-    # };
-    #
+    kupo = {
+      image.enableRecommendedContents = true;
+      service = {
+        networks.default.aliases = [ "kupo.local" ];
+        useHostStore = true;
+        ports = [ (bindPort kupo-port) ];
+        expose = [ kupo-port ];
+        volumes = [
+          "${testnet-config}:/config"
+          "${socket-relay}:/socket"
+          "${kupo-db}:/kupo-db"
+        ];
+        command = [
+          "sh"
+          "-c"
+          ''
+          ${pkgs.kupo-run}/bin/kupo-run 
+          ''
+        ];
+      };
+    };
 
 
 
-
-    # prometheus = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     useHostStore = true;
-    #     networks.default.aliases = [ "prometheus.local" ];
-    #     ports = [ (bindPort prometheus-port) ];
-    #     volumes = [
-    #       "${prometheus-db}:/data"
-    #     ];
-    #     command = [
-    #     "sh"
-    #     "-c"
-    #      ''
-    #      ${pkgs.prometheus-run}/bin/prometheus-run 
-    #      ''
-    #     ];
-    #   };
-    # };
+    prometheus = {
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        networks.default.aliases = [ "prometheus.local" ];
+        ports = [ (bindPort prometheus-port) ];
+        volumes = [
+          "${prometheus-db}:/data"
+        ];
+        command = [
+        "sh"
+        "-c"
+         ''
+         ${pkgs.prometheus-run}/bin/prometheus-run 
+         ''
+        ];
+      };
+    };
 
 
   };

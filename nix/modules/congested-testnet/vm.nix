@@ -25,6 +25,21 @@
         host.port = 11337;
         guest.port = 1337;
       }
+      {
+        from = "host";
+        host.port = 11442;
+        guest.port = 1442;
+      }
+      {
+        from = "host";
+        host.port = 19090;
+        guest.port = 9090;
+      }
+      {
+        from = "host";
+        host.port = 18000;
+        guest.port = 8000;
+      }
     ];
   };
 }

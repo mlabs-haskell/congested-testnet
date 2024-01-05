@@ -10,7 +10,7 @@
           inputs.ctl.overlays.spago
         ];
       };
-      psProject = (import ./functions.nix).psProjectFor self pkgs;
+      psProject = (import ./functions.nix).psProjectFor pkgs;
     in
     {
       devShells.ctl = psProject.devShell;

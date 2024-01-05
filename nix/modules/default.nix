@@ -8,7 +8,7 @@
     faucet = self.packages.${final.system}.faucet;
     gen-testnet-conf = self.packages.${final.system}.gen-testnet-conf;
     ogmios-run = self.packages.${final.system}.ogmios-run;
-    kupo = self.packages.${final.system}.kupo;
+    kupo-run = self.packages.${final.system}.kupo-run;
     gen-wallet = self.packages.${final.system}.gen-wallet;
     spammer = self.packages.${final.system}.spammer;
     make-faucet-wallet = self.packages.${final.system}.make-faucet-wallet;

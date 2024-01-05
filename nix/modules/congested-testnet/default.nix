@@ -14,8 +14,7 @@
   ];
 
   networking.firewall.interfaces.podman1.allowedUDPPorts = [ 53 ];
-  # networking.firewall.interfaces.podman1.allowedTCPPorts = [ 1337 ];
-  networking.firewall.allowedTCPPorts = [ 1337 ];
+  networking.firewall.allowedTCPPorts = [ 1337 9090 1442 8000 ];
 
 
   users.users.root.openssh.authorizedKeys.keys = [

@@ -3,21 +3,23 @@
   perSystem = { system, inputs', self', pkgs, ... }:
     let
       runtimeInputs = [
-        inputs'.cardano-node.legacyPackages.cardano-cli
+        self'.packages.cardano-node
         pkgs.jq
         pkgs.coreutils
         pkgs.gnugrep
         pkgs.websocat
         pkgs.curl
       ];
-      gen-wallet = pkgs.writeShellApplication {
+    in {
+
+      packages.gen-wallet = pkgs.writeShellApplication {
         name = "gen-wallet";
         inherit runtimeInputs;
         text = ''
           ROOT=$1
 
-          if [ -n "$(ls "$ROOT")" ]; then
-            echo "volume is not empty"
+          if [ -f "$ROOT/wallet_exist" ]; then
+            echo "wallet exist"
             exit 0
           fi
 
@@ -41,12 +43,10 @@
 
           ${self'.packages.generate-scripts}/bin/generate-scripts "$ROOT" "$PUBKEYHEX"
           
+          touch "$ROOT/wallet_exist" 
           echo "=============================================================================="
         '';
       };
-    in
-    {
-      packages.gen-wallet = gen-wallet;
 
       packages.make-faucet-wallet = pkgs.writeShellApplication {
         name = "make-faucet-wallet";
@@ -56,10 +56,16 @@
           CARDANO_NODE_SOCKET_PATH=$2
           CONFIG=$3
 
-          if [ -n "$(ls "$ROOT")" ]; then
-            echo "volume is not empty"
+          if [ -f "$ROOT/faucet_wallet_exist" ]; then
+            echo "faucet wallet exist"
             exit 0
           fi
+
+          while [ ! -f "$CONFIG/finish_config" ]; do
+            sleep 1
+            echo 'Waiting for testnet configuration to be generated...'
+          done
+
 
           while [ -z "$(ls -A "$CARDANO_NODE_SOCKET_PATH")" ]; do
             echo "socket is not ready"
@@ -109,6 +115,8 @@
                 --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
                 --tx-file "$ROOT/tx.signed" \
                 --testnet-magic 2
+
+          touch "$ROOT/faucet_wallet_exist" 
 
         '';
       };
