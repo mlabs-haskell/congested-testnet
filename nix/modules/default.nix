@@ -14,7 +14,7 @@
     make-faucet-wallet = self.packages.${final.system}.make-faucet-wallet;
     relay-node = self.packages.${final.system}.relay-node;
     spo-node = self.packages.${final.system}.spo-node;
-    prometheus-run= self.packages.${final.system}.prometheus-run;
+    prometheus-run = self.packages.${final.system}.prometheus-run;
 
     podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
     docker = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker;

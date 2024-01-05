@@ -9,7 +9,6 @@ let
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
   faucet-wallet = "faucet-wallet";
-  spammer-wallet = "spammer-wallet";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -20,6 +19,27 @@ let
   faucet-port = "8000";
 
   bindPort = port: "${port}:${port}";
+  spammer-wallet = name: { "${name}-wallet" = { }; };
+  spammer-conf = name: {
+    ${name} = {
+
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.spammer}/bin/spammer wallet 
+          ''
+        ];
+        volumes = [
+          "${name}-wallet:/wallet"
+          "${faucet-wallet}:/faucet"
+        ];
+      };
+    };
+  };
 in
 {
   project.name = "testnet";
@@ -33,8 +53,7 @@ in
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
-    "${spammer-wallet}" = { };
-  };
+  } // spammer-wallet "spammer-1";
 
 
 
@@ -59,45 +78,8 @@ in
       };
     };
 
-    # make-faucet-wallet = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     depends_on = [ "testnet-config" "node-relay-1" "ogmios" "kupo" ];
-    #     useHostStore = true;
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       ''
-    #         ${pkgs.make-faucet-wallet}/bin/make-faucet-wallet wallet socket config 
-    #       ''
-    #     ];
-    #     volumes = [
-    #       "${faucet-wallet}:/wallet"
-    #       "${socket-relay}:/socket"
-    #       "${testnet-config}:/config"
-    #     ];
-    #   };
-    # };
-    #
-    # spammer = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     depends_on = [ "node-relay-1" "ogmios" "kupo" ];
-    #     useHostStore = true;
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       ''
-    #         ${pkgs.spammer}/bin/spammer wallet 
-    #       ''
-    #     ];
-    #     volumes = [
-    #       "${spammer-wallet}:/wallet"
-    #       "${faucet-wallet}:/faucet"
-    #     ];
-    #   };
-    # };
-    #
+
+
     faucet = {
       image.enableRecommendedContents = true;
       service =
@@ -108,10 +90,10 @@ in
           ports = [ (bindPort faucet-port) ];
           expose = [ faucet-port ];
           volumes = [
-          "${faucet-wallet}:/wallet"
-          "${socket-relay}:/socket"
-          "${testnet-config}:/config"
-        ];
+            "${faucet-wallet}:/wallet"
+            "${socket-relay}:/socket"
+            "${testnet-config}:/config"
+          ];
         };
     };
 
@@ -179,10 +161,10 @@ in
         ];
       };
     };
-    
-    
-    
-    
+
+
+
+
     kupo = {
       image.enableRecommendedContents = true;
       service = {
@@ -199,7 +181,7 @@ in
           "sh"
           "-c"
           ''
-          ${pkgs.kupo-run}/bin/kupo-run 
+            ${pkgs.kupo-run}/bin/kupo-run 
           ''
         ];
       };
@@ -217,16 +199,16 @@ in
           "${prometheus-db}:/data"
         ];
         command = [
-        "sh"
-        "-c"
-         ''
-         ${pkgs.prometheus-run}/bin/prometheus-run 
-         ''
+          "sh"
+          "-c"
+          ''
+            ${pkgs.prometheus-run}/bin/prometheus-run 
+          ''
         ];
       };
     };
 
 
-  };
+  } // spammer-conf "spammer-1";
 
-}
+} 

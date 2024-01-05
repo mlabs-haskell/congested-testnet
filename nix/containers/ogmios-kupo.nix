@@ -7,8 +7,8 @@
         self'.packages.ogmios
         self'.packages.kupo
       ];
-      in
-      {
+    in
+    {
       packages.ogmios-run = pkgs.writeShellApplication {
         name = "ogmios-run";
         inherit runtimeInputs;
@@ -52,5 +52,5 @@
 
         '';
       };
-};
+    };
 }

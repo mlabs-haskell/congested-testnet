@@ -1,7 +1,7 @@
 {
-  psProjectFor =  pkgs: pkgs.purescriptProject rec {
+  psProjectFor = pkgs: pkgs.purescriptProject rec {
     projectName = "spammer";
-    inherit pkgs; 
+    inherit pkgs;
     packageJson = ../../spammer/spammer/package.json;
     packageLock = ../../spammer/spammer/package-lock.json;
     src = builtins.path {

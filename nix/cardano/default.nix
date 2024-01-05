@@ -1,4 +1,4 @@
 { inputs, self, ... }:
 {
-  imports = [ ./aiken.nix  ./cardano-node.nix ];
+  imports = [ ./aiken.nix ./cardano-node.nix ];
 }

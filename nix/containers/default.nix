@@ -1,10 +1,11 @@
-{ inputs, self, ... }:{
+{ inputs, self, ... }: {
   imports = [
-  ./prometheus.nix
-  ./ogmios-kupo.nix
-  ./nodes.nix
-  ./config.nix
-  ./faucet.nix
-  ./utils.nix
+    ./prometheus.nix
+    ./ogmios-kupo.nix
+    ./nodes.nix
+    ./config.nix
+    ./faucet.nix
+    ./utils.nix
+    ./spammer.nix
   ];
 }

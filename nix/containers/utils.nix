@@ -10,13 +10,17 @@
         pkgs.websocat
         pkgs.curl
       ];
-    in {
+    in
+    {
 
       packages.gen-wallet = pkgs.writeShellApplication {
         name = "gen-wallet";
         inherit runtimeInputs;
         text = ''
           ROOT=$1
+
+          ln -sf ${pkgs.iana-etc}/etc/protocols /etc/protocols
+          ln -sf ${pkgs.iana-etc}/etc/services /etc/services
 
           if [ -f "$ROOT/wallet_exist" ]; then
             echo "wallet exist"
@@ -30,15 +34,25 @@
 
           PUBKEYHEX=$( jq '.cborHex' < "$ROOT/wallet.vkey" ) 
           while true; do
-            response=$(curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}")
+              url="faucet.local:8000"
 
-            if echo "$response" | grep -q "Right"; then
-                echo "Success: got funds"
-                break
-            else
-                echo "Fail: no funds"
+              if curl --output /dev/null --silent --head --fail "$url"; then
+                echo "URL exists: $url"
+              else
                 sleep 1
-            fi
+                echo "URL still does not exist: $url"
+                continue
+              fi
+
+              response=$(curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}") 
+
+              if echo "$response" | grep -q "Right"; then
+                  echo "Success: got funds"
+                  break
+              else
+                  echo "Fail: no funds"
+                  sleep 1
+              fi
           done
 
           ${self'.packages.generate-scripts}/bin/generate-scripts "$ROOT" "$PUBKEYHEX"
