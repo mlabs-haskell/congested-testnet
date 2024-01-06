@@ -21,7 +21,7 @@ updateTxInputsUsed :: forall f. Foldable f => f TransactionInput -> SpammerEnv -
 updateTxInputsUsed inputs (SpammerEnv env) =
   let
     newInputs = Seq.fromFoldable inputs
-    newSeq = Seq.take 100 $ env.txInputsUsed `Seq.append` newInputs
+    newSeq = Seq.take 10 $ env.txInputsUsed `Seq.append` newInputs
   in
     wrap $ env { txInputsUsed = newSeq }
 

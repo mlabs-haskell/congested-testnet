@@ -33,11 +33,11 @@ main = do
 loop ::  StateT SpammerEnv Contract Unit 
 loop = do
     loadAllLockedUtxos
-    loop1
+    replicateM_ 1 loop1
     where
       loop1 = do 
         countUtxos
-        replicateM_ 3 (lock *> unlock)
-        loop1
+        replicateM_ 30 lock 
+        replicateM_ 30 unlock 
 
 

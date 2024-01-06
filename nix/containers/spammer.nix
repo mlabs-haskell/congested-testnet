@@ -9,8 +9,9 @@
           ${self'.packages.gen-wallet}/bin/gen-wallet "$1" 
           echo "==== start ctl spammer ==========="
           export NODE_PATH="${self'.packages.nodeModules}/lib/node_modules"
-          ${pkgs.nodejs}/bin/node -e 'require("${self'.packages.compiled}/output/Main").main()' 
-          echo "=================================="
+          while true; do
+            ${pkgs.nodejs}/bin/node -e 'require("${self'.packages.compiled}/output/Spammer").main()' 
+          done
         '';
       };
   };

@@ -26,6 +26,7 @@ let
       image.enableRecommendedContents = true;
       service = {
         useHostStore = true;
+        restart = "always";
         command = [
           "sh"
           "-c"
@@ -53,7 +54,10 @@ in
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
-  } // spammer-wallet "spammer-1";
+  } 
+  // spammer-wallet "spammer-1" 
+  # // spammer-wallet "spammer-2"
+  ;
 
 
 
@@ -209,6 +213,9 @@ in
     };
 
 
-  } // spammer-conf "spammer-1";
+  } 
+  // spammer-conf "spammer-1"
+  # // spammer-conf "spammer-2"
+  ;
 
 } 

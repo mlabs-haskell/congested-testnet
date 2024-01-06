@@ -72,8 +72,8 @@ lock' (LockParams pars) = do
   pkeyHash <- liftedM "no pubkeyHash" ownPaymentPubKeyHash
   let
     lookups = maybe mempty validator pars.validator
-    addutxos = mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
-      <> mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
+    addutxos = mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 10_000_000)
+      <> mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 5_000_000)
       <>
         mustPayToPubKey pkeyHash (lovelaceValueOf $ BInt.fromInt 1_000_000)
     lockOnScript = maybe mempty
@@ -82,7 +82,7 @@ lock' (LockParams pars) = do
           (lovelaceValueOf $ BInt.fromInt 1)
       )
       pars.validator
-    constraints = (if pars.numberUtxos < 10 then addutxos else mempty) <> lockOnScript
+    constraints = (if pars.numberUtxos < 50 then addutxos else mempty) <> lockOnScript
 
     balanceConstraints = mustNotSpendUtxosWithOutRefs (pars.txInputsUsed)
 
@@ -97,9 +97,7 @@ lock' (LockParams pars) = do
     txInputsUsed = Seq.fromFoldable txBody.inputs
     mTxLocked = getLockedTx txHash (wrap txBody)
 
-  -- log "================"
   log "locked successfully"
-  -- log $ show mTxLocked
 
   pure $ txInputsUsed /\ mTxLocked
 

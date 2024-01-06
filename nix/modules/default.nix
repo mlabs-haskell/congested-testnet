@@ -36,42 +36,24 @@
 
   perSystem = { system, pkgs, self', inputs', ... }:
     {
+      _module.args.pkgs = import inputs.nixpkgs {inherit system; overlays = [self.overlays.default];};
       packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;
-      packages.arion = inputs'.arion.packages.arion;
-      packages.check =
+      packages.arion = pkgs.arion;
+      packages.run-all=
         let
-          pkgs' = pkgs // {
-            arion' = self'.packages.arion;
-            faucet = self'.packages.faucet;
-            cardano-node = self'.packages.cardano-node;
-            gen-testnet-conf = self'.packages.gen-testnet-conf;
-            make-faucet-wallet = self'.packages.make-faucet-wallet;
-            ogmios-run = self'.packages.ogmios-run;
-            kupo = self'.packages.kupo;
-            gen-wallet = self'.packages.gen-wallet;
-            spammer = self'.packages.spammer;
-            relay-node = self'.packages.relay-node;
-            spo-node = self'.packages.spo-node;
-            prometheus-run = self'.packages.prometheus-run;
-          };
-          arion-compose = pkgs'.arion'.build { modules = [ ./congested-testnet/arion-compose.nix ]; pkgs = pkgs'; };
+          arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
         in
         pkgs.writeShellApplication {
-          name = "start";
-          runtimeInputs = [ pkgs'.arion' ];
+          name = "run-all";
+          runtimeInputs = [ pkgs.arion ];
           text = ''
             #!/bin/sh
-            arion --prebuilt-file ${arion-compose} down -v  
-            # arion --prebuilt-file ${arion-compose} up -d --remove-orphans
-            # arion --prebuilt-file ${arion-compose} logs -f ogmios 
-            # arion --prebuilt-file ${arion-compose} logs -f  testnet-config 
+            arion --prebuilt-file ${arion-compose} down -v --remove-orphans 
+            arion --prebuilt-file ${arion-compose} up -d --remove-orphans
+            arion --prebuilt-file ${arion-compose} logs -f spammer-1 
           '';
-          # arion --prebuilt-file ${arion-compose} down  -v 
-          # arion --prebuilt-file ${arion-compose} down spammer 
-          # arion --prebuilt-file ${arion-compose} up -d spammer 
-          # arion --prebuilt-file ${arion-compose} logs -f spammer 
         };
     };
 }

@@ -14,8 +14,6 @@ getInputUtxos mutxos = do
     x@(Just _) -> pure x
     Nothing -> do
       mutxos' <- getWalletUtxos
-      log $ show mutxos'
-      log $ show $ (fromFoldable <<< take 1 <<< toUnfoldable) <$> mutxos'
       pure do
         utxos' <- mutxos'
         pure <<< fromFoldable <<< take 1 <<< toUnfoldable $ utxos'

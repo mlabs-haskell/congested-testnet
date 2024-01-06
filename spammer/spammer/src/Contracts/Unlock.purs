@@ -44,12 +44,12 @@ extractUnLockPars :: SpammerEnv -> Contract (Maybe UnLockParams)
 extractUnLockPars (SpammerEnv env) = do
   let
     size = Seq.length env.txLocked
-  log "============== all Tx locked  ==============="
-  log $ show size
-  log $ show $ Map.keys <$> (Seq.last env.txLocked)
-  log $ show $ Map.keys <$> (Seq.head env.txLocked)
+  -- log "============== all Tx locked  ==============="
+  -- log $ show size
+  -- log $ show $ Map.keys <$> (Seq.last env.txLocked)
+  -- log $ show $ Map.keys <$> (Seq.head env.txLocked)
   pure $
-    if size < 5 then Nothing
+    if size < 10 then Nothing
     else do
       txLocked <- Seq.head env.txLocked
       pure <<< UnLockParams $ { txInputsUsed: env.txInputsUsed, txLocked }
@@ -64,8 +64,6 @@ unlock = do
       unlockResult <- lift $ try (unlock' pars)
       case unlockResult of
         Left e -> do
-          -- case message e of
-          -- "Could not get 
           lift $ log $ show $ message e
         Right txInputs -> do
           modify_ (updateTxInputsUsed txInputs)

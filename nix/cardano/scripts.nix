@@ -45,7 +45,9 @@ let
 in
 [
   {
-    count = 66000;
+   # made it less to load mempool faster
+   # count = 66000;
+    count = 2600;
     code = "";
   }
   {

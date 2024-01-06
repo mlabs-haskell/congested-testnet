@@ -3,6 +3,8 @@ const mathjs = require('mathjs');
 
 const fscripts = "/wallet/scripts"
 const fcounts = "/wallet/counts"
+// const fscripts = "scripts"
+// const fcounts = "counts"
 
 function getValidatorsCounts(fscripts, fcounts) {
 try {
