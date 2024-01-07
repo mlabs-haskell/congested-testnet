@@ -18,8 +18,11 @@
         utillinux
         dnsutils
         tree
+        iproute2
       ];
-      relay-node = pkgs.writeShellApplication {
+    in
+    {
+      packages.relay-node = pkgs.writeShellApplication {
         name = "relay-node";
         inherit runtimeInputs;
         text = ''
@@ -36,6 +39,7 @@
           ln -sf ${pkgs.iana-etc}/etc/protocols /etc/protocols
           ln -sf ${pkgs.iana-etc}/etc/services /etc/services
 
+
           cardano-node run --config "$CONFIG/configuration.yaml" \
             --topology "$CONFIG/$TOPOLOGY" \
             --database-path  "$DB/db"  \
@@ -44,7 +48,7 @@
             --host-addr "0.0.0.0"
         '';
       };
-      spo-node = pkgs.writeShellApplication {
+      packages.spo-node = pkgs.writeShellApplication {
         name = "spo-node";
         inherit runtimeInputs;
         text = ''
@@ -73,10 +77,15 @@
           --host-addr "0.0.0.0"
         '';
       };
-    in
-    {
-      packages.relay-node = relay-node;
-      packages.spo-node = spo-node;
-    };
+      packages.ping-relay-spo = pkgs.writeShellApplication {
+        name = "ping-relay-spo";
+        inherit runtimeInputs;
+        text = ''
+          ln -sf ${pkgs.iana-etc}/etc/protocols /etc/protocols
+          ln -sf ${pkgs.iana-etc}/etc/services /etc/services
+          ip a
 
+        '';
+      };
+    };
 }

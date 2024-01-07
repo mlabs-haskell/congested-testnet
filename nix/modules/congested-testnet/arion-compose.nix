@@ -56,7 +56,11 @@ in
     "${faucet-wallet}" = { };
   } 
   // spammer-wallet "spammer-1" 
-  # // spammer-wallet "spammer-2"
+  // spammer-wallet "spammer-2"
+  // spammer-wallet "spammer-3"
+  // spammer-wallet "spammer-4"
+  // spammer-wallet "spammer-5"
+  // spammer-wallet "spammer-6"
   ;
 
 
@@ -82,6 +86,20 @@ in
       };
     };
 
+    # ping-relay-spo = {
+    #   image.enableRecommendedContents = true;
+    #   service = {
+    #     useHostStore = true;
+    #     capabilities = { NET_ADMIN = true; };
+    #     command = [
+    #       "sh"
+    #       "-c"
+    #       ''
+    #         ${pkgs.ping-relay-spo}/bin/ping-relay-spo 
+    #       ''
+    #     ];
+    #   };
+    # };
 
 
     faucet = {
@@ -107,8 +125,12 @@ in
       image.enableRecommendedContents = true;
       service = {
         useHostStore = true;
-        capabilities = { NET_RAW = true; };
+        capabilities = { NET_RAW = true; NET_ADMIN = true;};
         networks.default.aliases = [ "node-relay-1.local" ];
+        defaultExec = [
+         "/bin/sh"
+         "export PATH=${pkgs.iproute2}/bin:$PATH"
+        ];
         entrypoint = ''
           sh -c "
           ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-1.json
@@ -129,7 +151,11 @@ in
       service = {
         networks.default.aliases = [ "node-spo-1.local" ];
         useHostStore = true;
-        capabilities = { NET_RAW = true; };
+        capabilities = { NET_RAW = true; NET_ADMIN = true;};
+        defaultExec = [
+         "/bin/sh"
+         "export PATH=${pkgs.iproute2}/bin:$PATH"
+        ];
         entrypoint = ''
            sh -c "
           ${pkgs.spo-node}/bin/spo-node /config /data ${spo-port} topology-spo-1.json
@@ -215,7 +241,11 @@ in
 
   } 
   // spammer-conf "spammer-1"
-  # // spammer-conf "spammer-2"
+  // spammer-conf "spammer-2"
+  // spammer-conf "spammer-3"
+  // spammer-conf "spammer-4"
+  // spammer-conf "spammer-5"
+  // spammer-conf "spammer-6"
   ;
 
 } 

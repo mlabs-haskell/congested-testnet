@@ -4,7 +4,7 @@
     packages.spammer =
       pkgs.writeShellApplication {
         name = "spammer";
-        runtimeInputs = [ pkgs.coreutils ];
+        runtimeInputs = [ pkgs.coreutils pkgs.iputils  ];
         text = ''
           ${self'.packages.gen-wallet}/bin/gen-wallet "$1" 
           echo "==== start ctl spammer ==========="

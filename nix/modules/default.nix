@@ -13,6 +13,7 @@
     spammer = self.packages.${final.system}.spammer;
     make-faucet-wallet = self.packages.${final.system}.make-faucet-wallet;
     relay-node = self.packages.${final.system}.relay-node;
+    ping-relay-spo = self.packages.${final.system}.ping-relay-spo;
     spo-node = self.packages.${final.system}.spo-node;
     prometheus-run = self.packages.${final.system}.prometheus-run;
 
@@ -52,7 +53,20 @@
             #!/bin/sh
             arion --prebuilt-file ${arion-compose} down -v --remove-orphans 
             arion --prebuilt-file ${arion-compose} up -d --remove-orphans
-            arion --prebuilt-file ${arion-compose} logs -f spammer-1 
+            arion --prebuilt-file ${arion-compose} logs -f node-relay-1 
+          '';
+        };
+        # docker exec testnet_node-relay-1_1 /nix/store/qxr0j44p6cy69a00hympa2lakll14z97-iproute2-6.4.0/bin/tc qdisc add dev eth0 root netem delay 500ms
+      packages.exec=
+        let
+          arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
+        in
+        pkgs.writeShellApplication {
+          name = "exec";
+          runtimeInputs = [ pkgs.arion ];
+          text = ''
+            #!/bin/sh
+            arion --prebuilt-file ${arion-compose} exec testnet_node-relay-1_1 tc qdisc add dev eth0 root netem delay 100ms
           '';
         };
     };
