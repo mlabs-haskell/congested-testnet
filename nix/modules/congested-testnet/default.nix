@@ -38,4 +38,14 @@
       imports = [ ./arion-compose.nix ];
     };
   };
+
+  systemd.services.add-ping = {
+  description = "add ping to spo node";
+  after = [ "arion.service" ];
+  wantedBy = [ "multi-user.target" ];
+  serviceConfig = {
+    ExecStart = "${pkgs.add-ping}/bin/add-ping";
+  };
+};
+
 }

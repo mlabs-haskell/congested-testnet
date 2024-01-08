@@ -29,6 +29,10 @@ this part can be executed using [nix flakes](https://nixos.wiki/wiki/Flakes) ins
 ### submit transactions 
 To submit a transaction on the testnet, we can use [ogmios](https://github.com/CardanoSolutions/ogmios) and [kupo](https://github.com/CardanoSolutions/kupo). An example using the [purescript CTL](https://github.com/Plutonomicon/cardano-transaction-lib) can be found [here](./examples/purescript-example/src/Example.purs). Additionally, there are [ogmios clients and tx examples](https://ogmios.dev/clients/) available in other languages. Whichever client you choose to use, simply use next addresses `ogmios.local:1337` and `kupo.local:1442`
 
+
+### tests 
+We can run bats tests using `nix run .#tests`. Additionally, we can monitor Cardano testnet statistics with [prometheus-db](http://0.0.0.0:19090)
+
 # deployment
 Run
 

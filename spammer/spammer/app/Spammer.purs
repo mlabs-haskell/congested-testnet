@@ -30,13 +30,13 @@ main = do
     runContract config' do 
        utxos <- liftedM "no utxos" getWalletUtxos
        balance <- liftedM "wallet balance" getWalletBalance
+       log "total balance"
+       log $ show balance 
        log "total utxos"
        let 
            nutxos = Map.size utxos
        log $ show $ nutxos 
        if nutxos < 100 then generateUtxos else pure unit
-       log "total balance"
-       log $ show balance 
        replicateM_ 10 do
          replicateM_ 20 lock
          inputs <- utxoMapToInputs <$> getAllLockedUtxos
@@ -71,9 +71,10 @@ lock = do
           (lovelaceValueOf $ BInt.fromInt 1)
     constraints = maybe paySelf payScript mval
 
-  res <- try $ submitTxFromConstraints lookups constraints
-  log $ show $ res
-  log $ maybe "paySelf" (const "payScript") mval
+  _ <- try $ submitTxFromConstraints lookups constraints
+  -- log $ show $ res
+  -- log $ maybe "paySelf" (const "payScript") mval
+  pure unit
 
 
 
@@ -82,8 +83,10 @@ unlock :: (TransactionInput /\ InputWithScriptRef) -> Contract Unit
 unlock (transactionInput /\ inputWithScriptRef) = do
   let
     constraints = mustSpendScriptOutputUsingScriptRef transactionInput unitRedeemer inputWithScriptRef
-  _ <- try $ submitTxFromConstraints mempty constraints
-  log "unlock"
+  res <- try $ submitTxFromConstraints mempty constraints
+  pure unit
+  
+  -- log "unlock"
 
 
 

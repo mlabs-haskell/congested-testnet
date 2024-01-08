@@ -25,6 +25,7 @@
         ./nix/containers
         ./nix/cardano
         ./nix/research
+        ./nix/tests
 
         ./examples/get-tada.nix
       ];

@@ -18,7 +18,8 @@
 
 
         # now get ada with curl query
-        curl -X POST "faucet.congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}"
+        # curl -X POST "faucet.congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}"
+        curl -X POST "localhost:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}"
         '';
         };
     };
