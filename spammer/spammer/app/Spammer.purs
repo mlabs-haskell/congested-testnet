@@ -83,7 +83,7 @@ unlock :: (TransactionInput /\ InputWithScriptRef) -> Contract Unit
 unlock (transactionInput /\ inputWithScriptRef) = do
   let
     constraints = mustSpendScriptOutputUsingScriptRef transactionInput unitRedeemer inputWithScriptRef
-  res <- try $ submitTxFromConstraints mempty constraints
+  _ <- try $ submitTxFromConstraints mempty constraints
   pure unit
   
   -- log "unlock"
