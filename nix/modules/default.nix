@@ -16,6 +16,7 @@
     ping-relay-spo = self.packages.${final.system}.ping-relay-spo;
     spo-node = self.packages.${final.system}.spo-node;
     prometheus-run = self.packages.${final.system}.prometheus-run;
+    add-ping = self.packages.${final.system}.add-ping;
 
     podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
     docker = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker;
@@ -56,17 +57,12 @@
             arion --prebuilt-file ${arion-compose} logs -f node-relay-1 
           '';
         };
-        # docker exec testnet_node-relay-1_1 /nix/store/qxr0j44p6cy69a00hympa2lakll14z97-iproute2-6.4.0/bin/tc qdisc add dev eth0 root netem delay 500ms
-      packages.exec=
-        let
-          arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
-        in
+
+      packages.add-ping =
         pkgs.writeShellApplication {
-          name = "exec";
-          runtimeInputs = [ pkgs.arion ];
+          name = "add-ping";
           text = ''
-            #!/bin/sh
-            arion --prebuilt-file ${arion-compose} exec testnet_node-relay-1_1 tc qdisc add dev eth0 root netem delay 100ms
+            docker exec testnet_node-spo-1_1 ${pkgs.iproute2}/bin/tc qdisc add dev eth0 root netem delay 500ms
           '';
         };
     };
