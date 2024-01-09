@@ -54,8 +54,8 @@ in
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
-  } 
-  // spammer-wallet "spammer-1" 
+  }
+  // spammer-wallet "spammer-1"
   // spammer-wallet "spammer-2"
   // spammer-wallet "spammer-3"
   // spammer-wallet "spammer-4"
@@ -112,11 +112,11 @@ in
       image.enableRecommendedContents = true;
       service = {
         useHostStore = true;
-        capabilities = { NET_RAW = true;};
+        capabilities = { NET_RAW = true; };
         networks.default.aliases = [ "node-relay-1.local" ];
         defaultExec = [
-         "/bin/sh"
-         "export PATH=${pkgs.iproute2}/bin:$PATH"
+          "/bin/sh"
+          "export PATH=${pkgs.iproute2}/bin:$PATH"
         ];
         entrypoint = ''
           sh -c "
@@ -136,13 +136,13 @@ in
     node-spo-1 = {
       image.enableRecommendedContents = true;
       service = {
-        depends_on = [testnet-config];
+        depends_on = [ testnet-config ];
         networks.default.aliases = [ "node-spo-1.local" ];
         useHostStore = true;
-        capabilities = { NET_RAW = true; NET_ADMIN = true;};
+        capabilities = { NET_RAW = true; NET_ADMIN = true; };
         defaultExec = [
-         "/bin/sh"
-         "export PATH=${pkgs.iproute2}/bin:$PATH"
+          "/bin/sh"
+          "export PATH=${pkgs.iproute2}/bin:$PATH"
         ];
         entrypoint = ''
            sh -c "
@@ -230,7 +230,7 @@ in
     };
 
 
-  } 
+  }
   // spammer-conf "spammer-1"
   // spammer-conf "spammer-2"
   // spammer-conf "spammer-3"
