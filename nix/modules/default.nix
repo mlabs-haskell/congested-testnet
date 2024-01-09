@@ -13,9 +13,9 @@
     spammer = self.packages.${final.system}.spammer;
     make-faucet-wallet = self.packages.${final.system}.make-faucet-wallet;
     relay-node = self.packages.${final.system}.relay-node;
-    ping-relay-spo = self.packages.${final.system}.ping-relay-spo;
     spo-node = self.packages.${final.system}.spo-node;
     prometheus-run = self.packages.${final.system}.prometheus-run;
+
     add-ping = self.packages.${final.system}.add-ping;
 
     podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
@@ -42,21 +42,16 @@
       packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;
-      packages.arion = pkgs.arion;
-      packages.run-all=
-        let
-          arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
-        in
-        pkgs.writeShellApplication {
-          name = "run-all";
-          runtimeInputs = [ pkgs.arion ];
+
+      packages.arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
+
+      packages.arion-with-prebuilt = pkgs.writeShellApplication {
+          name = "arion-with-prebuilt";
+          runtimeInputs = [pkgs.arion];
           text = ''
-            #!/bin/sh
-            arion --prebuilt-file ${arion-compose} down -v --remove-orphans 
-            arion --prebuilt-file ${arion-compose} up -d --remove-orphans
-            arion --prebuilt-file ${arion-compose} logs -f faucet 
+            arion --prebuilt-file ${self'.packages.arion-compose} "$@" 
           '';
-        };
+      }; 
 
       packages.add-ping =
         pkgs.writeShellApplication {

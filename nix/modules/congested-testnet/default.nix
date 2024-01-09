@@ -33,20 +33,5 @@
     "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDKvzcswvJ4iXTpp2sT78/dldAox07fS47qVOZeZxS9aDLB1GugyBciW0ps6THZzqr3w1H2IjJKUppjavDKc54U6W3Bt84NJwOaoFYDtCBPRs+2dQqdk68E+3NO4mw7V2fdk5qiIvJKubF5PrdiYzsoGe9G4i/QDOPts51VER1b5wNcs7hF36FjRxm7HgyVybuG5S8fVTl8KcKeZiy4arPCyqMsnwgmsIXeUg0uXx2ZKYmkZVx+gu5GeJyZqjOJb/t0ujbU1DFa7q3d1rkI5+BhY5/kCLEBnZGuDrt1S8w5m7OVqIV0fogVEt2wFL0YKTwkkh8i6nZ+bKQTG7H9apkZvsTitIef3V/z8ajwckiBarD1NJJKtsEczJVcohfVFVr8hcXs+bqnIMRZgulJzrjp4DyPsHNd6lTB+ASLY6hQMAdoD4elR18HtyF8AEZFw+3MTWWn4YOTAY+cmdm0nNFlo8BJnYgrqCsaeWbaKOTvnPj+rSpkNw+zD7MqXhHESkM= maxim@maxim"
   ];
 
-  virtualisation.arion = {
-    backend = "podman-socket";
-    projects.congested-testnet.settings = {
-      imports = [ ./arion-compose.nix ];
-    };
-  };
-
-  systemd.services.add-ping = {
-  description = "add ping to spo node";
-  after = [ "arion.service" "docker.service" ];
-  wantedBy = [ "multi-user.target" ];
-  serviceConfig = {
-    ExecStart = "${pkgs.add-ping}/bin/add-ping";
-  };
-};
 
 }

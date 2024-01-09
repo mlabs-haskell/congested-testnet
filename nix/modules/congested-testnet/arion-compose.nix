@@ -55,12 +55,12 @@ in
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
   } 
-  # // spammer-wallet "spammer-1" 
-  # // spammer-wallet "spammer-2"
-  # // spammer-wallet "spammer-3"
-  # // spammer-wallet "spammer-4"
-  # // spammer-wallet "spammer-5"
-  # // spammer-wallet "spammer-6"
+  // spammer-wallet "spammer-1" 
+  // spammer-wallet "spammer-2"
+  // spammer-wallet "spammer-3"
+  // spammer-wallet "spammer-4"
+  // spammer-wallet "spammer-5"
+  // spammer-wallet "spammer-6"
   ;
 
 
@@ -86,26 +86,13 @@ in
       };
     };
 
-    # ping-relay-spo = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     useHostStore = true;
-    #     capabilities = { NET_ADMIN = true; };
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       ''
-    #         ${pkgs.ping-relay-spo}/bin/ping-relay-spo 
-    #       ''
-    #     ];
-    #   };
-    # };
 
 
     faucet = {
       image.enableRecommendedContents = true;
       service =
         {
+          restart = "always";
           networks.default.aliases = [ "faucet.local" ];
           useHostStore = true;
           command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
@@ -125,7 +112,7 @@ in
       image.enableRecommendedContents = true;
       service = {
         useHostStore = true;
-        capabilities = { NET_RAW = true; NET_ADMIN = true;};
+        capabilities = { NET_RAW = true;};
         networks.default.aliases = [ "node-relay-1.local" ];
         defaultExec = [
          "/bin/sh"
@@ -149,6 +136,7 @@ in
     node-spo-1 = {
       image.enableRecommendedContents = true;
       service = {
+        depends_on = [testnet-config];
         networks.default.aliases = [ "node-spo-1.local" ];
         useHostStore = true;
         capabilities = { NET_RAW = true; NET_ADMIN = true;};
@@ -174,6 +162,7 @@ in
     ogmios = {
       image.enableRecommendedContents = true;
       service = {
+        restart = "always";
         networks.default.aliases = [ "ogmios.local" ];
         useHostStore = true;
         ports = [ (bindPort ogmios-port) ];
@@ -198,6 +187,7 @@ in
     kupo = {
       image.enableRecommendedContents = true;
       service = {
+        restart = "always";
         networks.default.aliases = [ "kupo.local" ];
         useHostStore = true;
         ports = [ (bindPort kupo-port) ];
@@ -222,6 +212,7 @@ in
     prometheus = {
       image.enableRecommendedContents = true;
       service = {
+        restart = "always";
         useHostStore = true;
         networks.default.aliases = [ "prometheus.local" ];
         ports = [ (bindPort prometheus-port) ];
@@ -240,12 +231,12 @@ in
 
 
   } 
-  # // spammer-conf "spammer-1"
-  # // spammer-conf "spammer-2"
-  # // spammer-conf "spammer-3"
-  # // spammer-conf "spammer-4"
-  # // spammer-conf "spammer-5"
-  # // spammer-conf "spammer-6"
+  // spammer-conf "spammer-1"
+  // spammer-conf "spammer-2"
+  // spammer-conf "spammer-3"
+  // spammer-conf "spammer-4"
+  // spammer-conf "spammer-5"
+  // spammer-conf "spammer-6"
   ;
 
 } 
