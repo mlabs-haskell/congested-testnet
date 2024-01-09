@@ -33,7 +33,9 @@ To submit a transaction on the testnet, we can use [ogmios](https://github.com/C
 ### tests 
 We can run bats tests using `nix run .#tests`. Additionally, we can monitor Cardano testnet statistics with [prometheus-db](http://0.0.0.0:19090)
 
+# deployment
+Run
 
-
-
-
+```bash
+nixos-rebuild switch --flake .#congested-testnet --target-host root@congested-testnet.staging.mlabs.city
+```
