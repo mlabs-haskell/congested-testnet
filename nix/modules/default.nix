@@ -54,15 +54,14 @@
             #!/bin/sh
             arion --prebuilt-file ${arion-compose} down -v --remove-orphans 
             arion --prebuilt-file ${arion-compose} up -d --remove-orphans
-            arion --prebuilt-file ${arion-compose} logs -f node-relay-1 
+            arion --prebuilt-file ${arion-compose} logs -f faucet 
           '';
         };
 
       packages.add-ping =
         pkgs.writeShellApplication {
           name = "add-ping";
-          text = ''
-            docker exec testnet_node-spo-1_1 ${pkgs.iproute2}/bin/tc qdisc add dev eth0 root netem delay 500ms
+          text = '' docker exec testnet_node-spo-1_1 ${pkgs.iproute2}/bin/tc qdisc add dev eth0 root netem delay 500ms
           '';
         };
     };

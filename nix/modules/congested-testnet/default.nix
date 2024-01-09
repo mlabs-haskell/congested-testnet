@@ -11,6 +11,7 @@
   environment.systemPackages = [
     pkgs.docker-client
     pkgs.dnsutils
+    pkgs.docker
   ];
 
   networking.firewall.interfaces.podman1.allowedUDPPorts = [ 53 ];
@@ -31,7 +32,7 @@
 
   systemd.services.add-ping = {
   description = "add ping to spo node";
-  after = [ "arion.service" ];
+  after = [ "arion.service" "docker.service" ];
   wantedBy = [ "multi-user.target" ];
   serviceConfig = {
     ExecStart = "${pkgs.add-ping}/bin/add-ping";

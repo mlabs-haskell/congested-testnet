@@ -12,18 +12,18 @@ import Data.UInt (fromInt)
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
   { syncWallet:
-      { delay: Milliseconds 1.0, timeout: Seconds 0.0}
+      { delay: Milliseconds 1.0, timeout: Seconds 0.0 }
   , syncBackend:
-      { delay: Milliseconds 1.0, timeout: Seconds 0.0}
+      { delay: Milliseconds 1.0, timeout: Seconds 0.0 }
   , awaitTxConfirmed:
-      { delay: Milliseconds 1.0, timeout: Seconds 0.0}
+      { delay: Milliseconds 1.0, timeout: Seconds 0.0 }
   , waitUntilSlot: { delay: Milliseconds 1.0 }
   }
 
 defaultSynchronizationParams :: ContractSynchronizationParams
 defaultSynchronizationParams =
   { syncBackendWithWallet:
-      { errorOnTimeout: false, beforeCip30Methods: false , beforeBalancing: false }
+      { errorOnTimeout: false, beforeCip30Methods: false, beforeBalancing: false }
   , syncWalletWithTxInputs: { errorOnTimeout: false, beforeCip30Sign: false }
   , syncWalletWithTransaction:
       { errorOnTimeout: false, beforeTxConfirmed: false }

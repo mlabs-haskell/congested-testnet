@@ -7,6 +7,7 @@
   services.getty.autologinUser = "root";
   services.openssh.settings.PasswordAuthentication = lib.mkForce true;
   services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+  services.sshd.enable = true;
   users.users.root.password = "";
 
   # Virtual Machine configuration

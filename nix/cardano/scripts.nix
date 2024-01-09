@@ -46,9 +46,9 @@ in
 [
   {
    # made it less to load mempool faster
-   # count = 66000;
-    count = 2600;
-    code = "";
+    # count = 2600;
+   count = 66000;
+   code = "";
   }
   {
     count = 3359;
@@ -72,6 +72,6 @@ in
   }
   {
     count = 1200;
-    code = code 4500 1000;
+    code = code 4480 1000;
   }
 ]

@@ -19,6 +19,9 @@
         ] ++
         (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         self'.devShells.ctl.buildInputs;
+        shellHook = ''
+        export SSHOPTS="-p 2222"
+        '';
       };
 
       devShells.purs =

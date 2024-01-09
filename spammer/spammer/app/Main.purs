@@ -13,31 +13,26 @@ import Spammer.Contracts.Unlock (unlock)
 import Spammer.State.Types (SpammerEnv, defaultSpammerEnv)
 import Spammer.State.Update (countUtxos, loadAllLockedUtxos)
 
-config' :: ContractParams 
+config' :: ContractParams
 config' = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
-
 
 main :: Effect Unit
 main = do
   launchAff_ do
-     trySpammer
-     where
-       spammer = runContract config' $ execStateT loop defaultSpammerEnv
-       trySpammer = do 
-          res <- try spammer
-          either (\e -> (log $ show e) *> trySpammer) (\_ -> pure unit) res
+    trySpammer
+  where
+  spammer = runContract config' $ execStateT loop defaultSpammerEnv
+  trySpammer = do
+    res <- try spammer
+    either (\e -> (log $ show e) *> trySpammer) (\_ -> pure unit) res
 
-
-
-
-loop ::  StateT SpammerEnv Contract Unit 
+loop :: StateT SpammerEnv Contract Unit
 loop = do
-    loadAllLockedUtxos
-    replicateM_ 1 loop1
-    where
-      loop1 = do 
-        countUtxos
-        replicateM_ 30 lock 
-        replicateM_ 30 unlock 
-
+  loadAllLockedUtxos
+  replicateM_ 1 loop1
+  where
+  loop1 = do
+    countUtxos
+    replicateM_ 30 lock
+    replicateM_ 30 unlock
 
