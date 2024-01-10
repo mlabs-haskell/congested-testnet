@@ -37,7 +37,7 @@ config walletPath ogmiosHost kupoHost ogmiosPort kupoPort =
       }
       Nothing
   , networkId: TestnetId
-  , logLevel: Debug
+  , logLevel: Info 
   , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile walletPath) Nothing
   , customLogger: Nothing
   , suppressLogs: true

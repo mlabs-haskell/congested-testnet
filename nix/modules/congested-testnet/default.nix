@@ -12,6 +12,9 @@
     pkgs.docker-client
     pkgs.dnsutils
     pkgs.docker
+    pkgs.arion-with-prebuilt
+    pkgs.add-ping
+    pkgs.htop
   ];
 
   networking.hostName = "congested-testnet";

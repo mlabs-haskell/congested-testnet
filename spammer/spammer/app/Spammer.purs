@@ -43,7 +43,7 @@ main = do
       if nutxos < 100 then generateUtxos else pure unit
 
       replicateM_ 10 do
-        replicateM_ 20 lock
+        replicateM_ 10 lock
         inputs <- utxoMapToInputs <$> getAllLockedUtxos
         log "---total locked Tx---"
         log $ show $ Array.length inputs
@@ -55,7 +55,7 @@ generateUtxos = do
   pkh <- liftedM "no pkh" ownPaymentPubKeyHash
   let
     paySelf = mustPayToPubKey pkh (lovelaceValueOf $ BInt.fromInt 1_000_000)
-    paySelfMany = mconcat $ Array.replicate 200 paySelf
+    paySelfMany = mconcat $ Array.replicate 100 paySelf
   res <- submitTxFromConstraints mempty paySelfMany
   log $ show res
   pure unit
