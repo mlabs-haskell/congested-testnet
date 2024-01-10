@@ -57,10 +57,10 @@ in
   }
   // spammer-wallet "spammer-1"
   // spammer-wallet "spammer-2"
-  // spammer-wallet "spammer-3"
-  // spammer-wallet "spammer-4"
-  // spammer-wallet "spammer-5"
-  // spammer-wallet "spammer-6"
+  # // spammer-wallet "spammer-3"
+  # // spammer-wallet "spammer-4"
+  # // spammer-wallet "spammer-5"
+  # // spammer-wallet "spammer-6"
   ;
 
 
@@ -233,10 +233,10 @@ in
   }
   // spammer-conf "spammer-1"
   // spammer-conf "spammer-2"
-  // spammer-conf "spammer-3"
-  // spammer-conf "spammer-4"
-  // spammer-conf "spammer-5"
-  // spammer-conf "spammer-6"
+  # // spammer-conf "spammer-3"
+  # // spammer-conf "spammer-4"
+  # // spammer-conf "spammer-5"
+  # // spammer-conf "spammer-6"
   ;
 
 } 

@@ -26,7 +26,7 @@
           cp ${./config/topology-spo-1.json} "$ROOT"/topology-spo-1.json
 
           NETWORK_MAGIC=2
-          SECURITY_PARAM=10
+          SECURITY_PARAM=2160
           NUM_SPO_NODES=1
           INIT_SUPPLY=10000000000
           START_TIME="$(date -d "now + 1 seconds" +%s)" 
@@ -63,7 +63,7 @@
 
           # change some parameters in shelley genesis
 
-          jq --argjson maxSupply "$MAX_SUPPLY" --argjson secParam "$SECURITY_PARAM" '.maxLovelaceSupply = $maxSupply | .slotLength = 0.1 | .securityParam = $secParam | .activeSlotsCoeff = 0.1 | .securityParam = $secParam | .epochLength = 500 | .updateQuorum =2 | .protocolParams.protocolVersion.major = 7 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 0.7 | .protocolParams.rho = 0.1 | .protocolParams.tau = 0.1' "$ROOT/genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/genesis.json"
+          jq --argjson maxSupply "$MAX_SUPPLY" --argjson secParam "$SECURITY_PARAM" '.maxLovelaceSupply = $maxSupply | .slotLength = 1 | .securityParam = $secParam | .activeSlotsCoeff = 0.05 | .securityParam = $secParam | .epochLength = 432000 | .updateQuorum =2 | .protocolParams.protocolVersion.major = 7 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 0.7 | .protocolParams.rho = 0.003 | .protocolParams.tau = 0.2' "$ROOT/genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/genesis.json"
 
           touch "$ROOT/finish_config" 
         '';
