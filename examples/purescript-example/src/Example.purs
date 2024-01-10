@@ -39,7 +39,7 @@ import Data.BigInt as BInt
 
 
 config' :: ContractParams 
-config' = config "key.skey" "ogmios.local" "kupo.local" 1337 1442
+config' = config "key.skey" "congested-testnet.staging.mlabs.city" "congested-testnet.staging.mlabs.city" 1337 1442
 
 main :: Effect Unit 
 main = do
@@ -49,6 +49,7 @@ main = do
        let
           paySelf = mustPayToPubKey pkh (lovelaceValueOf $ BInt.fromInt 3_000_000)
        txHash <- submitTxFromConstraints mempty paySelf
-       awaitTxConfirmed txHash
-       log "transaction successful"
+       log $ show txHash
+       -- awaitTxConfirmed txHash
+       log "transaction submitted successful"
 
