@@ -16,6 +16,7 @@
           inputs'.aiken.packages.aiken
           pkgs.nixos-rebuild
           pkgs.nix-diff
+          pkgs.dia
         ] ++
         (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         self'.devShells.ctl.buildInputs;

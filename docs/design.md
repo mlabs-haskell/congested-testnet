@@ -18,7 +18,7 @@
          -H "Content-Type: application/json" \
          -d '{"address": $USER_ADDRESS}'
      ```
- - [BlockFrost](https://github.com/blockfrost/blockfrost-backend-ryo). This service will allows users to submit transactions to the testnet 
+ - User. The user can interact with the testnet using ogmios/kupo to submit transactions and access the faucet to receive test ADA 
  - [Prometheus](https://prometheus.io/).This database stores logs from each node in the testnet, allowing us to estimate the current mempool usage percentage for each node and calculate the average mempool usage across the entire testnet. 
  - Spammer.   
     - Spammer continually submits random transactions in round robin manner to each node on the testnet in order to simulate congestion as in [historical peak](./congestion-statistics.md) 
