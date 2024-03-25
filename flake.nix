@@ -16,6 +16,11 @@
     flake = false;
   };
 
+  inputs.crane = {
+      url = "github:ipetkov/crane";
+      inputs.nixpkgs.follows = "nixpkgs";
+  };
+
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
@@ -26,6 +31,7 @@
         ./nix/cardano
         ./nix/research
         ./nix/tests
+        ./nix/cardano-cli-remote
 
         ./examples/get-tada.nix
       ];

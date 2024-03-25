@@ -1703,6 +1703,26 @@
         "type": "github"
       }
     },
+    "crane": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1711299236,
+        "narHash": "sha256-6/JsyozOMKN8LUGqWMopKTSiK8N79T8Q+hcxu2KkTXg=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "880573f80d09e18a11713f402b9e6172a085449f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
     "ctl": {
       "inputs": {
         "CHaP": "CHaP",
@@ -8828,6 +8848,7 @@
       "inputs": {
         "aiken": "aiken",
         "arion": "arion",
+        "crane": "crane",
         "ctl": "ctl",
         "easy-purescript-nix": "easy-purescript-nix_2",
         "flake-compat": "flake-compat_15",

@@ -20,6 +20,9 @@
           pkgs.kazam
           pkgs.audacity
           pkgs.shotcut
+          pkgs.nixd
+          pkgs.rust-analyzer
+          pkgs.cargo
         ] ++
         (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         self'.devShells.ctl.buildInputs;
