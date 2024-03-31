@@ -7,6 +7,5 @@
     ./faucet.nix
     ./utils.nix
     ./spammer.nix
-    ./cardano-cli-remote.nix
   ];
 }

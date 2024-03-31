@@ -5,10 +5,6 @@
         {
           "address": "node-spo-1.local",
           "port": 3000
-        },
-        {
-          "address": "node-spo-2.local",
-          "port": 3000
         }
       ],
       "advertise": false,

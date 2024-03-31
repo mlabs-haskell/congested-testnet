@@ -24,11 +24,10 @@
           cp ${./config/genesis.spec.json} "$ROOT"/genesis.spec.json
           cp ${./config/topology-relay-1.json} "$ROOT"/topology-relay-1.json
           cp ${./config/topology-spo-1.json} "$ROOT"/topology-spo-1.json
-          cp ${./config/topology-spo-2.json} "$ROOT"/topology-spo-2.json
 
           NETWORK_MAGIC=2
           SECURITY_PARAM=2160
-          NUM_SPO_NODES=2
+          NUM_SPO_NODES=1
           INIT_SUPPLY=10000000000
           START_TIME="$(date -d "now + 1 seconds" +%s)" 
 
@@ -58,7 +57,7 @@
              --supply $SUPPLY \
              --supply-delegated $SUPPLY \
              --gen-stake-delegs 1 \
-             --gen-utxo-keys 2 \
+             --gen-utxo-keys 1 \
              --gen-genesis-keys 1
 
 
