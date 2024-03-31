@@ -36,7 +36,12 @@ curl http://congested-testnet.staging.mlabs.city:1442/matches/*@<transactionHash
 ```
 
 ### tests 
-We can run bats tests using `nix run .#tests`. Additionally, we can monitor Cardano testnet statistics with [prometheus-db](http://congested-testnet.staging.mlabs.city:9090)
+We can run bats tests using `nix run .#tests`. Additionally, we can monitor Cardano testnet statistics with [prometheus-db](http://congested-testnet.staging.mlabs.city:9090) \
+We have wrapper for the cardano-cli. You can query it like this:
+```
+curl -X POST http://congested-testnet.staging.mlabs.city:8001/cli  -H "Content-Type: application/json"  -d '{"args": "query slot-number --testnet-magic 2 2024-03-31T15:16:27Z"}'
+```
+This command shows the slot number for the current testnet at the specified timestamp
 
 ### deployment
 Run
