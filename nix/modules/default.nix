@@ -16,6 +16,7 @@
     spo-node = self.packages.${final.system}.spo-node;
     prometheus-run = self.packages.${final.system}.prometheus-run;
     arion-with-prebuilt = self.packages.${final.system}.arion-with-prebuilt;
+    cardano-cli-remote-container = self.packages.${final.system}.cardano-cli-remote-container;
 
     add-ping = self.packages.${final.system}.add-ping;
 

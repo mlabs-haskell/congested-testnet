@@ -1,7 +1,5 @@
 /* actix-web service to connect post request with cardano-cli */
-// curl -X POST http://congested-testnet.staging.mlabs.city:8001/cli \
-//      -H "Content-Type: application/json" \
-//      -d '{"args": "argument1 argument2 argument3"}'
+// curl -X POST http://congested-testnet.staging.mlabs.city:8001/cli  -H "Content-Type: application/json"  -d '{"args": "argument1 argument2 argument3"}'
 
 use actix_web::{web, App, HttpServer, Responder, HttpResponse};
 use serde::Deserialize;
@@ -16,6 +14,7 @@ async fn run_cardano_cli(args: web::Json<Args>) -> impl Responder {
     let args_vec: Vec<&str> = args.args.split_whitespace().collect();
     let output = Command::new("cardano-cli")
         .args(&args_vec)
+        .env("CARDANO_NODE_SOCKET_PATH" , "/socket/node.socket")
         .output()
         .expect("Failed to execute command");
 

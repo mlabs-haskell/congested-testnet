@@ -17,6 +17,7 @@ let
   ogmios-port = "1337";
   kupo-port = "1442";
   faucet-port = "8000";
+  cardano-cli-remote-port = "8001";
 
   bindPort = port: "${port}:${port}";
   spammer-wallet = name: { "${name}-wallet" = { }; };
@@ -55,9 +56,9 @@ in
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
   }
-  // spammer-wallet "spammer-1"
-  // spammer-wallet "spammer-2"
-  // spammer-wallet "spammer-3"
+  # // spammer-wallet "spammer-1"
+  # // spammer-wallet "spammer-2"
+  # // spammer-wallet "spammer-3"
     # // spammer-wallet "spammer-4"
     # // spammer-wallet "spammer-5"
     # // spammer-wallet "spammer-6"
@@ -229,11 +230,31 @@ in
       };
     };
 
+    cardano-cli-remote = {
+      image.enableRecommendedContents = true;
+      service = {
+        restart = "always";
+        useHostStore = true;
+        networks.default.aliases = [ "cardano-cli-remote.local" ];
+        ports = [ (bindPort cardano-cli-remote-port ) ];
+        volumes = [
+          "${socket-relay}:/socket"
+        ];
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.cardano-cli-remote-container}/bin/cardano-cli-remote-container
+          ''
+        ];
+      };
+    };
+
 
   }
-  // spammer-conf "spammer-1"
-  // spammer-conf "spammer-2"
-  // spammer-conf "spammer-3"
+  # // spammer-conf "spammer-1"
+  # // spammer-conf "spammer-2"
+  # // spammer-conf "spammer-3"
     # // spammer-conf "spammer-4"
     # // spammer-conf "spammer-5"
     # // spammer-conf "spammer-6"
