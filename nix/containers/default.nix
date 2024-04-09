@@ -8,5 +8,6 @@
     ./utils.nix
     ./spammer.nix
     ./cardano-cli-remote.nix
+    ./update-kes.nix
   ];
 }
