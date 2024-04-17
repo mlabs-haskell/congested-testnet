@@ -37,7 +37,7 @@
           --kes-verification-key-file "pools/kes1.vkey" \
           --cold-signing-key-file "pools/cold1.skey" \
           --operational-certificate-issue-counter "pools/opcert1.counter" \
-          --kes-period 0 \
+          --kes-period 60 \
           --out-file "pools/opcert1.cert" 
           
         '';
