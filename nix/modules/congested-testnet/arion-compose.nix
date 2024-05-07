@@ -87,6 +87,24 @@ in
       };
     };
 
+    update-kes = {
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.update-kes}/bin/update-kes testnet-config 
+          ''
+        ];
+        volumes = [
+          "${testnet-config}:/testnet-config"
+        ];
+      };
+    };
+
+
 
 
     faucet = {
