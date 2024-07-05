@@ -37,6 +37,12 @@
         { nixpkgs.overlays = [ self.overlays.default ]; }
       ];
     };
+    congested-testnet-dev = inputs.nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ./congested-testnet-dev
+      ];
+    };
   };
 
   perSystem = { system, pkgs, self', inputs', ... }:
