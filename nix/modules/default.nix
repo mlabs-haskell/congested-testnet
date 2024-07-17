@@ -1,8 +1,5 @@
 { self, inputs, ... }:
 {
-  flake.nixosModules = {
-    imports = [ ./desktop.nix ];
-  };
 
   flake.overlays.default = final: prev: {
     faucet = self.packages.${final.system}.faucet;
@@ -42,6 +39,7 @@
       system = "x86_64-linux";
       modules = [
         ./congested-testnet-dev
+        { nixpkgs.overlays = [ self.overlays.default ]; }
       ];
     };
   };

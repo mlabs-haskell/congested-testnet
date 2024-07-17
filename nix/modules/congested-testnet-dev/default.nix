@@ -1,10 +1,20 @@
-{lib, modulesPath, ...}: {
+{lib, modulesPath, pkgs, ...}: {
   imports = [ "${modulesPath}/virtualisation/digital-ocean-config.nix" ];
 
   boot.initrd.kernelModules = [ "nvme" ];
   boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "xen_blkfront" "vmw_pvscsi" ];
 
   boot.loader.grub.device = "/dev/vda";
+
+  environment.systemPackages = [
+    pkgs.docker-client
+    pkgs.dnsutils
+    pkgs.docker
+    pkgs.arion-with-prebuilt
+    pkgs.add-ping
+    pkgs.htop
+    pkgs.cardano-node
+  ];
 
   fileSystems."/" = {
     device = lib.mkForce "/dev/vda1";
