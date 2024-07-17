@@ -15,6 +15,7 @@
     pkgs.arion-with-prebuilt
     pkgs.add-ping
     pkgs.htop
+    pkgs.cardano-node
   ];
 
   networking.hostName = "congested-testnet";

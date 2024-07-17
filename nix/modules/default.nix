@@ -18,6 +18,7 @@
     arion-with-prebuilt = self.packages.${final.system}.arion-with-prebuilt;
     cardano-cli-remote-container = self.packages.${final.system}.cardano-cli-remote-container;
     update-kes = self.packages.${final.system}.update-kes;
+    cardano-node = self.packages.${final.system}.cardano-node;
 
     add-ping = self.packages.${final.system}.add-ping;
 
