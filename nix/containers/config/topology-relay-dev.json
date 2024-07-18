@@ -1,0 +1,16 @@
+{
+  "localRoots": [
+    {
+      "accessPoints": [
+        {
+          "address": "congested-testnet.staging.mlabs.city",
+          "port": 3000
+        }
+      ],
+      "advertise": false,
+      "valency": 1
+    }
+  ],
+  "publicRoots":[],
+  "useLedgerAfterSlot": 322000
+}

@@ -133,6 +133,7 @@ in
         useHostStore = true;
         capabilities = { NET_RAW = true; };
         networks.default.aliases = [ "node-relay-1.local" ];
+        ports = [ (bindPort relay-port) ];
         defaultExec = [
           "/bin/sh"
           "export PATH=${pkgs.iproute2}/bin:$PATH"
@@ -140,6 +141,31 @@ in
         entrypoint = ''
           sh -c "
           ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-1.json
+          "
+        '';
+        expose = [ relay-port node-prometheus-port ];
+        volumes = [
+          "${socket-relay}:/socket"
+          "${data-relay}:/data"
+          "${testnet-config}:/config"
+        ];
+      };
+    };
+
+    node-relay-dev-1 = {
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        capabilities = { NET_RAW = true; };
+        networks.default.aliases = [ "node-relay-dev-1.local" ];
+        ports = [ (bindPort relay-port) ];
+        defaultExec = [
+          "/bin/sh"
+          "export PATH=${pkgs.iproute2}/bin:$PATH"
+        ];
+        entrypoint = ''
+          sh -c "
+          ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-dev.json
           "
         '';
         expose = [ relay-port node-prometheus-port ];
