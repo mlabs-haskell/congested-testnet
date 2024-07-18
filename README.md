@@ -47,5 +47,5 @@ This command shows the slot number for the current testnet at the specified time
 Run
 
 ```bash
-nixos-rebuild switch --flake .#congested-testnet --target-host root@congested-testnet.staging.mlabs.city
+nixos-rebuild test --flake .#congested-testnet --target-host root@congested-testnet.staging.mlabs.city
 ```
