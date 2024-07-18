@@ -18,8 +18,7 @@
     cardano-node = self.packages.${final.system}.cardano-node;
 
     add-ping = self.packages.${final.system}.add-ping;
-
-    podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
+podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
     docker = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker;
     docker-client = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-client;
     docker-compose = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-compose;
@@ -38,6 +37,7 @@
     congested-testnet-dev = inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
+        inputs.arion.nixosModules.arion
         ./congested-testnet-dev
         { nixpkgs.overlays = [ self.overlays.default ]; }
       ];

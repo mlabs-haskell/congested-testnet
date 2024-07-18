@@ -6,6 +6,17 @@
 
   boot.loader.grub.device = "/dev/vda";
 
+  fileSystems."/" = {
+    device = lib.mkForce "/dev/vda1";
+    fsType = "ext4";
+  };
+
+  system.stateVersion = "23.11";
+
+  virtualisation.docker.enable = false;
+  virtualisation.podman.enable = true;
+  virtualisation.podman.dockerSocket.enable = true;
+  virtualisation.podman.defaultNetwork.settings.dns_enabled = true;
   environment.systemPackages = [
     pkgs.docker-client
     pkgs.dnsutils
@@ -16,12 +27,20 @@
     pkgs.cardano-node
   ];
 
-  fileSystems."/" = {
-    device = lib.mkForce "/dev/vda1";
-    fsType = "ext4";
+  systemd.services.createDockerSocketSymlink = {
+    description = "Create Docker socket symlink to Podman socket";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.coreutils}/bin/ln -sf /var/run/podman/podman.sock /var/run/docker.sock";
+      RemainAfterExit = true;
+    };
   };
 
-  system.stateVersion = "23.11";
+  networking.hostName = "congested-testnet-dev";
+  networking.firewall.interfaces.podman1.allowedUDPPorts = [ 53 ];
+  networking.firewall.allowedTCPPorts = [ 1337 9090 1442 3000 8000 ];
+
 
   services.openssh = {
     enable = true;
