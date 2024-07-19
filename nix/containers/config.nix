@@ -70,5 +70,25 @@
         '';
       };
 
-    };
+      packages.share-config = pkgs.writeShellApplication {
+        name = "share-config";
+        runtimeInputs = [
+          pkgs.fileshare
+          pkgs.coreutils
+        ];
+        text = ''
+           ROOT=$1
+           DIR=$2
+           PORT=$3
+           mkdir "$DIR/byron-gen-command"
+           cp "$ROOT/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
+           cp "$ROOT/genesis.json" "$DIR/genesis.json"
+           cp "$ROOT/genesis.alonzo.json" "$DIR/genesis.alonzo.json"
+           cp "$ROOT/genesis.conway.json" "$DIR/genesis.conway.json"
+           cp "$ROOT/configuration.yaml" "$DIR/configuration.yaml"
+           fileshare -p "$PORT" "$DIR"
+        '';
+      };
+};
 }
+

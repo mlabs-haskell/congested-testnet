@@ -23,6 +23,7 @@
           pkgs.nixd
           pkgs.rust-analyzer
           pkgs.cargo
+          pkgs.fileshare
         ] ++
         (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         self'.devShells.ctl.buildInputs;

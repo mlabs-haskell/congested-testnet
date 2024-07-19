@@ -9,6 +9,7 @@ let
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
   faucet-wallet = "faucet-wallet";
+  share-config-dir = "share-config-dir";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -18,6 +19,7 @@ let
   kupo-port = "1442";
   faucet-port = "8000";
   cardano-cli-remote-port = "8001";
+  share-config-port = "8002";
 
   bindPort = port: "${port}:${port}";
   spammer-wallet = name: { "${name}-wallet" = { }; };
@@ -55,6 +57,7 @@ in
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
+    "${share-config-dir}" = { };
   }
   // spammer-wallet "spammer-1"
   // spammer-wallet "spammer-2"
@@ -290,6 +293,27 @@ in
           "-c"
           ''
             ${pkgs.cardano-cli-remote-container}/bin/cardano-cli-remote-container
+          ''
+        ];
+      };
+    };
+
+    share-config = {
+      image.enableRecommendedContents = true;
+      service = {
+        restart = "always";
+        useHostStore = true;
+        networks.default.aliases = [ "share-config.local" ];
+        ports = [ (bindPort share-config-port) ];
+        volumes = [
+          "${testnet-config}:/config"
+          "${share-config-dir}:/dir"
+        ];
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.share-config}/bin/share-config /config /dir ${share-config-port} 
           ''
         ];
       };

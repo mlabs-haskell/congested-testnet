@@ -16,9 +16,10 @@
     cardano-cli-remote-container = self.packages.${final.system}.cardano-cli-remote-container;
     update-kes = self.packages.${final.system}.update-kes;
     cardano-node = self.packages.${final.system}.cardano-node;
+    share-config = self.packages.${final.system}.share-config;
 
     add-ping = self.packages.${final.system}.add-ping;
-podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
+    podman = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.podman;
     docker = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker;
     docker-client = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-client;
     docker-compose = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-compose;

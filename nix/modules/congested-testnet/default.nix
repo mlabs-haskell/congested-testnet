@@ -31,7 +31,7 @@
   networking.hostName = "congested-testnet";
 
   networking.firewall.interfaces.podman1.allowedUDPPorts = [ 53 ];
-  networking.firewall.allowedTCPPorts = [ 1337 9090 1442 3000 8000 ];
+  networking.firewall.allowedTCPPorts = [ 1337 9090 1442 3000 8000 8001 8002];
 
 
   services.openssh = {
