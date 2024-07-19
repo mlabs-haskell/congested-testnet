@@ -1,5 +1,5 @@
 {
-  "localRoots": [
+  "publicRoots": [
     {
       "accessPoints": [
         {
@@ -7,10 +7,9 @@
           "port": 3000
         }
       ],
-      "advertise": false,
-      "valency": 1
+      "advertise": true 
     }
   ],
-  "publicRoots":[],
+  "localRoots":[],
   "useLedgerAfterSlot": 322000
 }

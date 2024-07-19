@@ -25,6 +25,7 @@
     pkgs.add-ping
     pkgs.htop
     pkgs.cardano-node
+    pkgs.inetutils
   ];
 
   systemd.services.createDockerSocketSymlink = {

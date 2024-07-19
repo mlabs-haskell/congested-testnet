@@ -155,6 +155,7 @@ in
     node-relay-dev-1 = {
       image.enableRecommendedContents = true;
       service = {
+        depends_on = [ testnet-config ];
         useHostStore = true;
         capabilities = { NET_RAW = true; };
         networks.default.aliases = [ "node-relay-dev-1.local" ];

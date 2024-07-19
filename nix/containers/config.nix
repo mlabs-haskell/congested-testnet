@@ -23,6 +23,7 @@
           cp ${./config/genesis.conway.json} "$ROOT"/genesis.conway.json
           cp ${./config/genesis.spec.json} "$ROOT"/genesis.spec.json
           cp ${./config/topology-relay-1.json} "$ROOT"/topology-relay-1.json
+          cp ${./config/topology-relay-dev.json} "$ROOT"/topology-relay-dev.json
           cp ${./config/topology-spo-1.json} "$ROOT"/topology-spo-1.json
 
           NETWORK_MAGIC=2
