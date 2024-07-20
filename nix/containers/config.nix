@@ -89,6 +89,21 @@
            fileshare -p "$PORT" "$DIR"
         '';
       };
+
+      packages.copy-config = pkgs.writeShellApplication {
+        name = "copy-config";
+        runtimeInputs = [
+          pkgs.fileshare
+          pkgs.coreutils
+          pkgs.wget
+        ];
+        text = ''
+           URL=$1
+           OUT=$2
+           cd "$OUT"
+           wget -r -nH "$URL"
+        '';
+      };
 };
 }
 

@@ -10,6 +10,7 @@ let
   prometheus-db = "prometheus";
   faucet-wallet = "faucet-wallet";
   share-config-dir = "share-config-dir";
+  relay-config = "relay-config";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -20,6 +21,9 @@ let
   faucet-port = "8000";
   cardano-cli-remote-port = "8001";
   share-config-port = "8002";
+
+
+  config-url = "http://congested-testnet.staging.mlabs.city:8002/";
 
   bindPort = port: "${port}:${port}";
   spammer-wallet = name: { "${name}-wallet" = { }; };
@@ -58,6 +62,7 @@ in
     "${prometheus-db}" = { };
     "${faucet-wallet}" = { };
     "${share-config-dir}" = { };
+    "${relay-config}" = { };
   }
   // spammer-wallet "spammer-1"
   // spammer-wallet "spammer-2"
@@ -176,7 +181,7 @@ in
         volumes = [
           "${socket-relay}:/socket"
           "${data-relay}:/data"
-          "${testnet-config}:/config"
+          "${relay-config}:/config"
         ];
       };
     };
@@ -319,6 +324,23 @@ in
       };
     };
 
+    copy-config = {
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        networks.default.aliases = [ "copy-config.local" ];
+        volumes = [
+          "${relay-config}:/config"
+        ];
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.copy-config}/bin/copy-config ${config-url} /config  
+          ''
+        ];
+      };
+    };
 
   }
   // spammer-conf "spammer-1"
