@@ -80,12 +80,13 @@
            ROOT=$1
            DIR=$2
            PORT=$3
-           mkdir "$DIR/byron-gen-command"
-           cp "$ROOT/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
-           cp "$ROOT/genesis.json" "$DIR/genesis.json"
-           cp "$ROOT/genesis.alonzo.json" "$DIR/genesis.alonzo.json"
-           cp "$ROOT/genesis.conway.json" "$DIR/genesis.conway.json"
-           cp "$ROOT/configuration.yaml" "$DIR/configuration.yaml"
+           mkdir -p "$DIR/byron-gen-command"
+           cp "$ROOT/byron-gen-command/genesis.json" "$DIR/byron-gen-command/"
+           cp "$ROOT/genesis.json" "$DIR/"
+           cp "$ROOT/genesis.alonzo.json" "$DIR/"
+           cp "$ROOT/genesis.conway.json" "$DIR/"
+           cp "$ROOT/configuration.yaml" "$DIR/"
+           cp ${config/topology-relay-dev.json} "$DIR/topology-relay-dev.json"
            fileshare -p "$PORT" "$DIR"
         '';
       };
@@ -102,6 +103,7 @@
            OUT=$2
            cd "$OUT"
            wget -r -nH "$URL"
+           touch "$OUT/finish_config" 
         '';
       };
 };

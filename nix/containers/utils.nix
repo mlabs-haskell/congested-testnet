@@ -34,7 +34,7 @@
 
           PUBKEYHEX=$( jq '.cborHex' < "$ROOT/wallet.vkey" ) 
           while true; do
-              url="faucet.local:8000"
+              url="congested-testnet.staging.mlabs.city:8000"
 
               if curl --output /dev/null --silent --head --fail "$url"; then
                 echo "URL exists: $url"
@@ -44,7 +44,7 @@
                 continue
               fi
 
-              response=$(curl -X POST "faucet.local:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}") 
+              response=$(curl -X POST "$url" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}") 
 
               if echo "$response" | grep -q "Right"; then
                   echo "Success: got funds"

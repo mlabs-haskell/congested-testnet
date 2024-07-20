@@ -11,6 +11,7 @@ let
   faucet-wallet = "faucet-wallet";
   share-config-dir = "share-config-dir";
   relay-config = "relay-config";
+  copy-config = "copy-config";
 
   spo-port = "3000";
   relay-port = "3000";
@@ -160,10 +161,11 @@ in
       };
     };
 
+
     node-relay-dev-1 = {
       image.enableRecommendedContents = true;
       service = {
-        depends_on = [ testnet-config ];
+        depends_on = [testnet-config copy-config];
         useHostStore = true;
         capabilities = { NET_RAW = true; };
         networks.default.aliases = [ "node-relay-dev-1.local" ];
@@ -181,7 +183,7 @@ in
         volumes = [
           "${socket-relay}:/socket"
           "${data-relay}:/data"
-          "${relay-config}:/config"
+          "${testnet-config}:/config"
         ];
       };
     };
@@ -330,7 +332,8 @@ in
         useHostStore = true;
         networks.default.aliases = [ "copy-config.local" ];
         volumes = [
-          "${relay-config}:/config"
+          # "${relay-config}:/config"
+          "${testnet-config}:/config"
         ];
         command = [
           "sh"
