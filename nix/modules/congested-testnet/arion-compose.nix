@@ -67,9 +67,9 @@ in
   // spammer-wallet "spammer-1"
   // spammer-wallet "spammer-2"
   // spammer-wallet "spammer-3"
-    # // spammer-wallet "spammer-4"
-    # // spammer-wallet "spammer-5"
-    # // spammer-wallet "spammer-6"
+  // spammer-wallet "spammer-4"
+  // spammer-wallet "spammer-5"
+  // spammer-wallet "spammer-6"
   ;
 
 
