@@ -38,9 +38,8 @@ let
         command = [
           "sh"
           "-c"
-            # ${pkgs.spammer}/bin/spammer wallet congested-testnet.staging.mlabs.city:8000
           ''
-            ${pkgs.spammer}/bin/spammer wallet faucet.local:8000
+            ${pkgs.spammer}/bin/spammer wallet congested-testnet.staging.mlabs.city:8000
           ''
         ];
         volumes = [
