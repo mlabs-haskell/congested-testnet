@@ -347,9 +347,9 @@ in
   // spammer-conf "spammer-1"
   // spammer-conf "spammer-2"
   // spammer-conf "spammer-3"
-    # // spammer-conf "spammer-4"
-    # // spammer-conf "spammer-5"
-    # // spammer-conf "spammer-6"
+  // spammer-conf "spammer-4"
+  // spammer-conf "spammer-5"
+  // spammer-conf "spammer-6"
   ;
 
 } 
