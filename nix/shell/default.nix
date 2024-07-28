@@ -24,6 +24,7 @@
           pkgs.rust-analyzer
           pkgs.cargo
           pkgs.fileshare
+          self'.packages.arion-with-prebuilt
         ] ++
         (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         self'.devShells.ctl.buildInputs;

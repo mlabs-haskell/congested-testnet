@@ -17,10 +17,13 @@
         name = "gen-wallet";
         inherit runtimeInputs;
         text = ''
+          set -e
           ROOT=$1
+          url=$2
 
           ln -sf ${pkgs.iana-etc}/etc/protocols /etc/protocols
           ln -sf ${pkgs.iana-etc}/etc/services /etc/services
+          echo "create wallet"
 
           if [ -f "$ROOT/wallet_exist" ]; then
             echo "wallet exist"
@@ -30,22 +33,11 @@
           cardano-cli address key-gen \
             --verification-key-file "$ROOT/wallet.vkey" \
             --signing-key-file "$ROOT/wallet.skey" 
-          cat "$ROOT/wallet.skey"
 
-          PUBKEYHEX=$( jq '.cborHex' < "$ROOT/wallet.vkey" ) 
+          PUBKEYHASHHEX=$(cardano-cli address key-hash --payment-verification-key-file "$ROOT/wallet.vkey")
+          echo "$PUBKEYHASHHEX"
           while true; do
-              url="congested-testnet.staging.mlabs.city:8000"
-
-              if curl --output /dev/null --silent --head --fail "$url"; then
-                echo "URL exists: $url"
-              else
-                sleep 1
-                echo "URL still does not exist: $url"
-                continue
-              fi
-
-              response=$(curl -X POST "$url" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}") 
-
+              response=$(curl -X POST "$url" -H "Content-Type: application/json" -d "{\"pubKeyHashHex\": \"$PUBKEYHASHHEX\"}") 
               if echo "$response" | grep -q "Right"; then
                   echo "Success: got funds"
                   break
@@ -55,7 +47,7 @@
               fi
           done
 
-          ${self'.packages.generate-scripts}/bin/generate-scripts "$ROOT" "$PUBKEYHEX"
+          ${self'.packages.generate-scripts}/bin/generate-scripts "$ROOT" "$PUBKEYHASHHEX"
           
           touch "$ROOT/wallet_exist" 
           echo "=============================================================================="

@@ -11,7 +11,7 @@ import Node.Stream (end, onDataString, writeString)
 import Spammer.Config (config)
 import Spammer.Contracts.Faucet (payToAddress)
 
-type Result = { pubKeyHex :: String }
+type Result = { pubKeyHashHex :: String }
 
 foreign import strToResult :: String -> Effect Result
 
@@ -27,7 +27,7 @@ faucet req resp =
       onDataString reqStream UTF8 \str -> do
         fiber <- launchAff $ try do
           body <- liftEffect $ strToResult str
-          runContract faucet_config (payToAddress body.pubKeyHex)
+          runContract faucet_config (payToAddress body.pubKeyHashHex)
         fiber1 <- launchAff do
           txHash <- joinFiber fiber
           liftEffect $ writeString respStream UTF8 ("\n" <> show txHash <> "\n") (log $ show txHash)

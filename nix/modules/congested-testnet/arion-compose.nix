@@ -38,13 +38,13 @@ let
         command = [
           "sh"
           "-c"
+            # ${pkgs.spammer}/bin/spammer wallet congested-testnet.staging.mlabs.city:8000
           ''
-            ${pkgs.spammer}/bin/spammer wallet 
+            ${pkgs.spammer}/bin/spammer wallet faucet.local:8000
           ''
         ];
         volumes = [
           "${name}-wallet:/wallet"
-          "${faucet-wallet}:/faucet"
         ];
       };
     };
@@ -332,7 +332,6 @@ in
         useHostStore = true;
         networks.default.aliases = [ "copy-config.local" ];
         volumes = [
-          # "${relay-config}:/config"
           "${testnet-config}:/config"
         ];
         command = [

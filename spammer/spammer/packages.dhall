@@ -3,7 +3,6 @@ Welcome to your new Dhall package-set!
 
 Below are instructions for how to edit this file for most use
 cases, so that you don't need to know Dhall to use it.
-
 ## Warning: Don't Move This Top-Level Comment!
 
 Due to how `dhall format` currently works, this comment's

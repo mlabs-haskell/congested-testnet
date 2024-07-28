@@ -17,12 +17,12 @@ cardano-cli address key-gen \
     --signing-key-file "key.skey" 
 
 
-# to get tADA we need to provide public key
-PUBKEYHEX=$( jq '.cborHex' < "key.vkey" ) 
+# to get tADA we need to provide public key hash
+PUBKEYHASHHEX=$(cardano-cli address key-hash --payment-verification-key-file "key.vkey")
 
 
 # now get ada with query
-curl -X POST "congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHex\": $PUBKEYHEX}"
+curl -X POST "congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHashHex\": \"$PUBKEYHASHHEX\"}"
 ```
 this part can be executed using [nix flakes](https://nixos.wiki/wiki/Flakes) inside current repo `nix run .#get-tada`
 

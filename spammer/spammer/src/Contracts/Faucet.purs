@@ -3,16 +3,18 @@ module Spammer.Contracts.Faucet where
 import Contract.Prelude
 
 import Contract.Monad (Contract)
+import Contract.Prim.ByteArray (hexToByteArrayUnsafe)
 import Contract.Transaction (TransactionHash, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
+import Ctl.Internal.Serialization.Hash (ed25519KeyHashFromBytes)
 import Data.BigInt as BInt
-import Data.String as String
-import Spammer.Keys (getEd25519HashFromPubKeyHexEffect)
+import Effect.Aff (error)
+
 
 payToAddress :: String -> Contract TransactionHash
-payToAddress pubKeyHex = do
-  edHash <- liftEffect $ getEd25519HashFromPubKeyHexEffect $ (String.drop 4 pubKeyHex)
+payToAddress pubKeyHashHex = do
+  edHash <- liftM (error "can't convert hex to ed25519")  $ ed25519KeyHashFromBytes <<< hexToByteArrayUnsafe $ pubKeyHashHex
   let
     pkh = wrap $ wrap edHash
     constraints = mustPayToPubKey pkh (lovelaceValueOf $ BInt.fromInt 1_000_000_000)
