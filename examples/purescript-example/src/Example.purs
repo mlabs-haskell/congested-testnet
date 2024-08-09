@@ -50,6 +50,6 @@ main = do
           paySelf = mustPayToPubKey pkh (lovelaceValueOf $ BInt.fromInt 3_000_000)
        txHash <- submitTxFromConstraints mempty paySelf
        log $ show txHash
-       -- awaitTxConfirmed txHash
+       _ <- awaitTxConfirmed txHash
        log "transaction submitted successful"
 
