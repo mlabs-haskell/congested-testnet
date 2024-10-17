@@ -26,28 +26,32 @@ config' = config "/wallet/wallet.skey" "ogmios.local" "kupo.local" 1337 1442
 
 main :: Effect Unit
 main = do
-  launchAff_ do
-    runContract config' do
-      log "---total wallet balance---"
-      pkh <- liftedM "no pkh" ownPaymentPubKeyHash
-      balance <- liftedM "wallet balance" getWalletBalance
-      log $ show balance
-      if ((lovelaceValueOf $ BInt.fromInt 200_000_000) `gt` balance) then (liftEffect <<< getFundsFromFaucet $ pkh)
-      else (pure unit)
+  log "Hi!"
 
-      log "---total utxos---"
-      utxos <- liftedM "no utxos" getWalletUtxos
-      let
-        nutxos = Map.size utxos
-      log $ show $ nutxos
-      if nutxos < 100 then generateUtxos else pure unit
-
-      replicateM_ 10 do
-        replicateM_ 10 lock
-        inputs <- utxoMapToInputs <$> getAllLockedUtxos
-        log "---total locked Tx---"
-        log $ show $ Array.length inputs
-        traverse_ unlock inputs
+-- main :: Effect Unit
+-- main = do
+--   launchAff_ do
+--     runContract config' do
+--       log "---total wallet balance---"
+--       pkh <- liftedM "no pkh" ownPaymentPubKeyHash
+--       balance <- liftedM "wallet balance" getWalletBalance
+--       log $ show balance
+--       if ((lovelaceValueOf $ BInt.fromInt 200_000_000) `gt` balance) then (liftEffect <<< getFundsFromFaucet $ pkh)
+--       else (pure unit)
+--
+--       log "---total utxos---"
+--       utxos <- liftedM "no utxos" getWalletUtxos
+--       let
+--         nutxos = Map.size utxos
+--       log $ show $ nutxos
+--       if nutxos < 100 then generateUtxos else pure unit
+--
+--       replicateM_ 10 do
+--         replicateM_ 10 lock
+--         inputs <- utxoMapToInputs <$> getAllLockedUtxos
+--         log "---total locked Tx---"
+--         log $ show $ Array.length inputs
+--         traverse_ unlock inputs
 
 
 generateUtxos :: Contract Unit
