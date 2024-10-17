@@ -18,7 +18,7 @@ getFundsFromFaucet pkh  = launchAff_ do
   let
     hex = getHexFromEd25519Hash <<< unwrap <<< unwrap $ pkh 
     req = defaultRequest {
-                          url = "http://congested-testnet.staging.mlabs.city:8000",
+                          url = "faucet.local:8000",
                           method = Left POST,
                           responseFormat = string, 
                           headers = [(ContentType $ wrap "application/json")],

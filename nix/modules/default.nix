@@ -13,6 +13,7 @@
     spo-node = self.packages.${final.system}.spo-node;
     prometheus-run = self.packages.${final.system}.prometheus-run;
     arion-with-prebuilt = self.packages.${final.system}.arion-with-prebuilt;
+    arion-with-prebuilt-dev = self.packages.${final.system}.arion-with-prebuilt-dev;
     cardano-cli-remote-container = self.packages.${final.system}.cardano-cli-remote-container;
     update-kes = self.packages.${final.system}.update-kes;
     cardano-node = self.packages.${final.system}.cardano-node;

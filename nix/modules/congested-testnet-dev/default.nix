@@ -21,7 +21,7 @@
     pkgs.docker-client
     pkgs.dnsutils
     pkgs.docker
-    pkgs.arion-with-prebuilt
+    pkgs.arion-with-prebuilt-dev
     pkgs.add-ping
     pkgs.htop
     pkgs.cardano-node
