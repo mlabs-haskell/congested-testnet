@@ -28,7 +28,7 @@ main :: Effect Unit
 main = do
   launchAff_ do
     runContract config' do
-      log "---total balance---"
+      log "---total wallet balance---"
       pkh <- liftedM "no pkh" ownPaymentPubKeyHash
       balance <- liftedM "wallet balance" getWalletBalance
       log $ show balance

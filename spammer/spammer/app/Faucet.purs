@@ -1,7 +1,6 @@
 module Faucet where
 
 import Contract.Prelude
-
 import Contract.Monad (launchAff_, runContract)
 import Control.Monad.Error.Class (try)
 import Effect.Aff (joinFiber, launchAff)
