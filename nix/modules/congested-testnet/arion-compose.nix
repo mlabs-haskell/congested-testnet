@@ -98,23 +98,23 @@ in
 
 
 
-    faucet = {
-      image.enableRecommendedContents = true;
-      service =
-        {
-          restart = "always";
-          networks.default.aliases = [ "faucet.local" ];
-          useHostStore = true;
-          command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
-          ports = [ (bindPort faucet-port) ];
-          expose = [ faucet-port ];
-          volumes = [
-            "${faucet-wallet}:/wallet"
-            "${socket-relay}:/socket"
-            "${testnet-config}:/config"
-          ];
-        };
-    };
+    # faucet = {
+    #   image.enableRecommendedContents = true;
+    #   service =
+    #     {
+    #       restart = "always";
+    #       networks.default.aliases = [ "faucet.local" ];
+    #       useHostStore = true;
+    #       command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
+    #       ports = [ (bindPort faucet-port) ];
+    #       expose = [ faucet-port ];
+    #       volumes = [
+    #         "${faucet-wallet}:/wallet"
+    #         "${socket-relay}:/socket"
+    #         "${testnet-config}:/config"
+    #       ];
+    #     };
+    # };
 
 
 
@@ -264,7 +264,7 @@ in
 
 
   }
-  // spammer-conf "spammer-1"
+  # // spammer-conf "spammer-1"
   # // spammer-conf "spammer-2"
   # // spammer-conf "spammer-3"
   # // spammer-conf "spammer-4"
