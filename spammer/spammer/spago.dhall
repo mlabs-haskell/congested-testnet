@@ -34,7 +34,6 @@ You can edit this file as you like.
   , "posix-types"
   , "prelude"
   , "safely"
-  , "sequences"
   , "spec"
   , "strings"
   , "stringutils"
@@ -42,5 +41,6 @@ You can edit this file as you like.
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs" ]
+-- , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs" ]
+, sources = [ "app/Spammer.purs"]
 }

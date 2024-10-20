@@ -8,26 +8,39 @@
     , ...
     }:
     {
+      # _module.args.pkgs = import inputs.nixpkgs {
+      #   inherit system;
+      #   overlays = [
+      #     inputs.ctl.overlays.runtime
+      #   ];
+      # };
 
       devShells.default = pkgs.mkShell {
         buildInputs = [
-          self'.packages.cardano-node
+          # self'.packages.cardano-node
           pkgs.nixpkgs-fmt
-          inputs'.aiken.packages.aiken
-          pkgs.nixos-rebuild
-          pkgs.nix-diff
-          pkgs.dia
-          pkgs.kazam
-          pkgs.audacity
-          pkgs.shotcut
+          # inputs'.aiken.packages.aiken
+          # pkgs.nixos-rebuild
+          # pkgs.nix-diff
+          # pkgs.dia
+          # pkgs.kazam
+          # pkgs.audacity
+          # pkgs.shotcut
           pkgs.nixd
-          pkgs.rust-analyzer
-          pkgs.cargo
-          pkgs.fileshare
-          self'.packages.arion-with-prebuilt
+          # pkgs.rust-analyzer
+          # pkgs.cargo
+          # pkgs.fileshare
+          # self'.packages.arion-with-prebuilt
+          # pkgs.ogmios
+          # pkgs.cardano-node
+          # pkgs.cardano-cli
+          # pkgs.spago
+          # pkgs.purescript
+          # pkgs.easy-ps
         ] 
         ++
-        self'.devShells.ctl.buildInputs;
+        self'.devShells.ctl.buildInputs
+        ;
         # (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
         # shellHook = ''
         #   export SSHOPTS="-p 2222"

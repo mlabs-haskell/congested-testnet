@@ -1,7 +1,5 @@
 module Spammer where
-
 import Contract.Prelude
-
 -- import Contract.Monad (Contract, ContractParams, launchAff_, liftedM, runContract)
 -- import Contract.PlutusData (unitDatum, unitRedeemer)
 -- import Contract.ScriptLookups (validator)
