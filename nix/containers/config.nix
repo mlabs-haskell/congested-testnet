@@ -7,7 +7,7 @@
         runtimeInputs = [
           pkgs.jq
           pkgs.coreutils
-          self'.packages.cardano-node
+          pkgs.cardano-node
         ];
         text = ''
           ROOT=$1

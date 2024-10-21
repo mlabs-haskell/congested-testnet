@@ -28,26 +28,27 @@ let
 
   bindPort = port: "${port}:${port}";
   spammer-wallet = name: { "${name}-wallet" = { }; };
-  spammer-conf = name: {
-    ${name} = {
 
-      image.enableRecommendedContents = true;
-      service = {
-        useHostStore = true;
-        restart = "always";
-        command = [
-          "sh"
-          "-c"
-          ''
-            ${pkgs.spammer}/bin/spammer wallet ${faucet-url} 
-          ''
-        ];
-        volumes = [
-          "${name}-wallet:/wallet"
-        ];
-      };
-    };
-  };
+  # spammer-conf = name: {
+  #   ${name} = {
+  #
+  #     image.enableRecommendedContents = true;
+  #     service = {
+  #       useHostStore = true;
+  #       restart = "always";
+  #       command = [
+  #         "sh"
+  #         "-c"
+  #         ''
+  #           ${pkgs.spammer}/bin/spammer wallet ${faucet-url} 
+  #         ''
+  #       ];
+  #       volumes = [
+  #         "${name}-wallet:/wallet"
+  #       ];
+  #     };
+  #   };
+  # };
 in
 {
   project.name = "testnet";
@@ -64,7 +65,7 @@ in
     "${share-config-dir}" = { };
     "${relay-config}" = { };
   }
-  // spammer-wallet "spammer-1"
+  # // spammer-wallet "spammer-1"
   # // spammer-wallet "spammer-2"
   # // spammer-wallet "spammer-3"
   # // spammer-wallet "spammer-4"
@@ -242,25 +243,25 @@ in
       };
     };
 
-    cardano-cli-remote = {
-      image.enableRecommendedContents = true;
-      service = {
-        restart = "always";
-        useHostStore = true;
-        networks.default.aliases = [ "cardano-cli-remote.local" ];
-        ports = [ (bindPort cardano-cli-remote-port ) ];
-        volumes = [
-          "${socket-relay}:/socket"
-        ];
-        command = [
-          "sh"
-          "-c"
-          ''
-            ${pkgs.cardano-cli-remote-container}/bin/cardano-cli-remote-container
-          ''
-        ];
-      };
-    };
+    # cardano-cli-remote = {
+    #   image.enableRecommendedContents = true;
+    #   service = {
+    #     restart = "always";
+    #     useHostStore = true;
+    #     networks.default.aliases = [ "cardano-cli-remote.local" ];
+    #     ports = [ (bindPort cardano-cli-remote-port ) ];
+    #     volumes = [
+    #       "${socket-relay}:/socket"
+    #     ];
+    #     command = [
+    #       "sh"
+    #       "-c"
+    #       ''
+    #         ${pkgs.cardano-cli-remote-container}/bin/cardano-cli-remote-container
+    #       ''
+    #     ];
+    #   };
+    # };
 
 
   }

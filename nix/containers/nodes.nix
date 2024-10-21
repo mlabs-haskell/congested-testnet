@@ -3,7 +3,7 @@
   perSystem = { system, inputs', self', pkgs, ... }:
     let
       runtimeInputs = with pkgs; [
-        self'.packages.cardano-node
+        cardano-node
         jq
         coreutils
         gnugrep
@@ -22,6 +22,8 @@
       ];
     in
     {
+      packages.cardano-node = pkgs.cardano-node;
+      packages.cardano-cli = pkgs.cardano-cli;
       packages.relay-node = pkgs.writeShellApplication {
         name = "relay-node";
         inherit runtimeInputs;

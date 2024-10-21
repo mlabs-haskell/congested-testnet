@@ -22,8 +22,8 @@
         ./nix/overlays.nix
         ./nix/ctl
         ./nix/shell
-        # ./nix/modules
-        # ./nix/containers
+        ./nix/modules
+        ./nix/containers
         # ./nix/cardano
         # ./nix/research
         # ./nix/tests

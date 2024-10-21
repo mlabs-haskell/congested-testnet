@@ -8,17 +8,11 @@
     , ...
     }:
     {
-      # _module.args.pkgs = import inputs.nixpkgs {
-      #   inherit system;
-      #   overlays = [
-      #     inputs.ctl.overlays.runtime
-      #   ];
-      # };
 
       devShells.default = pkgs.mkShell {
-        buildInputs = [
+        buildInputs = with pkgs; [
           # self'.packages.cardano-node
-          pkgs.nixpkgs-fmt
+          nixpkgs-fmt
           # inputs'.aiken.packages.aiken
           # pkgs.nixos-rebuild
           # pkgs.nix-diff
@@ -26,11 +20,12 @@
           # pkgs.kazam
           # pkgs.audacity
           # pkgs.shotcut
-          pkgs.nixd
+          nixd
           # pkgs.rust-analyzer
           # pkgs.cargo
           # pkgs.fileshare
           # self'.packages.arion-with-prebuilt
+          arion-with-prebuilt
           # pkgs.ogmios
           # pkgs.cardano-node
           # pkgs.cardano-cli
@@ -38,6 +33,7 @@
           # pkgs.purescript
           # pkgs.nodejs_18
           # pkgs.compiled
+          cardano-cli
         ] 
         ++
         self'.devShells.ctl.buildInputs

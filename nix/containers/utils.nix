@@ -3,7 +3,8 @@
   perSystem = { system, inputs', self', pkgs, ... }:
     let
       runtimeInputs = [
-        self'.packages.cardano-node
+        # self'.packages.cardano-node
+        pkgs.cardano-node
         pkgs.jq
         pkgs.coreutils
         pkgs.gnugrep
