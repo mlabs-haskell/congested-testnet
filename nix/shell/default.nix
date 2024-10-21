@@ -36,7 +36,8 @@
           # pkgs.cardano-cli
           # pkgs.spago
           # pkgs.purescript
-          # pkgs.easy-ps
+          # pkgs.nodejs_18
+          # pkgs.compiled
         ] 
         ++
         self'.devShells.ctl.buildInputs

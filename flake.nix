@@ -20,8 +20,8 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nix/overlays.nix
-        ./nix/shell
         ./nix/ctl
+        ./nix/shell
         # ./nix/modules
         # ./nix/containers
         # ./nix/cardano

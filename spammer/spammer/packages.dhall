@@ -583,10 +583,9 @@ let additions =
           , "web-html"
           , "web-storage"
           ]
-        , repo = "https://github.com/Plutonomicon/cardano-transaction-lib.git"
+        , repo = "ssh://git@github.com/Plutonomicon/cardano-transaction-lib.git"
         , version = "v9.3.1"
         }
       }
 
-in  (upstream // additions)
-  with parsing.version = "v7.0.1"
+in  upstream // additions

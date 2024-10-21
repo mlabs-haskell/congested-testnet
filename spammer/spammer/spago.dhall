@@ -1,8 +1,4 @@
-{-
-Welcome to a Spago project!
-You can edit this file as you like.
--}
-{ name = "ctl-package-example"
+{ name = "spammer"
 , dependencies =
   [ "aeson"
   , "aff"

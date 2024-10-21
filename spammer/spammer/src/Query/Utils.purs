@@ -4,7 +4,7 @@ import Contract.Prelude
 
 import Aeson (JsonDecodeError)
 import Contract.Prim.ByteArray (byteArrayToHex)
-import Ctl.Internal.Types.ByteArray (ByteArray, hexToByteArray)
+import Data.ByteArray (ByteArray, hexToByteArray)
 import Ctl.Internal.Types.Cbor (toByteArray)
 import Data.Argonaut (class DecodeJson, printJsonDecodeError)
 import Effect.Exception (throw)
