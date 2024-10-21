@@ -40,6 +40,6 @@
       #   '';
       #
       #   };
-      apps.purs-docs = psProject.launchSearchablePursDocs { };
+      # apps.purs-docs = psProject.launchSearchablePursDocs { };
     };
 }
