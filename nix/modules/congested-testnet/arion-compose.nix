@@ -5,10 +5,10 @@ let
   socket-spo = "node-spo-1-socket";
   data-spo = "node-spo-1-data";
   data-kupo = "data-kupo";
-  testnet-config = "testnet-config";
+  testnet-config = "/tmp/testnet-config";
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
-  faucet-wallet = "faucet-wallet";
+  faucet-wallet = "/tmp/faucet-wallet";
   share-config-dir = "share-config-dir";
   relay-config = "relay-config";
   copy-config = "copy-config";
@@ -50,7 +50,7 @@ let
   #   };
   # };
 in
-{
+rec {
   project.name = "testnet";
 
   docker-compose.volumes = {
@@ -58,10 +58,10 @@ in
     "${data-relay}" = { };
     "${socket-spo}" = { };
     "${data-spo}" = { };
-    "${testnet-config}" = { };
+    # "${testnet-config}" = { };
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
-    "${faucet-wallet}" = { };
+    # "${faucet-wallet}" = { };
     "${share-config-dir}" = { };
     "${relay-config}" = { };
   }
@@ -77,7 +77,6 @@ in
 
 
   services = {
-
 
     testnet-config = {
       image.enableRecommendedContents = true;
@@ -99,23 +98,23 @@ in
 
 
 
-    # faucet = {
-    #   image.enableRecommendedContents = true;
-    #   service =
-    #     {
-    #       restart = "always";
-    #       networks.default.aliases = [ "faucet.local" ];
-    #       useHostStore = true;
-    #       command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
-    #       ports = [ (bindPort faucet-port) ];
-    #       expose = [ faucet-port ];
-    #       volumes = [
-    #         "${faucet-wallet}:/wallet"
-    #         "${socket-relay}:/socket"
-    #         "${testnet-config}:/config"
-    #       ];
-    #     };
-    # };
+    faucet = {
+      image.enableRecommendedContents = true;
+      service =
+        {
+          restart = "always";
+          networks.default.aliases = [ "faucet.local" ];
+          useHostStore = true;
+          command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
+          ports = [ (bindPort faucet-port) ];
+          expose = [ faucet-port ];
+          volumes = [
+            "${faucet-wallet}:/wallet"
+            "${socket-relay}:/socket"
+            "${testnet-config}:/config"
+          ];
+        };
+    };
 
 
 
@@ -150,7 +149,6 @@ in
     node-spo-1 = {
       image.enableRecommendedContents = true;
       service = {
-        depends_on = [ testnet-config ];
         networks.default.aliases = [ "node-spo-1.local" ];
         useHostStore = true;
         capabilities = { NET_RAW = true; NET_ADMIN = true; };

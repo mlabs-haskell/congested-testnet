@@ -37,11 +37,15 @@
         ] 
         ++
         self'.devShells.ctl.buildInputs
+        # ++
+        # (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ])
         ;
-        # (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ]) ++
-        # shellHook = ''
-        #   export SSHOPTS="-p 2222"
-        # ''
+        shellHook = ''
+          export SSHOPTS="-p 2222"
+          export walletPath="/tmp/faucet-wallet/wallet.skey"
+          export kupoUrl="0.0.0.0"
+          export ogmiosUrl="0.0.0.0"
+        '';
         
       };
 

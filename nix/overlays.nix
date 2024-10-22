@@ -2,7 +2,6 @@
 {
 
 flake.overlays.default = final: prev: {
-    # faucet = self.packages.${final.system}.faucet;
     gen-testnet-conf = self.packages.${final.system}.gen-testnet-conf;
     ogmios-run = self.packages.${final.system}.ogmios-run;
     kupo-run = self.packages.${final.system}.kupo-run;
@@ -26,6 +25,7 @@ flake.overlays.default = final: prev: {
     docker-client = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-client;
     docker-compose = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.docker-compose;
     arion = inputs.arion.inputs.nixpkgs.legacyPackages.${final.system}.arion;
+    faucet = self.packages.${final.system}.faucet;
   };
 
 perSystem = { system, ... }: {

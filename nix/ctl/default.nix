@@ -6,6 +6,7 @@
     in
     {
       devShells.ctl = psProject.devShell;
+      # devShells.default = psProject.devShell;
       packages.compiled = psProject.buildPursProject { };
       packages.nodeModules = psProject.mkNodeModules { };
       # packages.ogmios = pkgs.stdenv.mkDerivation {

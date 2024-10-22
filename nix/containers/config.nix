@@ -8,6 +8,7 @@
           pkgs.jq
           pkgs.coreutils
           pkgs.cardano-node
+          pkgs.cardano-cli
         ];
         text = ''
           ROOT=$1

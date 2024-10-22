@@ -9,6 +9,7 @@
   , "bigints"
   , "bignumber"
   , "cardano-transaction-lib"
+  , "cardano-types"
   , "console"
   , "control"
   , "datetime"
@@ -37,6 +38,5 @@
   , "uint"
   ]
 , packages = ./packages.dhall
--- , sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs" ]
-, sources = [ "app/Spammer.purs"]
+, sources = [ "app/Spammer.purs", "app/Config.purs" ]
 }
