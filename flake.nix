@@ -6,6 +6,7 @@
   # inputs.easy-purescript-nix.url = "github:justinwoo/easy-purescript-nix";
   inputs.ctl.url = "github:Plutonomicon/cardano-transaction-lib/v9.3.1";
   inputs.nixpkgs.follows = "ctl/nixpkgs";
+  inputs.spo-anywhere.url = "github:mlabs-haskell/spo-anywhere";
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
@@ -24,7 +25,7 @@
         ./nix/shell
         ./nix/modules
         ./nix/containers
-        # ./nix/cardano
+        ./nix/cardano
         # ./nix/research
         # ./nix/tests
         # ./examples/get-tada.nix

@@ -27,13 +27,13 @@
           # self'.packages.arion-with-prebuilt
           arion-with-prebuilt
           # pkgs.ogmios
-          # pkgs.cardano-node
+          cardano-node
           # pkgs.cardano-cli
           # pkgs.spago
           # pkgs.purescript
           # pkgs.nodejs_18
           # pkgs.compiled
-          cardano-cli
+          # cardano-cli
         ] 
         ++
         self'.devShells.ctl.buildInputs

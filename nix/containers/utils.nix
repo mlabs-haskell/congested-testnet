@@ -83,32 +83,39 @@
 
           echo "{\"type\":\"PaymentSigningKeyShelley_ed25519\",\"description\":\"Payment_Signing_Key\",\"cborHex\":$PKEYHEX}" > "$ROOT/wallet.skey"
 
-          cardano-cli address build \
+          echo "build address"
+
+          cardano-cli conway address build \
             --payment-verification-key-file "$CONFIG/utxo-keys/utxo1.vkey" \
             --out-file "$ROOT/wallet.addr" \
             --testnet-magic 2 
 
+          echo "build address"
 
 
-          cardano-cli query utxo \
+          cardano-cli conway query utxo \
                 --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
                 --testnet-magic 2 \
                 --address "$(cat "$ROOT/wallet.addr")" \
                 --out-file "$ROOT/utxos.json"
+
+          echo "query utxo"
 
     
           TXIN=$(jq "keys[0]" "$ROOT/utxos.json" --raw-output)
           SEND_AMT=3000000
           TXOUT="$(cat "$ROOT/wallet.addr")+$SEND_AMT"
 
-          cardano-cli transaction build \
+          cardano-cli conway transaction build \
                 --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
                 --testnet-magic 2 \
                 --change-address "$(cat "$ROOT/wallet.addr")" \
                 --tx-in "$TXIN" \
                 --tx-out "$TXOUT" \
-                --out-file "$ROOT/tx.body" \
-                --witness-override 2
+                --out-file "$ROOT/tx.body" 
+                # --witness-override 2
+
+          echo "transaction build"
 
     
           cardano-cli transaction sign \
@@ -122,7 +129,6 @@
                 --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
                 --tx-file "$ROOT/tx.signed" \
                 --testnet-magic 2
-
           touch "$ROOT/faucet_wallet_exist" 
 
         '';

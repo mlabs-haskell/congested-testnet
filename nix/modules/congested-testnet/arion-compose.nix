@@ -1,14 +1,17 @@
 { pkgs, ... }:
 let
   socket-relay = "node-relay-1-socket";
+  # socket-relay = "/tmp/socket-relay";
   data-relay = "node-relay-1-data";
   socket-spo = "node-spo-1-socket";
   data-spo = "node-spo-1-data";
   data-kupo = "data-kupo";
-  testnet-config = "/tmp/testnet-config";
+  # testnet-config = "/tmp/testnet-config";
+  testnet-config = "testnet-config";
   kupo-db = "kupo-db";
   prometheus-db = "prometheus";
-  faucet-wallet = "/tmp/faucet-wallet";
+  faucet-wallet = "faucet-wallet";
+  # faucet-wallet = "/tmp/faucet-wallet";
   share-config-dir = "share-config-dir";
   relay-config = "relay-config";
   copy-config = "copy-config";
@@ -58,10 +61,10 @@ rec {
     "${data-relay}" = { };
     "${socket-spo}" = { };
     "${data-spo}" = { };
-    # "${testnet-config}" = { };
+    "${testnet-config}" = { };
     "${kupo-db}" = { };
     "${prometheus-db}" = { };
-    # "${faucet-wallet}" = { };
+    "${faucet-wallet}" = { };
     "${share-config-dir}" = { };
     "${relay-config}" = { };
   }
