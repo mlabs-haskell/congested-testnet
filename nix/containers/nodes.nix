@@ -58,6 +58,7 @@
           DB=$2
           PORT=$3
           TOPOLOGY=$4
+          SOCKET=$5
 
           while [ ! -f "$CONFIG/finish_config" ]; do
             sleep 1
@@ -66,17 +67,29 @@
 
           ln -sf ${pkgs.iana-etc}/etc/protocols /etc/protocols
           ln -sf ${pkgs.iana-etc}/etc/services /etc/services
+          echo "$TOPOLOGY"
 
           cardano-node run --config "$CONFIG/configuration.yaml" \
-          --topology "$CONFIG/$TOPOLOGY"  \
           --database-path "$DB/db" \
           --port "$PORT" \
-          --shelley-kes-key "$CONFIG/pools/kes1.skey" \
-          --shelley-operational-certificate "$CONFIG/pools/opcert1.cert" \
-          --shelley-vrf-key "$CONFIG/pools/vrf1.skey" \
+          --shelley-kes-key "$CONFIG/pools-keys/pool1/kes.skey" \
+          --shelley-operational-certificate "$CONFIG/pools-keys/pool1/opcert.cert" \
+          --shelley-vrf-key "$CONFIG/pools-keys/pool1/vrf.skey" \
           --byron-signing-key  "$CONFIG/byron-gen-command/delegate-keys.000.key" \
           --byron-delegation-certificate  "$CONFIG/byron-gen-command/delegation-cert.000.json" \
-          --host-addr "0.0.0.0"
+          --host-addr "0.0.0.0" \
+          --socket-path "$SOCKET/node.socket" \
+          --topology "$CONFIG/$TOPOLOGY"  
+          # cardano-node run --config "$CONFIG/configuration.yaml" \
+          # --topology "$CONFIG/$TOPOLOGY"  \
+          # --database-path "$DB/db" \
+          # --port "$PORT" \
+          # --shelley-kes-key "$CONFIG/pools/kes1.skey" \
+          # --shelley-operational-certificate "$CONFIG/pools/opcert1.cert" \
+          # --shelley-vrf-key "$CONFIG/pools/vrf1.skey" \
+          # --byron-signing-key  "$CONFIG/byron-gen-command/delegate-keys.000.key" \
+          # --byron-delegation-certificate  "$CONFIG/byron-gen-command/delegation-cert.000.json" \
+          # --host-addr "0.0.0.0"
         '';
       };
       packages.ping-relay-spo = pkgs.writeShellApplication {

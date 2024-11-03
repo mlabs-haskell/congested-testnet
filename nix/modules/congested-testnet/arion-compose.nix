@@ -121,30 +121,30 @@ rec {
 
 
 
-    node-relay-1 = {
-      image.enableRecommendedContents = true;
-      service = {
-        useHostStore = true;
-        capabilities = { NET_RAW = true; };
-        networks.default.aliases = [ "node-relay-1.local" ];
-        ports = [ (bindPort relay-port) ];
-        defaultExec = [
-          "/bin/sh"
-          "export PATH=${pkgs.iproute2}/bin:$PATH"
-        ];
-        entrypoint = ''
-          sh -c "
-          ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-1.json
-          "
-        '';
-        expose = [ relay-port node-prometheus-port ];
-        volumes = [
-          "${socket-relay}:/socket"
-          "${data-relay}:/data"
-          "${testnet-config}:/config"
-        ];
-      };
-    };
+    # node-relay-1 = {
+    #   image.enableRecommendedContents = true;
+    #   service = {
+    #     useHostStore = true;
+    #     capabilities = { NET_RAW = true; };
+    #     networks.default.aliases = [ "node-relay-1.local" ];
+    #     ports = [ (bindPort relay-port) ];
+    #     defaultExec = [
+    #       "/bin/sh"
+    #       "export PATH=${pkgs.iproute2}/bin:$PATH"
+    #     ];
+    #     entrypoint = ''
+    #       sh -c "
+    #       ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-1.json
+    #       "
+    #     '';
+    #     expose = [ relay-port node-prometheus-port ];
+    #     volumes = [
+    #       "${socket-relay}:/socket"
+    #       "${data-relay}:/data"
+    #       "${testnet-config}:/config"
+    #     ];
+    #   };
+    # };
 
 
 
@@ -161,12 +161,12 @@ rec {
         ];
         entrypoint = ''
            sh -c "
-          ${pkgs.spo-node}/bin/spo-node /config /data ${spo-port} topology-spo-1.json
+          ${pkgs.spo-node}/bin/spo-node /config /data ${spo-port} topology-spo-1.json /socket
           "
         '';
         expose = [ spo-port node-prometheus-port ];
         volumes = [
-          "${socket-spo}:/socket"
+          "${socket-relay}:/socket"
           "${data-spo}:/data"
           "${testnet-config}:/config"
         ];

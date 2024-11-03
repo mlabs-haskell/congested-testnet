@@ -5,22 +5,20 @@
 # copied from ${cardano-node}/configuration/defaults/byron-mainnet/configuration.yaml and updated here 
 
 
-
 ##### Locations #####
 
 ByronGenesisFile: byron-gen-command/genesis.json
-ShelleyGenesisFile: genesis.json
-AlonzoGenesisFile: genesis.alonzo.json
-ConwayGenesisFile: genesis.conway.json
-# SocketPath: db/node.socket
+ShelleyGenesisFile: shelley-genesis.json
+AlonzoGenesisFile: alonzo-genesis.json
+ConwayGenesisFile: conway-genesis.json
 
 ##### Blockfetch Protocol
-PBftSignatureThreshold: 0.6
+# PBftSignatureThreshold: 0.6
 
 # The maximum number of used peers during bulk sync.
-MaxConcurrencyBulkSync: 1
+# MaxConcurrencyBulkSync: 1
 # The maximum number of used peers when fetching newly forged blocks.
-MaxConcurrencyDeadline: 2
+# MaxConcurrencyDeadline: 2
 
 #TODO: These parameters cannot yet be used in the config file, only on the CLI:
 #DatabasePath: db/
@@ -44,7 +42,7 @@ RequiresNetworkMagic: RequiresMagic
 # This protocol version number gets used by block producing nodes as part
 # of the system for agreeing on and synchronising protocol updates.
 LastKnownBlockVersion-Alt: 0
-LastKnownBlockVersion-Major: 7
+LastKnownBlockVersion-Major: 9
 LastKnownBlockVersion-Minor: 0
 
 # In the Byron era some software versions are also published on the chain.
@@ -52,6 +50,8 @@ LastKnownBlockVersion-Minor: 0
 ApplicationName: cardano-sl
 ApplicationVersion: 1
 
+
+PeerSharing: True
 
 ##### Logging configuration #####
 

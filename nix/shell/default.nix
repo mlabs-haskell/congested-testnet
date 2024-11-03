@@ -34,6 +34,7 @@
           # pkgs.nodejs_18
           # pkgs.compiled
           # cardano-cli
+          # haskellPackages.cabal-install
         ] 
         ++
         self'.devShells.ctl.buildInputs
