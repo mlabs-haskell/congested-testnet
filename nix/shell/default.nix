@@ -43,7 +43,8 @@
         ;
         shellHook = ''
           export SSHOPTS="-p 2222"
-          export walletPath="/tmp/faucet-wallet/wallet.skey"
+          # export walletPath="/var/lib/docker/volumes/testnet_faucet-wallet/_data/wallet.skey"
+          export walletPath="/home/maxim/work/projects/congested-testnet/wallet.skey";
           export kupoUrl="0.0.0.0"
           export ogmiosUrl="0.0.0.0"
         '';

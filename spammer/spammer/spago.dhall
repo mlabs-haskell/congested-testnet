@@ -8,6 +8,7 @@
   , "arrays"
   , "bigints"
   , "bignumber"
+  , "cardano-serialization-lib"
   , "cardano-transaction-lib"
   , "cardano-types"
   , "console"

@@ -5,6 +5,7 @@ import Contract.Prelude
 import Cardano.Types (NetworkId(..))
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
+import Ctl.Internal.Helpers (unsafeFromJust)
 import Data.Maybe (Maybe)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
