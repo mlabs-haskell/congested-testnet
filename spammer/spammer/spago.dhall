@@ -6,6 +6,7 @@
   , "affjax"
   , "argonaut"
   , "arrays"
+  , "avar"
   , "bigints"
   , "bignumber"
   , "cardano-serialization-lib"
@@ -31,11 +32,14 @@
   , "partial"
   , "posix-types"
   , "prelude"
+  , "refs"
   , "safely"
   , "spec"
   , "strings"
   , "stringutils"
+  , "tailrec"
   , "transformers"
+  , "typelevel"
   , "uint"
   ]
 , packages = ./packages.dhall

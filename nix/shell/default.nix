@@ -35,6 +35,7 @@
           # pkgs.compiled
           # cardano-cli
           # haskellPackages.cabal-install
+          pyright
         ] 
         ++
         self'.devShells.ctl.buildInputs
