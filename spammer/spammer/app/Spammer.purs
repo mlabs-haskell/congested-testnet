@@ -15,7 +15,7 @@ import Contract.Transaction (TransactionHash(..), awaitTxConfirmed, awaitTxConfi
 import Contract.TxConstraints (mustPayToPubKey, mustPayToPubKeyAddress)
 import Contract.Value (lovelaceValueOf)
 import Contract.Wallet (KeyWallet, Wallet(..), ownPaymentPubKeyHash, privateKeysToKeyWallet, withKeyWallet)
-import Control.Monad.Rec.Class (forever)
+import Control.Monad.Rec.Class (Step(..), forever, tailRec)
 import Control.Safely (replicateM_)
 import Ctl.Internal.Contract.Wallet (withWallet)
 import Ctl.Internal.Helpers (unsafeFromJust)
@@ -26,10 +26,9 @@ import Data.Array (replicate)
 import Data.List.Lazy (List, replicateM)
 import Data.Typelevel.Undefined (undefined)
 import Effect.AVar (AVar)
-import Effect.Aff (delay, error, forkAff)
+import Effect.Aff (delay, error, forkAff, try)
 import Effect.Aff.AVar (new, take, tryPut, tryTake)
 import Effect.Class.Console (logShow)
-import Effect.Ref (Ref)
 import Effect.Ref as RF
 import Partial.Unsafe (unsafePartial)
 
@@ -39,8 +38,9 @@ main = do
   envVars <- getEnvVars
   let 
     params = config envVars
-  log "Generate 200 wallets"
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM 200 generate 
+    nWallets = 300 
+  log $ "Generate " <> show nWallets <> " wallets"
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
   let
     keyWallets :: Array KeyWallet 
     keyWallets = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
@@ -52,18 +52,23 @@ main = do
     payFromIToJ walletI walletJ = do 
        withKeyWallet ( unsafePartial $ unsafeIndex keyWallets walletI) do  
           payToWallet "4000000" (slice (walletJ-1) walletJ pubHashes)
-
-    payMany _ j | j>198 = pure unit
-    payMany i j =  do
-       _ <- payFromIToJ i j
-       payMany (i+2) (j+2)
-
+  loopArgs <- RF.new (0 /\ 1)
+  let 
+      iterate (i /\ _) | i == (nWallets - 2) = 1 /\ 0 
+      iterate (i /\ _) | i == (nWallets - 1) = 0 /\ 1 
+      iterate (i /\ j) = (i + 2) /\ (j + 2)
+      -- loop :: Contract Unit 
+      -- loop =
   launchAff_ do
      runContract params do
        txHash <- payToWallet "1000000000000" pubHashes 
-       -- liftAff $ delay $ (wrap 3000.0)  
-       awaitTxConfirmedWithTimeout (wrap 20.0) txHash
-       payMany 1 2
+       awaitTxConfirmedWithTimeout (wrap 100.0) txHash
+       _ <- forever do
+          i /\ j <- liftEffect $ RF.read loopArgs 
+          logShow i
+          _ <- try $ payFromIToJ i j 
+          _ <- liftEffect $ RF.modify iterate loopArgs 
+          pure unit
        pure unit
 
 
