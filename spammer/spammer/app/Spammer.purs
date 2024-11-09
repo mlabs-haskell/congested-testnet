@@ -32,44 +32,80 @@ import Effect.Class.Console (logShow)
 import Effect.Ref as RF
 import Partial.Unsafe (unsafePartial)
 
+generateNWallets :: Int -> Effect ((Array KeyWallet) /\ (Array PaymentPubKeyHash))
+generateNWallets nWallets = do
+    privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
+    let
+      keyWallets :: Array KeyWallet 
+      keyWallets = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
+      pubHashes :: Array PaymentPubKeyHash 
+      pubHashes = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+    pure $ keyWallets /\ pubHashes
+
+
+payToWallet :: String -> Array PaymentPubKeyHash -> Contract TransactionHash 
+payToWallet amount pkhs = do
+  let constraints = mconcat $ map (\pkh -> mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
+  txHash <- submitTxFromConstraints mempty constraints 
+  logShow txHash
+  pure txHash
+
+payFromKeyToPkh :: KeyWallet -> PaymentPubKeyHash -> Contract TransactionHash
+payFromKeyToPkh  key pkh = do 
+   withKeyWallet key do  
+      payToWallet "4000000" (pure pkh) 
+
+
+
 
 main :: Effect Unit
 main = do
   envVars <- getEnvVars
   let 
     params = config envVars
-    nWallets = 300 
-  log $ "Generate " <> show nWallets <> " wallets"
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
-  let
-    keyWallets :: Array KeyWallet 
-    keyWallets = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
-
-    pubHashes :: Array PaymentPubKeyHash 
-    pubHashes = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
-
-    payFromIToJ :: Int -> Int -> Contract TransactionHash
-    payFromIToJ walletI walletJ = do 
-       withKeyWallet ( unsafePartial $ unsafeIndex keyWallets walletI) do  
-          payToWallet "4000000" (slice (walletJ-1) walletJ pubHashes)
-  loopArgs <- RF.new (0 /\ 1)
+    nWallets = 200
+  keys1 /\ pkhs1 <- generateNWallets nWallets 
+  keys2 /\ pkhs2 <- generateNWallets nWallets 
+  keys3 /\ pkhs3 <- generateNWallets nWallets 
+  loopArgs1 <- RF.new (0 /\ 1)
+  loopArgs2 <- RF.new (0 /\ 1)
+  loopArgs3 <- RF.new (0 /\ 1)
   let 
       iterate (i /\ _) | i == (nWallets - 2) = 1 /\ 0 
       iterate (i /\ _) | i == (nWallets - 1) = 0 /\ 1 
       iterate (i /\ j) = (i + 2) /\ (j + 2)
-      -- loop :: Contract Unit 
-      -- loop =
+
+      loop keys pkhs loopArgs = do 
+        i /\ j <- liftEffect $ RF.read loopArgs 
+        logShow i
+        let 
+            key = unsafePartial $ unsafeIndex keys i
+            pkh = unsafePartial $ unsafeIndex pkhs j
+        _ <- try $ payFromKeyToPkh key pkh 
+        _ <- liftEffect $ RF.modify iterate loopArgs 
+        pure unit
+
+
+
   launchAff_ do
-     runContract params do
-       txHash <- payToWallet "1000000000000" pubHashes 
-       awaitTxConfirmedWithTimeout (wrap 100.0) txHash
-       _ <- forever do
-          i /\ j <- liftEffect $ RF.read loopArgs 
-          logShow i
-          _ <- try $ payFromIToJ i j 
-          _ <- liftEffect $ RF.modify iterate loopArgs 
-          pure unit
-       pure unit
+     runContract params $ do 
+         txHash <- payToWallet "1000000000000" pkhs1 
+         awaitTxConfirmedWithTimeout (wrap 100.0) txHash
+         txHash <- payToWallet "1000000000000" pkhs2 
+         awaitTxConfirmedWithTimeout (wrap 100.0) txHash
+         txHash <- payToWallet "1000000000000" pkhs3 
+         awaitTxConfirmedWithTimeout (wrap 100.0) txHash
+
+     _ <- forkAff $ runContract params do
+         _ <- forever $ loop keys1 pkhs1 loopArgs1 
+         pure unit
+     _ <- forkAff $ runContract params do
+         _ <- forever $ loop keys2 pkhs2 loopArgs2 
+         pure unit
+     _ <- forkAff $ runContract params do
+         _ <- forever $ loop keys3 pkhs3 loopArgs3 
+         pure unit
+     pure unit
 
 
 
@@ -88,12 +124,6 @@ main = do
   --    _ <- forkAff $ runContract params  do replicateM_ 100 $ paySelf "b" 1 3_000_000
   --    delay $ wrap 10000.0 
 
-payToWallet :: String -> Array PaymentPubKeyHash -> Contract TransactionHash 
-payToWallet amount pkhs = do
-  let constraints = mconcat $ map (\pkh -> mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
-  txHash <- submitTxFromConstraints mempty constraints 
-  logShow txHash
-  pure txHash
 
 paySelf ::String -> Int -> Int -> Contract Unit
 paySelf id nUtxos amount = do
