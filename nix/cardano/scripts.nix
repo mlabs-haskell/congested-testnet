@@ -1,6 +1,5 @@
 { pkgs, ... }:
 let
-  # trues = n: pkgs.lib.strings.concatStrings (pkgs.lib.strings.intersperse " && " (pkgs.lib.replicate n "True"));
   data = n_bytes: pkgs.lib.strings.concatStrings (pkgs.lib.replicate n_bytes "ff");
   code = s: n: ''
         DATA="${data s}"

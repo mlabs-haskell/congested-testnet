@@ -13,7 +13,7 @@
         buildInputs = with pkgs; [
           # self'.packages.cardano-node
           nixpkgs-fmt
-          # inputs'.aiken.packages.aiken
+          inputs'.aiken.packages.aiken
           # pkgs.nixos-rebuild
           # pkgs.nix-diff
           # pkgs.dia

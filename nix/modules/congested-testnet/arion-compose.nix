@@ -26,7 +26,7 @@ let
 
 
   bindPort = port: "${port}:${port}";
-  spammer-wallet = name: { "${name}-wallet" = { }; };
+  # spammer-wallet = name: { "${name}-wallet" = { }; };
 
   # spammer-conf = name: {
   #   ${name} = {
@@ -65,11 +65,6 @@ rec {
     "${relay-config}" = { };
   }
   # // spammer-wallet "spammer-1"
-  # // spammer-wallet "spammer-2"
-  # // spammer-wallet "spammer-3"
-  # // spammer-wallet "spammer-4"
-  # // spammer-wallet "spammer-5"
-  # // spammer-wallet "spammer-6"
   ;
 
 
@@ -101,7 +96,7 @@ rec {
       image.enableRecommendedContents = true;
       service =
         {
-          restart = "always";
+          # restart = "always";
           networks.default.aliases = [ "faucet.local" ];
           useHostStore = true;
           command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];

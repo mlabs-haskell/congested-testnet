@@ -2,10 +2,26 @@
 {
   perSystem = { system, inputs', pkgs, ... }:
     {
+      packages.generate-scripts1 = 
+        pkgs.writeShellApplication {
+          name = "generate-scripts";
+          runtimeInputs = [ pkgs.python311 inputs.aiken.packages.${system}.aiken];
+          text = ''
+           wallet_path=$1
+           echo "$wallet_path"
+           cd "$wallet_path"
+           python ${./generate_scripts.py}
+           # aiken new spammer/scripts
+           # cd scripts
+           # echo 'name="spammer/scripts"' > aiken.toml
+           # aiken build
+           # aiken blueprint convert > script.json
+          '';
+          };
+
       packages.generate-scripts =
         let
           scripts = import ./scripts.nix { inherit pkgs; };
-          # echo ${builtins.readFile script.code} > validators/always-true.ak
           aiken-action = script:
             if script.code == ""
             then ''
@@ -45,8 +61,7 @@
             aiken new spammer/scripts
             cd scripts
             echo 'name="spammer/scripts"' > aiken.toml
-            echo 'version="0.0.0"' >> aiken.toml
-            ${compiledAll}
+            echo 'version="0.0.0"' >> aiken.toml ${compiledAll}
             cd ../.. 
             rm -rf tmp*
           '';
