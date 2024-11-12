@@ -1,6 +1,7 @@
 import os
 import pathlib
 import textwrap
+import json
 
 def validators():
     code_parts = []
@@ -43,17 +44,11 @@ def validators():
     return "".join(code_parts)
 
 
-
-
-
-
-
 PARS = [
         {"count" : 686, "n_bytes" : 2700 , "n_iterations" : 500 }
 ]
        
 if __name__ == '__main__':
-    # root = pathlib.Path(os.environ["wallet_path"])
     os.system("aiken new spammer/scripts")
     os.chdir("scripts")
     with open(pathlib.Path("validators") /"always_true.ak", "w+") as f:
@@ -65,6 +60,24 @@ if __name__ == '__main__':
         """ 
         f.write(textwrap.dedent(text))
     os.system("aiken build")
+    with open("plutus.json", 'r') as f:
+        dct = json.load(f)
+
+    scripts = []
+    for validator in dct["validators"]:
+        scripts.append(validator["compiledCode"])
+
+    json_str = json.dumps(scripts, indent=4)
+    javascript_code = f"export alwaysSucceeds = {json_str}" 
+    print(javascript_code)
+
+
+
+
+
+    
+
+    
 
 
     
