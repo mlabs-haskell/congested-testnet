@@ -9,7 +9,9 @@
   , "avar"
   , "bigints"
   , "bignumber"
+  , "bytearrays"
   , "cardano-serialization-lib"
+  , "cardano-transaction-builder"
   , "cardano-transaction-lib"
   , "cardano-types"
   , "console"
@@ -43,5 +45,5 @@
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "app/Spammer.purs", "app/Config.purs" ]
+, sources = [ "app/Spammer.purs", "app/Config.purs", "app/Scripts.purs" ]
 }

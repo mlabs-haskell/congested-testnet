@@ -153,73 +153,65 @@ main = do
      pure unit
 
 
-example :: ContractParams -> Effect Unit
-example cfg = launchAff_ do
-  runContract cfg contract
 
-payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
-payToAlwaysSucceeds vhash = do
-  -- Send to own stake credential. This is used to test mustPayToScriptAddress.
-  mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
-  scriptAddress <- mkAddress (PaymentCredential $ ScriptHashCredential vhash)
-    (StakeCredential <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
-  Transaction.hash <$> submitTxFromBuildPlan Map.empty mempty
-    [ Pay $ TransactionOutput
-        { address: scriptAddress
-        , amount: Value.lovelaceValueOf $ BigNum.fromInt 2_000_000
-        , datum: Just $ OutputDatumHash $ hashPlutusData PlutusData.unit
-        , scriptRef: Nothing
-        }
-    ]
+-- payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
+-- payToAlwaysSucceeds vhash = do
+--   -- Send to own stake credential. This is used to test mustPayToScriptAddress.
+--   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
+--   scriptAddress <- mkAddress (PaymentCredential $ ScriptHashCredential vhash)
+--     (StakeCredential <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
+--   Transaction.hash <$> submitTxFromBuildPlan Map.empty mempty
+--     [ Pay $ TransactionOutput
+--         { address: scriptAddress
+--         , amount: Value.lovelaceValueOf $ BigNum.fromInt 2_000_000
+--         , datum: Just $ OutputDatumHash $ hashPlutusData PlutusData.unit
+--         , scriptRef: Nothing
+--         }
+--     ]
 
-spendFromAlwaysSucceeds
-  :: ScriptHash
-  -> PlutusScript
-  -> TransactionHash
-  -> Contract Unit
-spendFromAlwaysSucceeds vhash validator txId = do
-  -- Use own stake credential if available
-  mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
-  scriptAddress <- mkAddress
-    (wrap $ ScriptHashCredential vhash)
-    (wrap <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
-  utxos <- utxosAt scriptAddress
-  utxo <-
-    liftM
-      ( error
-          ( "The id "
-              <> show txId
-              <> " does not have output locked at: "
-              <> show scriptAddress
-          )
-      )
-      $ head (lookupTxHash txId utxos)
-  spendTx <- submitTxFromBuildPlan (Map.union utxos $ toUtxoMap [ utxo ])
-    mempty
-    [ SpendOutput
-        utxo
-        ( Just $ PlutusScriptOutput (ScriptValue validator) RedeemerDatum.unit
-            $ Just
-            $ DatumValue
-            $ PlutusData.unit
-        )
-    ]
-  awaitTxConfirmed $ Transaction.hash spendTx
-  logInfo' "Successfully spent locked values."
-
-alwaysSucceedsScript :: Contract PlutusScript
-alwaysSucceedsScript = do
-  liftMaybe (error "Error decoding alwaysSucceeds") do
-    envelope <- decodeTextEnvelope alwaysSucceeds
-    plutusScriptFromEnvelope envelope
+-- spendFromAlwaysSucceeds
+--   :: ScriptHash
+--   -> PlutusScript
+--   -> TransactionHash
+--   -> Contract Unit
+-- spendFromAlwaysSucceeds vhash validator txId = do
+--   -- Use own stake credential if available
+--   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
+--   scriptAddress <- mkAddress
+--     (wrap $ ScriptHashCredential vhash)
+--     (wrap <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
+--   utxos <- utxosAt scriptAddress
+--   utxo <-
+--     liftM
+--       ( error
+--           ( "The id "
+--               <> show txId
+--               <> " does not have output locked at: "
+--               <> show scriptAddress
+--           )
+--       )
+--       $ head (lookupTxHash txId utxos)
+--   spendTx <- submitTxFromBuildPlan (Map.union utxos $ toUtxoMap [ utxo ])
+--     mempty
+--     [ SpendOutput
+--         utxo
+--         ( Just $ PlutusScriptOutput (ScriptValue validator) RedeemerDatum.unit
+--             $ Just
+--             $ DatumValue
+--             $ PlutusData.unit
+--         )
+--     ]
+--   awaitTxConfirmed $ Transaction.hash spendTx
+--   logInfo' "Successfully spent locked values."
+--
+-- alwaysSucceedsScript :: Contract PlutusScript
+-- alwaysSucceedsScript = do
+--   liftMaybe (error "Error decoding alwaysSucceeds") do
+--     envelope <- decodeTextEnvelope alwaysSucceeds
+--     plutusScriptFromEnvelope envelope
 
 
     
- alwaysSucceeds = `{
-    "cborHex": "4e4d01000033222220051200120011",
-    "description": "always-succeeds",
-    "type": "PlutusScriptV1"
-}`
 
 
 
