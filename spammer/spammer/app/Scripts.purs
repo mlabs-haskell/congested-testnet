@@ -69,13 +69,15 @@ main = do
     params = config envVars
   launchAff_ do
      runContract params $ do 
-        scriptStr <- liftContractM "can't extract" $ head alwaysSucceeds
-        script <- liftContractM "can't extract" $ decodeCborHexToScript scriptStr 
+        scriptStr <- liftContractM "can't read string script" $ head alwaysSucceeds
+        logShow $ scriptStr
+        script <- liftContractM "can't decode script from string" $ decodeCborHexToScript scriptStr 
         let scriptHash = hash script
         txHash <- payToAlwaysSucceeds scriptHash 
-        awaitTxConfirmedWithTimeout (wrap 100.0) txHash
-        txHash2 <- spendFromAlwaysSucceeds scriptHash script txHash 
+        awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
         logShow txHash
+        txHash2 <- spendFromAlwaysSucceeds scriptHash script txHash 
+        awaitTxConfirmedWithTimeout (wrap 1000.0) txHash2
         logShow txHash2 
 
 
@@ -98,7 +100,7 @@ spendFromAlwaysSucceeds
   :: ScriptHash
   -> PlutusScript
   -> TransactionHash
-  -> Contract Unit
+  -> Contract TransactionHash
 spendFromAlwaysSucceeds vhash validator txId = do
   -- Use own stake credential if available
   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
@@ -126,8 +128,8 @@ spendFromAlwaysSucceeds vhash validator txId = do
             $ PlutusData.unit
         )
     ]
-  awaitTxConfirmed $ Transaction.hash spendTx
   logInfo' "Successfully spent locked values."
+  pure $ Transaction.hash spendTx
 
 
 
