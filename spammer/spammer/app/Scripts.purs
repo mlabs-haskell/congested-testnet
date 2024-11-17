@@ -1,64 +1,32 @@
 module Scripts where
 
-import Contract.Prelude
-import Contract.Prelude
-import Spammer.Config
+import Contract.Prelude (type (/\), Effect, Maybe(..), Unit, bind, discard, hush, join, liftM, mempty, pure, show, unwrap, wrap, ($), (/\), (<$>), (<<<), (<>), (>>>))
+import Spammer.Config (config, getEnvVars)
 
-import Cardano.Serialization.Lib (privateKey_generateEd25519, privateKey_toBech32, privateKey_toPublic, publicKey_hash)
 import Cardano.Transaction.Builder (DatumWitness(DatumValue), OutputWitness(PlutusScriptOutput), ScriptWitness(ScriptValue), TransactionBuilderStep(SpendOutput, Pay))
-import Cardano.Types (BigInt, BigNum(..), Language(..), NetworkId(..), PaymentPubKeyHash(..), PrivateKey(..))
-import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionHash, TransactionOutput(TransactionOutput))
-import Cardano.Types.Address (toBech32)
-import Cardano.Types.BigNum (fromBigInt, fromInt, fromStringUnsafe)
+import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), Language(..), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionOutput(TransactionOutput))
 import Cardano.Types.BigNum as BigNum
 import Cardano.Types.DataHash (hashPlutusData)
 import Cardano.Types.OutputDatum (OutputDatum(OutputDatumHash))
 import Cardano.Types.PlutusData as PlutusData
 import Cardano.Types.PlutusScript (hash)
-import Cardano.Types.PlutusScript as Script
-import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.RedeemerDatum as RedeemerDatum
 import Cardano.Types.Transaction as Transaction
 import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
 import Contract.Address (mkAddress)
-import Contract.Config (ContractParams, KnownWallet(Nami), WalletSpec(ConnectToGenericCip30), testnetConfig, walletName)
-import Contract.Config (PrivatePaymentKeySource(..), PrivateStakeKeySource(..), WalletSpec(..), ContractParams)
 import Contract.Log (logInfo')
 import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
-import Contract.Monad (Contract, launchAff_, runContract, runContractInEnv, withContractEnv)
-import Contract.Prim.ByteArray (ByteArray(..))
-import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptFromEnvelope)
-import Contract.Transaction (TransactionHash(..), awaitTxConfirmed, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
-import Contract.Transaction (awaitTxConfirmed, lookupTxHash, submitTxFromBuildPlan)
-import Contract.TxConstraints (mustPayToPubKey, mustPayToPubKeyAddress)
+import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, lookupTxHash, submitTxFromBuildPlan)
 import Contract.Utxos (utxosAt)
-import Contract.Value (lovelaceValueOf)
 import Contract.Value as Value
-import Contract.Wallet (KeyWallet, Wallet(..), ownPaymentPubKeyHash, privateKeysToKeyWallet, withKeyWallet)
 import Contract.Wallet (ownStakePubKeyHashes)
-import Control.Monad.Error.Class (liftMaybe)
-import Control.Monad.Rec.Class (Step(..), forever, tailRec)
-import Control.Safely (replicateM_)
-import Ctl.Internal.Contract.Wallet (withWallet)
 import Ctl.Internal.Helpers (unsafeFromJust)
 import Ctl.Internal.Types.Cbor (toByteArray)
-import Ctl.Internal.Wallet (Wallet(..), mkKeyWallet)
-import Ctl.Internal.Wallet.Spec (mkWalletBySpec)
-import Data.Array (fromFoldable, head, replicate, slice, unsafeIndex, zip)
 import Data.Array (head)
-import Data.Array (replicate)
 import Data.ByteArray (hexToByteArray)
-import Data.List.Lazy (List, replicateM)
 import Data.Map as Map
-import Data.Typelevel.Undefined (undefined)
-import Effect.AVar (AVar)
-import Effect.Aff (delay, error, forkAff, try)
-import Effect.Aff.AVar (new, take, tryPut, tryTake)
 import Effect.Class.Console (logShow)
 import Effect.Exception (error)
-import Effect.Ref (Ref)
-import Effect.Ref as RF
-import Partial.Unsafe (unsafePartial)
 
 foreign import alwaysSucceeds :: Array String
 
@@ -140,14 +108,10 @@ decodeCborHexToScript cborHex = do
   pure $ wrap $ ba /\ PlutusV2
 
 
--- alwaysSucceedsScript :: Contract PlutusScript
--- alwaysSucceedsScript = do
---   liftMaybe (error "Error decoding alwaysSucceeds") do
---     envelope <- decodeTextEnvelope alwaysSucceeds
---     plutusScriptFromEnvelope envelope
-
--- decodeTextEnvelope json = do
---   aeson <- hush $ parseJsonStringToAeson json
---   { "type": type_, description, cborHex } <-
---     hush $ decodeAeson aeson :: _ TextEnvelopeRaw
---   ba <- decodeCborHexToBytes cborHex
+alwaysTrueScripts :: Effect (Array (PlutusScript /\ ScriptHash))
+alwaysTrueScripts = 
+  let
+      extract scriptStr = unsafeFromJust "wrong script code" $ decodeCborHexToScript scriptStr  
+      scriptAndHash script = script /\ (hash script)
+  in
+  pure $ (extract >>> scriptAndHash) <$> alwaysSucceeds 

@@ -29,19 +29,18 @@ def validators():
     """
     code_parts.append(textwrap.dedent(code))
 
-    n_bytes = list(range(1,3))
-    n_iterations = list(range(1,3))
+    n_bytes = list(range(1,103))
+    n_iterations = list(range(1,103))
     n_validators = len(n_bytes)
     for i, (n_byte, n_iter) in enumerate(zip(n_bytes, n_iterations)): 
         data = "".join(["ff" for _ in range(n_byte)]) 
         code = f"""
         validator {{
          fn always_true_{i}(_datum : Data, _redeemer : Data, _context : Data ) {{
-             True
+             body(True,#"{data}",{n_iter})
         }}
         }}
         """
-         # body(True,#"{data}",{n_iter})
         code_parts.append(textwrap.dedent(code))
     return "".join(code_parts), n_validators
 
