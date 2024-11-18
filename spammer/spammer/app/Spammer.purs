@@ -35,16 +35,18 @@ import Contract.Value (lovelaceValueOf)
 import Contract.Value as Value
 import Contract.Wallet (KeyWallet, Wallet(..), ownPaymentPubKeyHash, privateKeysToKeyWallet, withKeyWallet)
 import Contract.Wallet (ownStakePubKeyHashes)
+import Control.Alternative (guard)
 import Control.Monad.Error.Class (liftMaybe)
 import Control.Monad.Rec.Class (Step(..), forever, tailRec)
+import Control.Monad.ST (run)
+import Control.Monad.ST.Global (Global, toEffect)
 import Control.Safely (replicateM_)
 import Ctl.Internal.Contract.Wallet (withWallet)
 import Ctl.Internal.Helpers (unsafeFromJust)
 import Ctl.Internal.Wallet (Wallet(..), mkKeyWallet)
 import Ctl.Internal.Wallet.Spec (mkWalletBySpec)
-import Data.Array (fromFoldable, replicate, slice, unsafeIndex, zip)
-import Data.Array (head)
-import Data.Array (replicate)
+import Data.Array (fromFoldable, head, modifyAt, replicate, slice, unsafeIndex, zip, length)
+import Data.Array.ST as ST
 import Data.List.Lazy (List, replicateM)
 import Data.Map as Map
 import Data.Typelevel.Undefined (undefined)
@@ -53,6 +55,7 @@ import Effect.Aff (delay, error, forkAff, never, try)
 import Effect.Aff.AVar as AVAR
 import Effect.Class.Console (logShow)
 import Effect.Exception (error)
+import Effect.Random (random)
 import Effect.Ref (Ref)
 import Effect.Ref as RF
 import Partial.Unsafe (unsafePartial)
@@ -84,41 +87,89 @@ payFromKeyToPkh  key pkh = do
       payToWallets "3000000" (pure pkh) 
 
 
-
 data Wait = Wait
 
-spammer :: AVAR.AVar Wait -> _ -> _ -> Aff Unit  
--- spammer ::  _ -> _ -> Aff Unit  
-spammer wait nWallets backendPars = do 
+data ScriptMode = Unlock | Lock
+
+type SpammerArgs = { 
+  wait :: AVAR.AVar Wait, 
+  nWallets :: Int, 
+  backendPars :: ContractParams,
+  scripts :: Array (PlutusScript /\ ScriptHash),
+  lockedTxHashes :: Array (AVAR.AVar TransactionHash),
+  scriptInd :: AVAR.AVar Int, 
+  scriptMode :: AVAR.AVar ScriptMode
+}
+
+spammer :: SpammerArgs -> Aff Unit  
+spammer args = do 
   -- generate random wallets
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets (liftEffect  generate) 
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM args.nWallets (liftEffect  generate) 
   let 
     keys :: Array KeyWallet  
     keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
     pkhs :: Array PaymentPubKeyHash 
     pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
 
-  -- init all wallets first, use sync primitive do not intersects with other spammers in this step 
+  -- init all wallets first, use sync primitive to avoid collision with other spammers 
   log "init spammer wallets"
-  wait' <- AVAR.take wait
-  runContract backendPars do 
+  wait' <- AVAR.take args.wait
+  runContract args.backendPars do 
     txHash <- payToWallets "1000000000000" pkhs 
     awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
-  _ <- AVAR.put wait' wait 
-
+  _ <- AVAR.put wait' args.wait 
 
   -- create mutable ref for forever loop
   walletInd <- liftEffect $ RF.new 0 
 
   log "infinite loop"
-  _ <- runContract backendPars $ forever do 
+  _ <- runContract args.backendPars $ forever do 
      i <- liftEffect $ RF.read walletInd
-     let
-       next x | x == nWallets - 1 = 0
-       next x  = x + 1 
-       key = unsafePartial $ unsafeIndex keys i 
-       pkh = unsafePartial $ unsafeIndex pkhs (next i)
-     _ <- try $ payFromKeyToPkh key pkh 
+     let key = unsafePartial $ unsafeIndex keys i 
+         next x | x == args.nWallets - 1 = 0
+         next x  = x + 1 
+     randomNumber <- liftEffect $ random
+     if randomNumber < 0.01
+     -- simple transaction - pay to wallet
+     then do
+       let
+         pkh = unsafePartial $ unsafeIndex pkhs (next i)
+       _ <- try $ payFromKeyToPkh key pkh 
+       pure unit
+     -- transaction with a script interaction
+     else do
+       scriptMode :: ScriptMode <- liftAff $ AVAR.take args.scriptMode
+       scriptInd :: Int <- liftAff $ AVAR.take args.scriptInd
+       let 
+         nScripts = length args.scripts 
+         update Lock i | i == nScripts - 1 = Unlock /\ 0
+         update Unlock i | i == nScripts - 1 = Lock /\ 0
+         update x i  = x /\ (i + 1)
+         scriptModeNext /\ scriptIndNext = update scriptMode scriptInd
+       void $ liftAff $ AVAR.put scriptModeNext args.scriptMode
+       void $ liftAff $ AVAR.put scriptIndNext args.scriptInd
+
+       let
+         script /\ scriptHash = unsafePartial $ unsafeIndex args.scripts scriptInd 
+       withKeyWallet key do
+         case scriptMode of
+           Lock -> do 
+              -- eTxHash <- try $ payToAlwaysSucceeds scriptHash   
+              eTxHash <- payToAlwaysSucceeds scriptHash   
+              logShow eTxHash 
+              case pure (eTxHash) of
+                  Right txHash -> liftAff $ AVAR.put txHash $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd
+                  Left _ -> pure unit
+           Unlock -> do 
+              -- get lockedTxHash
+              txHash :: TransactionHash <- liftAff $ AVAR.take $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd 
+              _ <- try $ spendFromAlwaysSucceeds scriptHash script txHash  
+              pure unit
+
+
+       pure unit
+
+     -- use different wallet for next transaction
      liftEffect $ RF.modify_ next walletInd
   pure unit
 
@@ -129,156 +180,21 @@ main = do
   let 
     params = config envVars
     nWallets = 200
+  scripts <- alwaysTrueScripts
   launchAff_ do
     wait <- AVAR.new Wait 
-    _ <- forkAff $ spammer wait nWallets params 
-    _ <- forkAff $ spammer wait nWallets params 
+    scriptInd <- AVAR.new 0 
+    scriptMode <- AVAR.new Lock 
+    lockedTxHashes :: Array (AVAR.AVar TransactionHash) <- fromFoldable <$> replicateM (length scripts) AVAR.empty  
+    let spammersArgs = {
+          wait : wait, 
+          nWallets : nWallets, 
+          backendPars : params,
+          scripts : scripts,
+          lockedTxHashes : lockedTxHashes,
+          scriptInd : scriptInd, 
+          scriptMode : scriptMode 
+        }
+    _ <- forkAff $ spammer spammersArgs 
+    _ <- forkAff $ spammer spammersArgs 
     pure unit
-
-
-
--- main :: Effect Unit
--- main = do
---   envVars <- getEnvVars
---   let 
---     params = config envVars
---     -- nWallets in each spammer
---     nWallets = 200
---     nSpammers = 2 
---   keysAndPkhsForSpammers :: Array (Tuple (Array _) (Array _))  <- fromFoldable <$> replicateM nSpammers (generateNWallets nWallets)
---   -- mutable wallet indicies for spammer loop
---   walletIndss :: Array (Ref (Tuple (Int /\ Int)) <- fromFoldable <$> replicateM nSpammers (RF.new (0 /\ 1))
---   -- always true scripts with different sizes to simulate different transations  
---   scripts :: Array (PlutusScript /\ ScriptHash) <- alwaysTrueScripts 
---
---   launchAff_ do
---      -- fill wallets for each spammer -------------------------------------------------------
---      runContract params $ do 
---         let
---             payToAllSpammerWallets pkhs = do 
---               txHash <- payToWallet "1000000000000" pkhs 
---               awaitTxConfirmedWithTimeout (wrap 100.0) txHash
---         sequence_ $ map (\(_ /\ pkhs) -> payToAllSpammerWallets pkhs) keysAndPkhsForSpammers 
---     -----------------------------------------------------------------------------------------
---
---
---      -- all spammers use the same array of scripts , we use Aff variable here
---      scriptsInd <- AVAR.new 0
---      let nScripts = length scripts  
---      lockedTransactionsHash :: Array (AVar TransactionHash) <- fromFoldable <$> replicateM nScripts AVAR.empty
---
---      -- spammers are group of wallets   
---      -- infinite loop where in each spammer funds moves cyclic from one wallet to other
---      let 
---
---          spammerLoop ::  Aff Unit 
---          spammerLoop = forkAff $ runContract params $ forever do
---               -- read states -----------------------
---               (i :: Int) /\ j <- liftEffect $ RF.read walletInds 
---               k <- liftAff $ AVAR.take scriptsInd 
---               --------------------------------------
---               logShow i
---               let
---                  iterate (i /\ _) | i == (nWallets - 2) = 1 /\ 0 
---                  iterate (i /\ _) | i == (nWallets - 1) = 0 /\ 1 
---                  iterate (i /\ j) = (i + 2) /\ (j + 2)
---
---                  key = unsafePartial $ unsafeIndex keys i
---                  pkh = unsafePartial $ unsafeIndex pkhs j
---                  script /\ scriptHash = unsafePartial $ unsafeIndex scripts k
---
---                  lockToScript :: KeyWallet -> ScriptHash -> Contract TransactionHash    
---                  lockToScript key scriptHash  = withKeyWallet key do
---                     -- iterate script index, without waiting current transaction  
---                     payToAlwaysSucceeds scriptHash
---
---
---                  unlockFromScriptToWallet 
---                    :: KeyWallet 
---                    -> ScriptHash
---                    -> PlutusScript
---                    -> TransactionHash
---                    -> Contract TransactionHash    
---                  unlockFromScriptToWallet key scriptHash script txHash = withKeyWallet key do
---                     -- iterate script index, without waiting current transaction  
---                     spendFromAlwaysSucceeds scriptHash script txHash  
---
---               -- _ <- try $ payFromKeyToPkh key pkh 
---               -- _ <- try $ lockToScript key scriptHash 
---               -- _ <- try $ unlockFromScriptToWallet key scriptHash 
---               -- change states 
---               if k < nScripts 
---               then do  
---                 liftAff $ AVAR.put (k+1) scriptsInd
---                 _ <- liftEffect $ RF.modify iterate walletInds 
---                 pure unit
---               else 
---                 pure unit
---
---      -- run all spammers ------------
---      sequence_ $ map spammerLoop args 
---      pure unit
---
-
-
--- payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
--- payToAlwaysSucceeds vhash = do
---   -- Send to own stake credential. This is used to test mustPayToScriptAddress.
---   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
---   scriptAddress <- mkAddress (PaymentCredential $ ScriptHashCredential vhash)
---     (StakeCredential <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
---   Transaction.hash <$> submitTxFromBuildPlan Map.empty mempty
---     [ Pay $ TransactionOutput
---         { address: scriptAddress
---         , amount: Value.lovelaceValueOf $ BigNum.fromInt 2_000_000
---         , datum: Just $ OutputDatumHash $ hashPlutusData PlutusData.unit
---         , scriptRef: Nothing
---         }
---     ]
-
--- spendFromAlwaysSucceeds
---   :: ScriptHash
---   -> PlutusScript
---   -> TransactionHash
---   -> Contract Unit
--- spendFromAlwaysSucceeds vhash validator txId = do
---   -- Use own stake credential if available
---   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
---   scriptAddress <- mkAddress
---     (wrap $ ScriptHashCredential vhash)
---     (wrap <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
---   utxos <- utxosAt scriptAddress
---   utxo <-
---     liftM
---       ( error
---           ( "The id "
---               <> show txId
---               <> " does not have output locked at: "
---               <> show scriptAddress
---           )
---       )
---       $ head (lookupTxHash txId utxos)
---   spendTx <- submitTxFromBuildPlan (Map.union utxos $ toUtxoMap [ utxo ])
---     mempty
---     [ SpendOutput
---         utxo
---         ( Just $ PlutusScriptOutput (ScriptValue validator) RedeemerDatum.unit
---             $ Just
---             $ DatumValue
---             $ PlutusData.unit
---         )
---     ]
---   awaitTxConfirmed $ Transaction.hash spendTx
---   logInfo' "Successfully spent locked values."
---
--- alwaysSucceedsScript :: Contract PlutusScript
--- alwaysSucceedsScript = do
---   liftMaybe (error "Error decoding alwaysSucceeds") do
---     envelope <- decodeTextEnvelope alwaysSucceeds
---     plutusScriptFromEnvelope envelope
-
-
-    
-
-
-

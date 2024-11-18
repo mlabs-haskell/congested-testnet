@@ -1,8 +1,5 @@
 module Scripts where
 
-import Contract.Prelude (type (/\), Effect, Maybe(..), Unit, bind, discard, hush, join, liftM, mempty, pure, show, unwrap, wrap, ($), (/\), (<$>), (<<<), (<>), (>>>))
-import Spammer.Config (config, getEnvVars)
-
 import Cardano.Transaction.Builder (DatumWitness(DatumValue), OutputWitness(PlutusScriptOutput), ScriptWitness(ScriptValue), TransactionBuilderStep(SpendOutput, Pay))
 import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), Language(..), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionOutput(TransactionOutput))
 import Cardano.Types.BigNum as BigNum
@@ -16,6 +13,7 @@ import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
 import Contract.Address (mkAddress)
 import Contract.Log (logInfo')
 import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
+import Contract.Prelude (type (/\), Effect, Maybe(..), Unit, bind, discard, hush, join, liftM, log, mempty, pure, show, unwrap, wrap, ($), (/\), (<$>), (<<<), (<>), (>>>))
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, lookupTxHash, submitTxFromBuildPlan)
 import Contract.Utxos (utxosAt)
 import Contract.Value as Value
@@ -27,6 +25,7 @@ import Data.ByteArray (hexToByteArray)
 import Data.Map as Map
 import Effect.Class.Console (logShow)
 import Effect.Exception (error)
+import Spammer.Config (config, getEnvVars)
 
 foreign import alwaysSucceeds :: Array String
 
@@ -51,6 +50,7 @@ main = do
 
 payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
 payToAlwaysSucceeds vhash = do
+  log "try to pay always succeed"
   -- Send to own stake credential. This is used to test mustPayToScriptAddress.
   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
   scriptAddress <- mkAddress (PaymentCredential $ ScriptHashCredential vhash)
