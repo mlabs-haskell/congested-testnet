@@ -1,7 +1,6 @@
 module Spammer where
 
 import Contract.Prelude
-import Contract.Prelude
 import Spammer.Config
 
 import Cardano.Serialization.Lib (PlutusScripts, privateKey_generateEd25519, privateKey_toBech32, privateKey_toPublic, publicKey_hash)
@@ -38,7 +37,7 @@ import Contract.Wallet (ownStakePubKeyHashes)
 import Control.Alternative (guard)
 import Control.Monad.Error.Class (liftMaybe)
 import Control.Monad.Rec.Class (Step(..), forever, tailRec)
-import Control.Monad.ST (run)
+import Control.Monad.ST (ST, run)
 import Control.Monad.ST.Global (Global, toEffect)
 import Control.Safely (replicateM_)
 import Ctl.Internal.Contract.Wallet (withWallet)
@@ -46,6 +45,7 @@ import Ctl.Internal.Helpers (unsafeFromJust)
 import Ctl.Internal.Wallet (Wallet(..), mkKeyWallet)
 import Ctl.Internal.Wallet.Spec (mkWalletBySpec)
 import Data.Array (fromFoldable, head, modifyAt, replicate, slice, unsafeIndex, zip, length)
+import Data.Array as ARR
 import Data.Array.ST as ST
 import Data.List.Lazy (List, replicateM)
 import Data.Map as Map
@@ -110,6 +110,7 @@ spammer args = do
     keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
     pkhs :: Array PaymentPubKeyHash 
     pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+    -- lockedTxHashes :: Array (AVAR.AVar TransactionHash)
 
   -- init all wallets first, use sync primitive to avoid collision with other spammers 
   log "init spammer wallets"
@@ -129,7 +130,7 @@ spammer args = do
          next x | x == args.nWallets - 1 = 0
          next x  = x + 1 
      randomNumber <- liftEffect $ random
-     if randomNumber < 0.01
+     if randomNumber < 0.01 
      -- simple transaction - pay to wallet
      then do
        let
@@ -154,16 +155,17 @@ spammer args = do
        withKeyWallet key do
          case scriptMode of
            Lock -> do 
-              -- eTxHash <- try $ payToAlwaysSucceeds scriptHash   
-              eTxHash <- payToAlwaysSucceeds scriptHash   
+              eTxHash <- try $ payToAlwaysSucceeds scriptHash   
               logShow eTxHash 
-              case pure (eTxHash) of
+              case eTxHash of
                   Right txHash -> liftAff $ AVAR.put txHash $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd
                   Left _ -> pure unit
            Unlock -> do 
-              -- get lockedTxHash
+              log "----------here-----------"
               txHash :: TransactionHash <- liftAff $ AVAR.take $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd 
-              _ <- try $ spendFromAlwaysSucceeds scriptHash script txHash  
+              unlockedTxHash <- try $ spendFromAlwaysSucceeds scriptHash script txHash  
+              logShow $ unlockedTxHash 
+              log "----------here-----------"
               pure unit
 
 
@@ -174,27 +176,86 @@ spammer args = do
   pure unit
 
      
-main :: Effect Unit
-main = do
-  envVars <- getEnvVars
-  let 
-    params = config envVars
-    nWallets = 200
-  scripts <- alwaysTrueScripts
-  launchAff_ do
-    wait <- AVAR.new Wait 
-    scriptInd <- AVAR.new 0 
-    scriptMode <- AVAR.new Lock 
-    lockedTxHashes :: Array (AVAR.AVar TransactionHash) <- fromFoldable <$> replicateM (length scripts) AVAR.empty  
-    let spammersArgs = {
-          wait : wait, 
-          nWallets : nWallets, 
-          backendPars : params,
-          scripts : scripts,
-          lockedTxHashes : lockedTxHashes,
-          scriptInd : scriptInd, 
-          scriptMode : scriptMode 
-        }
-    _ <- forkAff $ spammer spammersArgs 
-    _ <- forkAff $ spammer spammersArgs 
-    pure unit
+-- main :: Effect Unit
+-- main = do
+--   envVars <- getEnvVars
+--   let 
+--     params = config envVars
+--     nWallets = 200
+--   scripts <- alwaysTrueScripts
+--   launchAff_ do
+--     wait <- AVAR.new Wait 
+--     scriptInd <- AVAR.new 0 
+--     scriptMode <- AVAR.new Lock 
+--     lockedTxHashes :: Array (AVAR.AVar TransactionHash) <- fromFoldable <$> replicateM (length scripts) AVAR.empty  
+--     let spammersArgs = {
+--           wait : wait, 
+--           nWallets : nWallets, 
+--           backendPars : params,
+--           scripts : scripts,
+--           lockedTxHashes : lockedTxHashes,
+--           scriptInd : scriptInd, 
+--           scriptMode : scriptMode 
+--         }
+--     _ <- forkAff $ spammer spammersArgs 
+--     _ <- forkAff $ spammer spammersArgs 
+--     pure unit
+--
+--
+--
+--
+--               
+--
+--
+--         let
+--             step randNum iWallet iScript
+--              |randNum < 0.01
+--        if randomNumber < 0.01 
+--      i <- liftEffect $ RF.read walletInd
+--      let key = unsafePartial $ unsafeIndex keys i 
+--          next x | x == args.nWallets - 1 = 0
+--          next x  = x + 1 
+--      -- simple transaction - pay to wallet
+--      then do
+--        let
+--          pkh = unsafePartial $ unsafeIndex pkhs (next i)
+--        _ <- try $ payFromKeyToPkh key pkh 
+--        pure unit
+--      -- transaction with a script interaction
+--      else do
+--        scriptMode :: ScriptMode <- liftAff $ AVAR.take args.scriptMode
+--        scriptInd :: Int <- liftAff $ AVAR.take args.scriptInd
+--        let 
+--          nScripts = length args.scripts 
+--          update Lock i | i == nScripts - 1 = Unlock /\ 0
+--          update Unlock i | i == nScripts - 1 = Lock /\ 0
+--          update x i  = x /\ (i + 1)
+--          scriptModeNext /\ scriptIndNext = update scriptMode scriptInd
+--        void $ liftAff $ AVAR.put scriptModeNext args.scriptMode
+--        void $ liftAff $ AVAR.put scriptIndNext args.scriptInd
+--
+--        let
+--          script /\ scriptHash = unsafePartial $ unsafeIndex args.scripts scriptInd 
+--        withKeyWallet key do
+--          case scriptMode of
+--            Lock -> do 
+--               eTxHash <- try $ payToAlwaysSucceeds scriptHash   
+--               logShow eTxHash 
+--               case eTxHash of
+--                   Right txHash -> liftAff $ AVAR.put txHash $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd
+--                   Left _ -> pure unit
+--            Unlock -> do 
+--               log "----------here-----------"
+--               txHash :: TransactionHash <- liftAff $ AVAR.take $ unsafePartial $ unsafeIndex args.lockedTxHashes scriptInd 
+--               unlockedTxHash <- try $ spendFromAlwaysSucceeds scriptHash script txHash  
+--               logShow $ unlockedTxHash 
+--               log "----------here-----------"
+--               pure unit
+--
+--
+--        pure unit
+--
+--      -- use different wallet for next transaction
+--      liftEffect $ RF.modify_ next walletInd
+--   pure unit
+--

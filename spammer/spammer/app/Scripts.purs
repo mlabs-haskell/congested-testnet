@@ -50,19 +50,19 @@ main = do
 
 payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
 payToAlwaysSucceeds vhash = do
-  log "try to pay always succeed"
   -- Send to own stake credential. This is used to test mustPayToScriptAddress.
   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
   scriptAddress <- mkAddress (PaymentCredential $ ScriptHashCredential vhash)
     (StakeCredential <<< PubKeyHashCredential <<< unwrap <$> mbStakeKeyHash)
-  Transaction.hash <$> submitTxFromBuildPlan Map.empty mempty
+  txHash <- Transaction.hash <$> submitTxFromBuildPlan Map.empty mempty
     [ Pay $ TransactionOutput
         { address: scriptAddress
-        , amount: Value.lovelaceValueOf $ BigNum.fromInt 2_000_000
+        , amount: Value.lovelaceValueOf $ BigNum.fromInt 3_000_000
         , datum: Just $ OutputDatumHash $ hashPlutusData PlutusData.unit
         , scriptRef: Nothing
         }
     ]
+  pure txHash
 
 spendFromAlwaysSucceeds
   :: ScriptHash
@@ -70,7 +70,6 @@ spendFromAlwaysSucceeds
   -> TransactionHash
   -> Contract TransactionHash
 spendFromAlwaysSucceeds vhash validator txId = do
-  -- Use own stake credential if available
   mbStakeKeyHash <- join <<< head <$> ownStakePubKeyHashes
   scriptAddress <- mkAddress
     (wrap $ ScriptHashCredential vhash)
@@ -96,7 +95,6 @@ spendFromAlwaysSucceeds vhash validator txId = do
             $ PlutusData.unit
         )
     ]
-  logInfo' "Successfully spent locked values."
   pure $ Transaction.hash spendTx
 
 

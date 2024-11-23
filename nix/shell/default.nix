@@ -36,6 +36,8 @@
           # cardano-cli
           # haskellPackages.cabal-install
           pyright
+          nodePackages.svelte-language-server
+          nodePackages.typescript-language-server
         ] 
         ++
         self'.devShells.ctl.buildInputs

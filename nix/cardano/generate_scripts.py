@@ -29,8 +29,8 @@ def validators():
     """
     code_parts.append(textwrap.dedent(code))
 
-    n_bytes = list(range(1,103))
-    n_iterations = list(range(1,103))
+    n_bytes = list(range(1,200))
+    n_iterations = list(range(1,200))
     n_validators = len(n_bytes)
     for i, (n_byte, n_iter) in enumerate(zip(n_bytes, n_iterations)): 
         data = "".join(["ff" for _ in range(n_byte)]) 
