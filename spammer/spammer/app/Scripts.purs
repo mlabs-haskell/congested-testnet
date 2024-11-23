@@ -11,9 +11,8 @@ import Cardano.Types.RedeemerDatum as RedeemerDatum
 import Cardano.Types.Transaction as Transaction
 import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
 import Contract.Address (mkAddress)
-import Contract.Log (logInfo')
 import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
-import Contract.Prelude (type (/\), Effect, Maybe(..), Unit, bind, discard, hush, join, liftM, log, mempty, pure, show, unwrap, wrap, ($), (/\), (<$>), (<<<), (<>), (>>>))
+import Contract.Prelude 
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, lookupTxHash, submitTxFromBuildPlan)
 import Contract.Utxos (utxosAt)
 import Contract.Value as Value

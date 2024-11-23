@@ -47,5 +47,6 @@
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "app/Spammer.purs", "app/Config.purs", "app/Scripts.purs", "app/Worker.purs", "app/Check.purs", "app/SpammerUtils.purs"]
+-- , sources = [ "app/Spammer.purs", "app/Config.purs", "app/Scripts.purs", "app/Worker.purs", "app/Check.purs", "app/SpammerUtils.purs"]
+, sources = [ "app/Config.purs", "app/Scripts.purs", "app/Spammer.purs"]
 }

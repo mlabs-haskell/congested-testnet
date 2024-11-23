@@ -1,6 +1,6 @@
 worker = async () => {
     const {workerData} = await import("node:worker_threads");
-    const {spammer} = await import("../spammer/output/SpammerUtils/index.js");
+    const {spammer} = await import("../spammer/output/Spammer/index.js");
     const {_new, write, read} = await import("../spammer/output/Effect.Ref/foreign.js");
     const data = workerData;
     s = _new({paidToWallets : false})();
