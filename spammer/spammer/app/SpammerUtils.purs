@@ -1,64 +1,28 @@
 module SpammerUtils where
 
 import Contract.Prelude
-import Spammer.Config
 
-import Cardano.Serialization.Lib (PlutusScripts, privateKey_generateEd25519, privateKey_toBech32, privateKey_toPublic, publicKey_hash)
-import Cardano.Transaction.Builder (DatumWitness(DatumValue), OutputWitness(PlutusScriptOutput), ScriptWitness(ScriptValue), TransactionBuilderStep(SpendOutput, Pay))
-import Cardano.Types (BigInt, BigNum(..), NetworkId(..), PaymentPubKeyHash(..), PrivateKey(..), ScriptHash(..))
-import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionHash, TransactionOutput(TransactionOutput))
-import Cardano.Types.Address (toBech32)
-import Cardano.Types.BigNum (fromBigInt, fromInt, fromStringUnsafe)
-import Cardano.Types.BigNum as BigNum
-import Cardano.Types.DataHash (hashPlutusData)
-import Cardano.Types.OutputDatum (OutputDatum(OutputDatumHash))
-import Cardano.Types.PlutusData as PlutusData
-import Cardano.Types.PlutusScript as Script
+import Cardano.Types (PaymentPubKeyHash, PrivateKey)
+import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
-import Cardano.Types.RedeemerDatum as RedeemerDatum
-import Cardano.Types.Transaction as Transaction
-import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
-import Contract.Address (mkAddress)
-import Contract.Config (ContractParams, KnownWallet(Nami), WalletSpec(ConnectToGenericCip30), testnetConfig, walletName)
-import Contract.Config (PrivatePaymentKeySource(..), PrivateStakeKeySource(..), WalletSpec(..), ContractParams)
-import Contract.Log (logInfo')
 import Contract.Monad (Contract, launchAff_, runContract)
-import Contract.Monad (Contract, launchAff_, runContract, runContractInEnv, withContractEnv)
-import Contract.TextEnvelope (decodeTextEnvelope, plutusScriptFromEnvelope)
-import Contract.Transaction (TransactionHash(..), awaitTxConfirmed, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
-import Contract.Transaction (awaitTxConfirmed, lookupTxHash, submitTxFromBuildPlan)
-import Contract.TxConstraints (mustPayToPubKey, mustPayToPubKeyAddress)
-import Contract.Utxos (utxosAt)
+import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
+import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
-import Contract.Value as Value
-import Contract.Wallet (KeyWallet, Wallet(..), ownPaymentPubKeyHash, privateKeysToKeyWallet, withKeyWallet)
-import Contract.Wallet (ownStakePubKeyHashes)
-import Control.Alternative (guard)
-import Control.Monad.Error.Class (liftMaybe)
-import Control.Monad.Rec.Class (Step(..), forever, tailRec)
-import Control.Monad.ST (ST, run)
+import Contract.Wallet (KeyWallet, privateKeysToKeyWallet, withKeyWallet)
+import Control.Monad.Rec.Class (forever)
 import Control.Monad.ST.Global (Global, toEffect)
-import Control.Safely (replicateM_)
-import Ctl.Internal.Contract.Wallet (withWallet)
-import Ctl.Internal.Helpers (unsafeFromJust)
-import Ctl.Internal.Wallet (Wallet(..), mkKeyWallet)
-import Ctl.Internal.Wallet.Spec (mkWalletBySpec)
-import Data.Array (fromFoldable, head, modifyAt, replicate, slice, unsafeIndex, zip, length)
+import Data.Array (fromFoldable, length, unsafeIndex)
 import Data.Array.ST as ST
-import Data.List.Lazy (List, replicateM)
-import Data.Map as Map
-import Data.Typelevel.Undefined (undefined)
-import Effect.AVar (AVar)
-import Effect.Aff (delay, error, forkAff, joinFiber, launchAff, never, try)
-import Effect.Aff.AVar as AVAR
+import Data.List.Lazy (replicateM)
+import Effect.Aff (try)
 import Effect.Class.Console (logShow)
-import Effect.Exception (error)
 import Effect.Random (random)
-import Effect.Ref (Ref)
 import Effect.Ref as RF
 import Partial.Unsafe (unsafePartial)
 import Scripts (alwaysTrueScripts, payToAlwaysSucceeds, spendFromAlwaysSucceeds)
+import Spammer.Config (config, getEnvVars)
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash 
@@ -75,14 +39,17 @@ payFromKeyToPkh  key pkh = do
       payToWallets "3000000" (pure pkh) 
 
 
+type Env = RF.Ref {
+  paidToWallets :: Boolean
+}
 
-spammer :: Effect Unit  
-spammer = do 
+spammer :: Env -> Effect Unit  
+spammer env = do 
   envVars <- getEnvVars
   let 
     params = config envVars
     nWallets = 200
-    maxNScriptLock = 200
+    maxNScriptLock = 100
   scripts <- alwaysTrueScripts
   let nScripts = length scripts
   -- generate random wallets
@@ -98,6 +65,7 @@ spammer = do
      runContract params do 
        txHash <- payToWallets "1000000000000" pkhs 
        awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
+       liftEffect $ RF.modify_ (_ {paidToWallets = true}) env
        log "infinite spammer loop"
        iWallet <- liftEffect $ RF.new 0
        iScript <- liftEffect $ RF.new 0
@@ -130,10 +98,11 @@ spammer = do
                    let _ /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
                    eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash   
                    case eitherTxHash of
-                       Left _ -> pure unit 
+                       Left e -> logShow e 
                        Right txHash -> do 
                          newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
                          liftEffect $ RF.write newLen nLocked
+                         log "locked successfully"
                    liftEffect $ RF.write iSNext iScript
 
               -- unlock transaction
@@ -141,16 +110,18 @@ spammer = do
                    -- extract first element from array
                    maybeTuple <- liftEffect $ toEffect $ ST.shift lockedTxScriptId
                    case maybeTuple of
-                       Nothing -> pure unit
+                       -- Nothing -> pure unit
+                       Nothing -> log "no elements in locked transactions" 
                        Just (txHash /\ iS) -> do 
                          liftEffect $ RF.modify_ (_-1) nLocked
                          let script /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
                          eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash   
                          case eitherTxHash of
-                             Right _ -> pure unit 
-                             Left _ -> do
+                             Right _ -> logShow "unlock successfully" 
+                             Left e -> do
                                newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
                                liftEffect $ RF.write newLen nLocked
+                               logShow e
               makeTransaction _ _ = pure unit 
 
 
