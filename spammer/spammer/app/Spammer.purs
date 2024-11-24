@@ -129,27 +129,3 @@ spammer env = do
           -- next wallet
           liftEffect $ RF.write iWNext iWallet
 
-
-
-
-
--- checkMut :: Effect Unit
--- checkMut = do
-  -- msg <- RF.read refStr
-  -- log "hi" 
-
-
--- checkMut :: Ref String -> Effect Unit
--- checkMut refStr  = do
---   launchAff_ $ forever do
---     msg <- liftEffect $ RF.read refStr
---     log msg
---     delay (wrap 0.0)
-
-
--- checkMutArr :: Ref  -> Effect Unit
--- checkMut refStr  = do
---   launchAff_ $ forever do
---     msg <- liftEffect $ RF.read refStr
---     log msg
---     delay (wrap 0.0)
