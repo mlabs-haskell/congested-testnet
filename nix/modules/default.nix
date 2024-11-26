@@ -23,7 +23,6 @@
 
   perSystem = { system, pkgs, self', inputs', ... }:
     {
-      # _module.args.pkgs = import inputs.nixpkgs {inherit system; overlays = [ self.overlays.default ]; };
       packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;

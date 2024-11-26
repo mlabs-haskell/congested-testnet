@@ -11,43 +11,17 @@ let
   faucet-wallet = "faucet-wallet";
   share-config-dir = "share-config-dir";
   relay-config = "relay-config";
-  copy-config = "copy-config";
   spo-port = "3000";
-  relay-port = "3000";
   node-prometheus-port = "12789";
   prometheus-port = "9090";
   ogmios-port = "1337";
   kupo-port = "1442";
   faucet-port = "8000";
-  cardano-cli-remote-port = "8001";
-  share-config-port = "8002";
-  faucet-url ="faucet.local:8000";
 
 
 
   bindPort = port: "${port}:${port}";
-  # spammer-wallet = name: { "${name}-wallet" = { }; };
 
-  # spammer-conf = name: {
-  #   ${name} = {
-  #
-  #     image.enableRecommendedContents = true;
-  #     service = {
-  #       useHostStore = true;
-  #       restart = "always";
-  #       command = [
-  #         "sh"
-  #         "-c"
-  #         ''
-  #           ${pkgs.spammer}/bin/spammer wallet ${faucet-url} 
-  #         ''
-  #       ];
-  #       volumes = [
-  #         "${name}-wallet:/wallet"
-  #       ];
-  #     };
-  #   };
-  # };
 in
 rec {
   project.name = "testnet";
@@ -64,7 +38,6 @@ rec {
     "${share-config-dir}" = { };
     "${relay-config}" = { };
   }
-  # // spammer-wallet "spammer-1"
   ;
 
 
@@ -90,54 +63,25 @@ rec {
     };
 
 
-
-
-    faucet = {
+    generate-additional-utxo-for-ctl = {
       image.enableRecommendedContents = true;
       service =
         {
-          # restart = "always";
           networks.default.aliases = [ "faucet.local" ];
           useHostStore = true;
-          command = [ "sh" "-c" ''${pkgs.faucet}/bin/faucet'' ];
-          ports = [ (bindPort faucet-port) ];
-          expose = [ faucet-port ];
+          command = [ "sh" "-c" '''' ];
+          entrypoint = ''
+             sh -c "
+            ${pkgs.generate-additional-utxo-for-ctl}/bin/generate-additional-utxo-for-ctl /wallet /socket /config  
+            "
+        '';
           volumes = [
-            "${faucet-wallet}:/wallet"
+            "/tmp/wallet:/wallet"
             "${socket-relay}:/socket"
             "${testnet-config}:/config"
           ];
         };
     };
-
-
-
-    # node-relay-1 = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     useHostStore = true;
-    #     capabilities = { NET_RAW = true; };
-    #     networks.default.aliases = [ "node-relay-1.local" ];
-    #     ports = [ (bindPort relay-port) ];
-    #     defaultExec = [
-    #       "/bin/sh"
-    #       "export PATH=${pkgs.iproute2}/bin:$PATH"
-    #     ];
-    #     entrypoint = ''
-    #       sh -c "
-    #       ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-1.json
-    #       "
-    #     '';
-    #     expose = [ relay-port node-prometheus-port ];
-    #     volumes = [
-    #       "${socket-relay}:/socket"
-    #       "${data-relay}:/data"
-    #       "${testnet-config}:/config"
-    #     ];
-    #   };
-    # };
-
-
 
 
     node-spo-1 = {
@@ -235,34 +179,5 @@ rec {
       };
     };
 
-    # cardano-cli-remote = {
-    #   image.enableRecommendedContents = true;
-    #   service = {
-    #     restart = "always";
-    #     useHostStore = true;
-    #     networks.default.aliases = [ "cardano-cli-remote.local" ];
-    #     ports = [ (bindPort cardano-cli-remote-port ) ];
-    #     volumes = [
-    #       "${socket-relay}:/socket"
-    #     ];
-    #     command = [
-    #       "sh"
-    #       "-c"
-    #       ''
-    #         ${pkgs.cardano-cli-remote-container}/bin/cardano-cli-remote-container
-    #       ''
-    #     ];
-    #   };
-    # };
-
-
-  }
-  # // spammer-conf "spammer-1"
-  # // spammer-conf "spammer-2"
-  # // spammer-conf "spammer-3"
-  # // spammer-conf "spammer-4"
-  # // spammer-conf "spammer-5"
-  # // spammer-conf "spammer-6"
-  ;
-
+  };
 } 

@@ -11,7 +11,6 @@
 
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
-          # self'.packages.cardano-node
           nixpkgs-fmt
           inputs'.aiken.packages.aiken
           # pkgs.nixos-rebuild
@@ -38,6 +37,7 @@
           pyright
           nodePackages.svelte-language-server
           nodePackages.typescript-language-server
+          # nodejs
         ] 
         ++
         self'.devShells.ctl.buildInputs
@@ -46,12 +46,10 @@
         ;
         shellHook = ''
           export SSHOPTS="-p 2222"
-          # export walletPath="/var/lib/docker/volumes/testnet_faucet-wallet/_data/wallet.skey"
-          export walletPath="/home/maxim/work/projects/congested-testnet/wallet.skey";
+          export walletPath="/tmp/wallet/wallet.skey";
           export kupoUrl="0.0.0.0"
           export ogmiosUrl="0.0.0.0"
         '';
-        
       };
 
       devShells.purs =
