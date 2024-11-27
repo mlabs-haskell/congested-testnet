@@ -19,6 +19,7 @@
   , "datetime"
   , "effect"
   , "exceptions"
+  , "foreign"
   , "http-methods"
   , "lists"
   , "maybe"
@@ -47,6 +48,6 @@
   , "uint"
   ]
 , packages = ./packages.dhall
--- , sources = [ "app/Spammer.purs", "app/Config.purs", "app/Scripts.purs", "app/Worker.purs", "app/Check.purs", "app/SpammerUtils.purs"]
-, sources = [ "app/Config.purs", "app/Scripts.purs", "app/Spammer.purs", "app/Main.purs"]
+, sources =
+  [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs", "src/Main.purs" ]
 }

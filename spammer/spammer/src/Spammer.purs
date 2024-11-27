@@ -21,6 +21,7 @@ import Effect.Aff (delay, try)
 import Effect.Class.Console (logShow)
 import Effect.Random (random)
 import Effect.Ref as RF
+import Foreign (Foreign)
 import Partial.Unsafe (unsafePartial)
 import Scripts (alwaysTrueScripts, payToAlwaysSucceeds, spendFromAlwaysSucceeds)
 import Spammer.Config (config, getEnvVars)
@@ -39,20 +40,19 @@ payFromKeyToPkh  key pkh = do
    withKeyWallet key do  
       payToWallets "3000000" (pure pkh) 
 
--- foreign import sendMessage  :: String -> Effect Unit  
--- foreign import isAllowTransition :: String -> Effect Unit  
-foreign import sendMessage  :: String -> Effect Unit  
+foreign import sendMessageToMainThread  :: Foreign -> String -> Effect Unit  
 
 type ControlVars = RF.Ref {
-  allowedToSubmitTransactions :: Boolean,
+  allowTransactions :: Boolean,
   paidToWallets :: Boolean
 }
 
 
 
 
-spammer :: ControlVars -> Effect Unit  
-spammer controlVars = do 
+
+spammer :: Foreign -> Int -> ControlVars -> Effect Unit  
+spammer parentPort spammerId controlVars = do 
   envVars <- getEnvVars
   let 
     params = config envVars
@@ -67,19 +67,23 @@ spammer controlVars = do
     keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
     pkhs :: Array PaymentPubKeyHash 
     pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
-    allowedToSubmitTransactionsE :: Effect Boolean 
-    allowedToSubmitTransactionsE = _.allowedToSubmitTransactions <$> RF.read controlVars 
+    allowTransactionsE :: Effect Boolean 
+    allowTransactionsE = do
+       logShow $ "hi" <> show spammerId 
+       _.allowTransactions <$> RF.read controlVars 
+
   launchAff_ do 
-     log "init spammer wallets"
      -- send tada to spammer wallets
      runContract params do 
-       liftEffect $ whileE allowedToSubmitTransactionsE $ launchAff_ (delay (wrap 1000.0))
-       txHash <- payToWallets "1000000000000" pkhs 
+       liftEffect $ whileE allowTransactionsE $ launchAff_ (delay (wrap 1000.0))
+       liftAff $ delay (wrap 1000.0)
+       logShow $ "init spammer wallets spammerId: " <> (show spammerId) 
+       -- txHash <- payToWallets "1000000000000" pkhs 
        -- awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
-       awaitTxConfirmed txHash
        -- notify about full spammer wallets to fill wallets in other spammers
-       liftEffect do
-          RF.modify_ (_ {paidToWallets = true}) controlVars 
+       liftEffect $ RF.modify_ (_ {paidToWallets = true}) controlVars 
+       liftEffect $ sendMessageToMainThread parentPort "paidToWallets"
+       liftAff $ delay (wrap 1000.0)
        log "infinite spammer loop"
        iWallet <- liftEffect $ RF.new 0
        iScript <- liftEffect $ RF.new 0
@@ -88,7 +92,7 @@ spammer controlVars = do
        lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new 
        -- spammer loop
        forever do 
-          liftEffect $ whileE allowedToSubmitTransactionsE $ launchAff_ (delay (wrap 1000.0))
+          liftEffect $ whileE allowTransactionsE $ launchAff_ (delay (wrap 1000.0))
           randomNumber <- liftEffect $ random
           iW <- liftEffect $ RF.read iWallet
           nL <- liftEffect $ RF.read nLocked 
@@ -130,7 +134,7 @@ spammer controlVars = do
                        Just (txHash' /\ iS) -> do 
                          liftEffect $ RF.modify_ (_-1) nLocked
                          let script /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
-                         eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash   
+                         eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash'
                          case eitherTxHash of
                              Right _ -> logShow "unlock successfully" 
                              Left e -> do

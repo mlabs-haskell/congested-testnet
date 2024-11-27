@@ -1,14 +1,18 @@
 (async () => {
     const {Worker, workerData} = await import("node:worker_threads");
-    // run spammers
-  for (let iSpammer = 0; iSpammer < 2; iSpammer++ ){
-    spammerData = {"iSpammer" : iSpammer}
-    const spammer = new Worker("./src/spammer.js", {workerData: "hello"});
-    spammer.on('message', (message) => {
-          console.log(message);
+  const nSpammers = 2
+  var iSpammerAllowTransitions = 0
+  // run spammers
+  for (let iSpammer = 0; iSpammer < nSpammers; iSpammer++ ){
+    const spammer = new Worker("./src/spammer.js", {workerData: iSpammer});
+    spammer.postMessage(iSpammerAllowTransitions)
+    spammer.on('message', (msg) => {
+         console.log("GET MESSAGE!!!!!!!!!!!!!!!!!!!")
+         if (msg == "paidToWallets") {
+           iSpammerAllowTransitions++
+         }
         });
   }
-    console.log("hello")
 })()
 
 

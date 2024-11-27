@@ -1,20 +1,16 @@
-//
-// export const isAllowTransition = async () => allowTransition  
-// export const isSpammerWalletsPaid = async () => spammerWalletsPaid 
-
-export const sendMessage = async (msg) => {
-      const {parentPort} = await import("node:worker_threads");
+// const { parentPort } = require("node:worker_threads");
+// export const sendMessageToMainThread = msg => () => {
+//       parentPort.postMessage(msg)
+// }
+export const sendMessageToMainThread = parentPort => msg => {
       parentPort.postMessage(msg)
 }
-
-// export const controlEnv = async () => {
-//   const {parentPort} = await import("node:worker_threads");
-//   var allowTransition = false ;
-//   var spammerWalletsPaid = false ;
-//   return {
-//     "allowTransaction" :  async () => {
-//        allowTransitionkkkkkkkkkkk
-//        parentPort.postMessage(msg)
-//     }
+// const { parentPort } = require("node:worker_threads");
+//
+// exports.sendMessageToMainThread = (msg) => () => {
+//   if (parentPort) {
+//     parentPort.postMessage(msg);
+//   } else {
+//     console.error("No parentPort available in this thread.");
 //   }
-// } 
+// };
