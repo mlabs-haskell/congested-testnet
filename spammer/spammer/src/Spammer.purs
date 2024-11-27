@@ -7,7 +7,7 @@ import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
 import Contract.Monad (Contract, launchAff_, runContract)
-import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
+import Contract.Transaction (TransactionHash, awaitTxConfirmed, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
 import Contract.Wallet (KeyWallet, privateKeysToKeyWallet, withKeyWallet)
@@ -16,7 +16,8 @@ import Control.Monad.ST.Global (Global, toEffect)
 import Data.Array (fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
 import Data.List.Lazy (replicateM)
-import Effect.Aff (try)
+import Effect (whileE)
+import Effect.Aff (delay, try)
 import Effect.Class.Console (logShow)
 import Effect.Random (random)
 import Effect.Ref as RF
@@ -38,13 +39,20 @@ payFromKeyToPkh  key pkh = do
    withKeyWallet key do  
       payToWallets "3000000" (pure pkh) 
 
+-- foreign import sendMessage  :: String -> Effect Unit  
+-- foreign import isAllowTransition :: String -> Effect Unit  
+foreign import sendMessage  :: String -> Effect Unit  
 
-type Env = RF.Ref {
+type ControlVars = RF.Ref {
+  allowedToSubmitTransactions :: Boolean,
   paidToWallets :: Boolean
 }
 
-spammer :: Env -> Effect Unit  
-spammer env = do 
+
+
+
+spammer :: ControlVars -> Effect Unit  
+spammer controlVars = do 
   envVars <- getEnvVars
   let 
     params = config envVars
@@ -59,13 +67,19 @@ spammer env = do
     keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
     pkhs :: Array PaymentPubKeyHash 
     pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+    allowedToSubmitTransactionsE :: Effect Boolean 
+    allowedToSubmitTransactionsE = _.allowedToSubmitTransactions <$> RF.read controlVars 
   launchAff_ do 
      log "init spammer wallets"
      -- send tada to spammer wallets
      runContract params do 
+       liftEffect $ whileE allowedToSubmitTransactionsE $ launchAff_ (delay (wrap 1000.0))
        txHash <- payToWallets "1000000000000" pkhs 
-       awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
-       liftEffect $ RF.modify_ (_ {paidToWallets = true}) env
+       -- awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+       awaitTxConfirmed txHash
+       -- notify about full spammer wallets to fill wallets in other spammers
+       liftEffect do
+          RF.modify_ (_ {paidToWallets = true}) controlVars 
        log "infinite spammer loop"
        iWallet <- liftEffect $ RF.new 0
        iScript <- liftEffect $ RF.new 0
@@ -74,6 +88,7 @@ spammer env = do
        lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new 
        -- spammer loop
        forever do 
+          liftEffect $ whileE allowedToSubmitTransactionsE $ launchAff_ (delay (wrap 1000.0))
           randomNumber <- liftEffect $ random
           iW <- liftEffect $ RF.read iWallet
           nL <- liftEffect $ RF.read nLocked 
