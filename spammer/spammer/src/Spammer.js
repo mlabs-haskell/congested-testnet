@@ -1,16 +1,17 @@
-// const { parentPort } = require("node:worker_threads");
-// export const sendMessageToMainThread = msg => () => {
-//       parentPort.postMessage(msg)
-// }
-export const sendMessageToMainThread = parentPort => msg => {
-      parentPort.postMessage(msg)
+export const paidToSpammerWalletsSuccess  = obj => new Promise((resolve, reject) => {
+      obj.parentPort.postMessage("successfullyPaidToSpammerWallet");
+      obj.isAllowTransactions = false;
+      resolve();
+})
+
+
+export const pauseSpammer = obj => new Promise((resolve, reject) => {
+    let loop_ = setInterval(
+      () => {
+          if (obj.isAllowTransactions) {
+            clearInterval(loop_);
+            resolve()
+        };
+    }, 1000);
 }
-// const { parentPort } = require("node:worker_threads");
-//
-// exports.sendMessageToMainThread = (msg) => () => {
-//   if (parentPort) {
-//     parentPort.postMessage(msg);
-//   } else {
-//     console.error("No parentPort available in this thread.");
-//   }
-// };
+);

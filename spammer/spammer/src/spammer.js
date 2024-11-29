@@ -1,31 +1,25 @@
 (async () => {
     const {workerData, parentPort} = await import("node:worker_threads");
     const {spammer} = await import("../output/Spammer/index.js");
-    const {_new, write, read} = await import("../output/Effect.Ref/foreign.js");
-    let spammerId = workerData
     
-    let controlVars = _new({
-      paidToWallets : false, 
-      allowTransactions: false
-    })();
+    let controlVars = {
+        idSpammer : workerData, 
+        isAllowTransactions: false,
+        parentPort : parentPort
+      }
   
 
-
-    parentPort.on("message", spammerIdAllowTransactions => { 
-      if (spammerIdAllowTransactions  == spammerId) {
-        console.log(`allow tx ${spammerId}`)
-        console.log(controlVars)
-        let controlVars_ = read(controlVars)()
-        write({
-          paidToWallets : controlVars_.paidToWallets, 
-          allowTransactions: true,
-        })(controlVars)();
-        console.log(controlVars)
-      }
+    parentPort.on("message", msg => { 
+      console.log(msg);
+      if (msg == "pause") {
+        controlVars.isAllowTransactions = false;
+      };
+      if (msg == "unpause") {
+        controlVars.isAllowTransactions = true;
+      };
     });
 
-    spammer(parentPort)(spammerId)(controlVars)();
-    
+    spammer(controlVars)();
 })()
 
 

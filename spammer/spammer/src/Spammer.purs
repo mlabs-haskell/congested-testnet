@@ -11,13 +11,15 @@ import Contract.Transaction (TransactionHash, awaitTxConfirmed, awaitTxConfirmed
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
 import Contract.Wallet (KeyWallet, privateKeysToKeyWallet, withKeyWallet)
-import Control.Monad.Rec.Class (forever)
+import Control.Monad.Rec.Class (forever, whileJust)
 import Control.Monad.ST.Global (Global, toEffect)
+import Control.Promise (Promise, toAff)
 import Data.Array (fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
 import Data.List.Lazy (replicateM)
-import Effect (whileE)
+import Effect (untilE, whileE)
 import Effect.Aff (delay, try)
+import Effect.Aff.Compat (EffectFn2, EffectFnAff(..), fromEffectFnAff)
 import Effect.Class.Console (logShow)
 import Effect.Random (random)
 import Effect.Ref as RF
@@ -40,19 +42,13 @@ payFromKeyToPkh  key pkh = do
    withKeyWallet key do  
       payToWallets "3000000" (pure pkh) 
 
-foreign import sendMessageToMainThread  :: Foreign -> String -> Effect Unit  
 
-type ControlVars = RF.Ref {
-  allowTransactions :: Boolean,
-  paidToWallets :: Boolean
-}
+foreign import paidToSpammerWalletsSuccess  :: Foreign -> Promise Unit  
+foreign import pauseSpammer :: Foreign -> Promise Unit 
 
 
-
-
-
-spammer :: Foreign -> Int -> ControlVars -> Effect Unit  
-spammer parentPort spammerId controlVars = do 
+spammer :: Foreign -> Effect Unit  
+spammer controlVars = do 
   envVars <- getEnvVars
   let 
     params = config envVars
@@ -67,23 +63,19 @@ spammer parentPort spammerId controlVars = do
     keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
     pkhs :: Array PaymentPubKeyHash 
     pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
-    allowTransactionsE :: Effect Boolean 
-    allowTransactionsE = do
-       logShow $ "hi" <> show spammerId 
-       _.allowTransactions <$> RF.read controlVars 
 
   launchAff_ do 
      -- send tada to spammer wallets
      runContract params do 
-       liftEffect $ whileE allowTransactionsE $ launchAff_ (delay (wrap 1000.0))
-       liftAff $ delay (wrap 1000.0)
-       logShow $ "init spammer wallets spammerId: " <> (show spammerId) 
-       -- txHash <- payToWallets "1000000000000" pkhs 
-       -- awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+       liftAff $ toAff $ pauseSpammer controlVars
+       log "pay to spammer wallets..."
+       txHash <- payToWallets "1000000000000" pkhs 
+       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+       log "paid to spammer wallets"
        -- notify about full spammer wallets to fill wallets in other spammers
-       liftEffect $ RF.modify_ (_ {paidToWallets = true}) controlVars 
-       liftEffect $ sendMessageToMainThread parentPort "paidToWallets"
-       liftAff $ delay (wrap 1000.0)
+       liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
+       log "wait other spammers activation"
+       liftAff $ toAff $ pauseSpammer controlVars
        log "infinite spammer loop"
        iWallet <- liftEffect $ RF.new 0
        iScript <- liftEffect $ RF.new 0
@@ -92,7 +84,6 @@ spammer parentPort spammerId controlVars = do
        lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new 
        -- spammer loop
        forever do 
-          liftEffect $ whileE allowTransactionsE $ launchAff_ (delay (wrap 1000.0))
           randomNumber <- liftEffect $ random
           iW <- liftEffect $ RF.read iWallet
           nL <- liftEffect $ RF.read nLocked 
