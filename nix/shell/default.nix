@@ -12,7 +12,7 @@
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
           nixpkgs-fmt
-          inputs'.aiken.packages.aiken
+          # inputs'.aiken.packages.aiken
           # pkgs.nixos-rebuild
           # pkgs.nix-diff
           # pkgs.dia
@@ -24,8 +24,7 @@
           # pkgs.cargo
           # pkgs.fileshare
           # self'.packages.arion-with-prebuilt
-          arion-with-prebuilt
-          # pkgs.ogmios
+          # arion-with-prebuilt
           cardano-node
           # pkgs.cardano-cli
           # pkgs.spago
@@ -37,7 +36,9 @@
           pyright
           nodePackages.svelte-language-server
           nodePackages.typescript-language-server
-          # nodejs
+          nodejs
+          ogmios
+          kupo
         ] 
         ++
         self'.devShells.ctl.buildInputs

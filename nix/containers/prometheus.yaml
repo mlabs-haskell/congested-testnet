@@ -12,3 +12,4 @@ scrape_configs:
      static_configs:
        - targets: ['node-relay-1.local:12789']
        - targets: ['node-spo-1.local:12789']
+       - targets: ['0.0.0.0:12789']

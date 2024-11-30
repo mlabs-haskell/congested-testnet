@@ -22,8 +22,6 @@
       ];
     in
     {
-      packages.cardano-node = pkgs.cardano-node;
-      packages.cardano-cli = pkgs.cardano-cli;
       packages.relay-node = pkgs.writeShellApplication {
         name = "relay-node";
         inherit runtimeInputs;
@@ -102,5 +100,6 @@
 
         '';
       };
+
     };
 }

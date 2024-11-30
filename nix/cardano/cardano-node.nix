@@ -2,7 +2,7 @@
 {
   perSystem = { system, inputs', pkgs, ... }:
     {
-      packages.cardano-node-1 = pkgs.stdenv.mkDerivation {
+      packages.cardano-node = pkgs.stdenv.mkDerivation {
         pname = "cardano-node";
         version = "10.1.1";
 
