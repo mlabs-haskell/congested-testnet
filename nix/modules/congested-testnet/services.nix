@@ -104,7 +104,10 @@ in
 
   systemd.services.spammer-and-faucet = let 
       helper = pkgs.writeShellApplication {
-        name = "helper";
+        runtimeInputs = [
+            pkgs.spammer
+        ];
+        name = "spammer";
         text = ''
           ROOT=${root}
           if [ ! -f "$ROOT/faucet_wallet_exist" ]; then
@@ -113,7 +116,8 @@ in
           export ogmiosUrl="0.0.0.0" 
           export kupoUrl="0.0.0.0" 
           export walletPath="$ROOT/wallet.skey"
-          ${pkgs.spammer}/bin/spammer
+          spammer
+          
         '';
       };
   in
@@ -121,7 +125,7 @@ in
     description = "spammer"; 
     wantedBy = ["multi-user.target"];
     serviceConfig = {
-      ExecStart = ''${helper}/bin/helper'';
+      ExecStart = ''${helper}/bin/spammer'';
       Restart = "on-failure";
       RestartSec = 5;
     };
@@ -139,6 +143,7 @@ in
 
   environment.systemPackages = [
     pkgs.htop
+    pkgs.spammer
   ];
 }
 

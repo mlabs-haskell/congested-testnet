@@ -1,7 +1,8 @@
 (async () => {
   const {Worker, workerData} = await import("node:worker_threads");
+  const path = await import("node:path");
   const nSpammers = 5 
-  const spammers = Array.from({length : nSpammers},(_,idSpammer) => new Worker("./src/spammer.js", {workerData: idSpammer})) 
+  const spammers = Array.from({length : nSpammers},(_,idSpammer) => new Worker(path.resolve(__dirname, "./spammer.js"), {workerData: idSpammer})) 
   // activate wallets in each spammer one by one 
   spammers[0].postMessage("unpause")
   for (let i = 0; i < nSpammers; i++) {

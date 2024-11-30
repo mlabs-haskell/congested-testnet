@@ -1,6 +1,7 @@
 (async () => {
     const {workerData, parentPort} = await import("node:worker_threads");
-    const {spammer} = await import("../output/Spammer/index.js");
+    const path = await import("path");
+    const {spammer} = await import(path.resolve(__dirname, "../output/Spammer/index.js"));
     
     let controlVars = {
         idSpammer : workerData, 
