@@ -23,3 +23,4 @@ export const addTxHash = obj => txHash => () => {
 export const ed25519KeyHash = obj => obj.ed25519KeyHash;
 export const allowTx = obj => obj.isAllowTransactions;
 
+export const updateLastTime = dt => obj => () => {obj.awaitTxTime = dt}  

@@ -2,11 +2,11 @@ module Spammer where
 
 import Contract.Prelude
 
-import Cardano.Types (Ed25519KeyHash(..), PaymentPubKeyHash, PrivateKey)
+import Cardano.Types (Ed25519KeyHash, PaymentPubKeyHash, PrivateKey)
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
-import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
+import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
@@ -16,11 +16,10 @@ import Control.Monad.ST.Global (Global, toEffect)
 import Control.Promise (Promise, toAff)
 import Data.Array (fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
-import Data.DateTime (Second, second)
 import Data.List.Lazy (replicateM)
 import Data.Time (diff)
-import Data.Time.Duration (Seconds(..))
-import Effect.Aff (delay, joinFiber, launchAff, try)
+import Data.Time.Duration (Seconds)
+import Effect.Aff (delay, launchAff, try)
 import Effect.Class.Console (logShow)
 import Effect.Now (nowTime)
 import Effect.Random (random)
@@ -50,8 +49,7 @@ foreign import pauseSpammer :: Foreign -> Promise Unit
 foreign import addTxHash :: Foreign -> String -> Effect Unit
 foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash 
 foreign import allowTx :: Foreign -> Boolean 
--- foreign import reqControlVars :: Foreign -> Promise Unit 
-
+foreign import updateLastTime :: Seconds -> Foreign -> Effect Unit 
 
 getFundsFromFaucet :: Foreign -> Effect Unit 
 getFundsFromFaucet obj = do 
@@ -60,7 +58,7 @@ getFundsFromFaucet obj = do
     params = config envVars
     ed25519hash = ed25519KeyHash obj
 
-  fiber <- launchAff do 
+  _ <- launchAff do 
      runContract params do 
         log "here"
         logShow ed25519hash  
@@ -202,5 +200,7 @@ measureTxTime controlVars = do
                  let dt :: Seconds 
                      dt = diff end start
                  log $ " ============ measure tx time =============== time:" <> (show dt) 
+                 liftEffect $ updateLastTime dt controlVars 
+
 
           liftEffect $ RF.write iWNext iWallet
