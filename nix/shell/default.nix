@@ -13,7 +13,7 @@
         buildInputs = with pkgs; [
           nixpkgs-fmt
           # inputs'.aiken.packages.aiken
-          # pkgs.nixos-rebuild
+          nixos-rebuild
           # pkgs.nix-diff
           # pkgs.dia
           # pkgs.kazam
@@ -24,7 +24,7 @@
           # pkgs.cargo
           # pkgs.fileshare
           # self'.packages.arion-with-prebuilt
-          # arion-with-prebuilt
+          arion-with-prebuilt
           cardano-node
           # pkgs.cardano-cli
           # pkgs.spago

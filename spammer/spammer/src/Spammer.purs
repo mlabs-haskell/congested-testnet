@@ -2,11 +2,11 @@ module Spammer where
 
 import Contract.Prelude
 
-import Cardano.Types (PaymentPubKeyHash, PrivateKey)
+import Cardano.Types (Ed25519KeyHash(..), PaymentPubKeyHash, PrivateKey)
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
-import Contract.Monad (Contract, launchAff_, runContract)
+import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Value (lovelaceValueOf)
@@ -17,7 +17,7 @@ import Control.Promise (Promise, toAff)
 import Data.Array (fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
 import Data.List.Lazy (replicateM)
-import Effect.Aff (try)
+import Effect.Aff (joinFiber, launchAff, try)
 import Effect.Class.Console (logShow)
 import Effect.Random (random)
 import Effect.Ref as RF
@@ -43,6 +43,27 @@ payFromKeyToPkh  key pkh = do
 
 foreign import paidToSpammerWalletsSuccess  :: Foreign -> Promise Unit  
 foreign import pauseSpammer :: Foreign -> Promise Unit 
+foreign import addTxHash :: Foreign -> String -> Effect Unit
+foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash 
+
+
+getFundsFromFaucet :: Foreign -> Effect Unit 
+getFundsFromFaucet obj = do 
+  envVars <- getEnvVars
+  let 
+    params = config envVars
+    ed25519hash = ed25519KeyHash obj
+
+  fiber <- launchAff do 
+     runContract params do 
+        log "here"
+        logShow ed25519hash  
+        txHash <- payToWallets "1000000000" (pure (wrap ed25519hash))
+        liftEffect (addTxHash obj (show txHash))
+        pure txHash
+  pure unit
+
+
 
 
 spammer :: Foreign -> Effect Unit  

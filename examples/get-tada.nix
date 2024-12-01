@@ -4,7 +4,7 @@
     {
       packages.get-tada = pkgs.writeShellApplication {
         name = "get-tada";
-        runtimeInputs = [self'.packages.cardano-node pkgs.jq pkgs.curl];
+        runtimeInputs = [pkgs.cardano-node pkgs.jq pkgs.curl];
         text = ''
         # we can generate key pairs with cardano-cli
 
@@ -18,7 +18,8 @@
 
 
         # now get ada with query
-        curl -X POST "congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHashHex\": \"$PUBKEYHASHHEX\"}"
+        # curl -X POST "congested-testnet.staging.mlabs.city:8000" -H "Content-Type: application/json" -d "{\"pubKeyHashHex\": \"$PUBKEYHASHHEX\"}"
+        curl -X POST "0.0.0.0:8000" -H "Content-Type: application/json" -d "{\"pubKeyHashHex\": \"$PUBKEYHASHHEX\"}"
         '';
         };
     };

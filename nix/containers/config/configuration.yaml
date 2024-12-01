@@ -319,3 +319,7 @@ TestConwayHardForkAtEpoch: 0
 ExperimentalProtocolsEnabled: True
 ExperimentalHardForksEnabled: True
 EnableP2P: True
+
+
+# override mempool
+MempoolCapacityBytesOverride: 50000

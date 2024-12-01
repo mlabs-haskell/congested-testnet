@@ -1,6 +1,5 @@
 { self, inputs, ... }:
 {
-
   flake.nixosConfigurations = {
     congested-testnet = inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
@@ -14,7 +13,7 @@
     congested-testnet-dev = inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
-        inputs.arion.nixosModules.arion
+        # inputs.arion.nixosModules.arion
         ./congested-testnet-dev
         { nixpkgs.overlays = [ self.overlays.default ]; }
       ];
@@ -23,7 +22,7 @@
 
   perSystem = { system, pkgs, self', inputs', ... }:
     {
-      packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
+      packages.vm = (self.nixosConfigurations.congested-testnet-dev.extendModules {
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;
 

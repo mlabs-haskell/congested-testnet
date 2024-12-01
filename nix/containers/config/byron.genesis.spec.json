@@ -1,6 +1,6 @@
   {
     "heavyDelThd":     "300000000000",
-    "maxBlockSize":    "2000000",
+    "maxBlockSize":    "1000000",
     "maxTxSize":       "4096",
     "maxHeaderSize":   "2000000",
     "maxProposalSize": "700",

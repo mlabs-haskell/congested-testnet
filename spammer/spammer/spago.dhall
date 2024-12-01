@@ -30,6 +30,7 @@
   , "node-http"
   , "node-process"
   , "node-streams"
+  , "nullable"
   , "numbers"
   , "ordered-collections"
   , "partial"
@@ -48,6 +49,5 @@
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources =
-  [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs", "src/Main.purs" ]
+, sources = [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs" ]
 }
