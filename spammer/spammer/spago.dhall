@@ -30,6 +30,7 @@
   , "node-http"
   , "node-process"
   , "node-streams"
+  , "now"
   , "nullable"
   , "numbers"
   , "ordered-collections"

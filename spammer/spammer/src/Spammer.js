@@ -1,6 +1,5 @@
 export const paidToSpammerWalletsSuccess = obj => new Promise((resolve, reject) => {
       obj.parentPort.postMessage("successfullyPaidToSpammerWallet");
-      obj.isAllowTransactions = false;
       resolve();
 })
 
@@ -22,4 +21,5 @@ export const addTxHash = obj => txHash => () => {
 }; 
 
 export const ed25519KeyHash = obj => obj.ed25519KeyHash;
+export const allowTx = obj => obj.isAllowTransactions;
 

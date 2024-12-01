@@ -16,9 +16,13 @@ import Control.Monad.ST.Global (Global, toEffect)
 import Control.Promise (Promise, toAff)
 import Data.Array (fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
+import Data.DateTime (Second, second)
 import Data.List.Lazy (replicateM)
-import Effect.Aff (joinFiber, launchAff, try)
+import Data.Time (diff)
+import Data.Time.Duration (Seconds(..))
+import Effect.Aff (delay, joinFiber, launchAff, try)
 import Effect.Class.Console (logShow)
+import Effect.Now (nowTime)
 import Effect.Random (random)
 import Effect.Ref as RF
 import Foreign (Foreign)
@@ -45,6 +49,8 @@ foreign import paidToSpammerWalletsSuccess  :: Foreign -> Promise Unit
 foreign import pauseSpammer :: Foreign -> Promise Unit 
 foreign import addTxHash :: Foreign -> String -> Effect Unit
 foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash 
+foreign import allowTx :: Foreign -> Boolean 
+-- foreign import reqControlVars :: Foreign -> Promise Unit 
 
 
 getFundsFromFaucet :: Foreign -> Effect Unit 
@@ -90,12 +96,8 @@ spammer controlVars = do
        log "pay to spammer wallets..."
        txHash <- payToWallets "1000000000000" pkhs 
        awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
-       log "paid to spammer wallets"
        -- notify about full spammer wallets to fill wallets in other spammers
        liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
-       log "wait other spammers activation"
-       liftAff $ toAff $ pauseSpammer controlVars
-       log "infinite spammer loop"
        iWallet <- liftEffect $ RF.new 0
        iScript <- liftEffect $ RF.new 0
        nLocked <- liftEffect $ RF.new 0 
@@ -113,12 +115,14 @@ spammer controlVars = do
               iWNext = iW + 1 
        -- choose between lock unlock or just pay to wallet 
           let 
-              makeTransaction randNum _ 
-                | randNum < 0.4 = do
+              makeTransaction _ _ false = do 
+                 liftAff $ delay (wrap 10.0)
+              makeTransaction randNum _ _
+                | randNum < 0.8 = do
                    let pkh  = unsafePartial $ unsafeIndex pkhs iWNext
                    _ <- try $ payFromKeyToPkh key pkh 
                    pure unit
-              makeTransaction _ nLock 
+              makeTransaction _ nLock _ 
               -- lock transaction
                 | nLock < maxNScriptLock = do
                    iS <- liftEffect $ RF.read iScript
@@ -151,10 +155,52 @@ spammer controlVars = do
                                newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
                                liftEffect $ RF.write newLen nLocked
                                logShow e
-              makeTransaction _ _ = pure unit 
+              makeTransaction _ _ _ = pure unit 
 
 
-          makeTransaction randomNumber nL  
+          makeTransaction randomNumber nL (allowTx controlVars) 
           -- next wallet
           liftEffect $ RF.write iWNext iWallet
 
+
+measureTxTime :: Foreign -> Effect Unit  
+measureTxTime controlVars = do 
+  envVars <- getEnvVars
+  let 
+    params = config envVars
+    nWallets = 200
+  -- generate random wallets
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
+  let 
+    keys :: Array KeyWallet  
+    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
+    pkhs :: Array PaymentPubKeyHash 
+    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+
+  launchAff_ do 
+     -- send tada to spammer wallets
+     runContract params do 
+       log "pay to wallets in time measurer..."
+       txHash <- payToWallets "1000000000000" pkhs 
+       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+       liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
+       iWallet <- liftEffect $ RF.new 0
+       forever do 
+          iW <- liftEffect $ RF.read iWallet
+          let 
+              iWNext | iW == nWallets - 1 = 0
+              iWNext = iW + 1 
+              key  = unsafePartial $ unsafeIndex keys iW
+              pkh  = unsafePartial $ unsafeIndex pkhs iWNext
+          eitherTxHash <- try $ payFromKeyToPkh key pkh 
+          case eitherTxHash of
+              Left _ -> log " ============ bad tx ==============="
+              Right x -> do
+                 start <- liftEffect nowTime
+                 awaitTxConfirmedWithTimeout (wrap 10000.0) x 
+                 end <- liftEffect nowTime
+                 let dt :: Seconds 
+                     dt = diff end start
+                 log $ " ============ measure tx time =============== time:" <> (show dt) 
+
+          liftEffect $ RF.write iWNext iWallet

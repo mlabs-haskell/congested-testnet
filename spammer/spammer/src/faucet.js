@@ -1,3 +1,4 @@
+
 function waitForTxHash(obj) {
   return new Promise((resolve) => {
     const interval = setInterval(() => {
@@ -5,12 +6,15 @@ function waitForTxHash(obj) {
         clearInterval(interval);
         resolve(obj.txHash);
       }
-    }, 100); 
+    }, 200); 
   });
 }
 
+
+
 const faucet = async () => {
   const http = await import("http");
+  const {parentPort} = await import("node:worker_threads");
   const path = await import("node:path");
   const csl  = await import("@emurgo/cardano-serialization-lib-nodejs");
   const {getFundsFromFaucet} = await import(path.resolve(__dirname, "../output/Spammer/index.js"));
@@ -28,6 +32,7 @@ const faucet = async () => {
 
           req.on('end', async () => {
               try {
+                  parentPort.postMessage("tryGetTAda") 
                   const data = JSON.parse(body);
                   const pubKeyHashHex = data.pubKeyHashHex;
 
