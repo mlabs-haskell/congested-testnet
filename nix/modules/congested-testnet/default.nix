@@ -1,7 +1,7 @@
 { lib, pkgs, modulesPath, ... }:
 {
   imports = [ 
-    "${modulesPath}/virtualisation/digital-ocean-config.nix" 
+    # "${modulesPath}/virtualisation/digital-ocean-config.nix" 
     ./services.nix
   ];
 
@@ -26,7 +26,7 @@
     # pkgs.dnsutils
     # pkgs.docker
     # pkgs.arion-with-prebuilt
-    # pkgs.htop
+    pkgs.htop
     # pkgs.cardano-node
   ];
 

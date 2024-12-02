@@ -1,5 +1,7 @@
 module Scripts where
 
+import Contract.Prelude
+
 import Cardano.Transaction.Builder (DatumWitness(DatumValue), OutputWitness(PlutusScriptOutput), ScriptWitness(ScriptValue), TransactionBuilderStep(SpendOutput, Pay))
 import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), Language(..), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionOutput(TransactionOutput))
 import Cardano.Types.BigNum as BigNum
@@ -12,7 +14,6 @@ import Cardano.Types.Transaction as Transaction
 import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
 import Contract.Address (mkAddress)
 import Contract.Monad (Contract, launchAff_, liftContractM, runContract)
-import Contract.Prelude 
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, lookupTxHash, submitTxFromBuildPlan)
 import Contract.Utxos (utxosAt)
 import Contract.Value as Value
@@ -27,6 +28,9 @@ import Effect.Exception (error)
 import Spammer.Config (config, getEnvVars)
 
 foreign import alwaysSucceeds :: Array String
+foreign import distribution  :: Array Number 
+
+
 
 main :: Effect Unit
 main = do

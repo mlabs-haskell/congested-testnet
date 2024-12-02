@@ -34,9 +34,13 @@ in
       ExecStart = ''
         ${make-config-and-run-spo}/bin/make-config-and-run-spo 
       '';
+      ExecReload = ''
+       systemctl restart cardano-node 
+      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
+    reloadIfChanged = true;
   };
 
 
@@ -64,9 +68,13 @@ in
       ExecStart = ''
        ${ogmios}/bin/ogmios
       '';
+      ExecReload = ''
+       systemctl restart ogmios 
+      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
+    reloadIfChanged = true;
   };
 
   systemd.services.kupo = let 
@@ -96,9 +104,13 @@ in
       ExecStart = ''
        ${kupo}/bin/kupo
       '';
+      ExecReload = ''
+       systemctl restart kupo 
+      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
+    reloadIfChanged = true;
   };
 
 
@@ -126,9 +138,13 @@ in
     wantedBy = ["multi-user.target"];
     serviceConfig = {
       ExecStart = ''${helper}/bin/spammer'';
+      ExecReload = ''
+       systemctl restart spammer-and-faucet 
+      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
+    reloadIfChanged = true;
   };
 
   systemd.services.prometheus = {
@@ -143,7 +159,6 @@ in
 
   environment.systemPackages = [
     pkgs.htop
-    pkgs.spammer
   ];
 }
 

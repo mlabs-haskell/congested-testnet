@@ -322,4 +322,4 @@ EnableP2P: True
 
 
 # override mempool
-MempoolCapacityBytesOverride: 50000
+MempoolCapacityBytesOverride: 1000000

@@ -15,7 +15,7 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
   const {Worker, workerData} = await import("node:worker_threads");
   const {} = await import("prom-client");
   const path = await import("node:path");
-  const nSpammers = 2 
+  const nSpammers = 4 
   const spammers = Array.from({length : nSpammers},(_,idSpammer) => new Worker(path.resolve(__dirname, "./spammer.js"), {workerData: idSpammer})) 
   // spammers
   // activate wallets in each spammer one by one 

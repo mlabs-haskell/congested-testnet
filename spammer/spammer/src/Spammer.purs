@@ -14,7 +14,7 @@ import Contract.Wallet (KeyWallet, privateKeysToKeyWallet, withKeyWallet)
 import Control.Monad.Rec.Class (forever)
 import Control.Monad.ST.Global (Global, toEffect)
 import Control.Promise (Promise, toAff)
-import Data.Array (fromFoldable, unsafeIndex)
+import Data.Array (findIndex, fromFoldable, unsafeIndex)
 import Data.Array.ST as ST
 import Data.List.Lazy (replicateM)
 import Data.Time (diff)
@@ -26,7 +26,7 @@ import Effect.Random (random)
 import Effect.Ref as RF
 import Foreign (Foreign)
 import Partial.Unsafe (unsafePartial)
-import Scripts (alwaysTrueScripts, payToAlwaysSucceeds, spendFromAlwaysSucceeds)
+import Scripts (alwaysTrueScripts, distribution, payToAlwaysSucceeds, spendFromAlwaysSucceeds)
 import Spammer.Config (config, getEnvVars)
 
 
@@ -78,7 +78,6 @@ spammer controlVars = do
     nWallets = 200
     maxNScriptLock = 100
   scripts <- alwaysTrueScripts
-  let nScripts = length scripts
   -- generate random wallets
   privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
   let 
@@ -92,12 +91,11 @@ spammer controlVars = do
      runContract params do 
        liftAff $ toAff $ pauseSpammer controlVars
        log "pay to spammer wallets..."
-       txHash <- payToWallets "1000000000000" pkhs 
-       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+       txHash' <- payToWallets "1000000000000" pkhs 
+       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash'
        -- notify about full spammer wallets to fill wallets in other spammers
        liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
        iWallet <- liftEffect $ RF.new 0
-       iScript <- liftEffect $ RF.new 0
        nLocked <- liftEffect $ RF.new 0 
        -- mutable array with tuples of locked txHash and script id
        lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new 
@@ -113,50 +111,60 @@ spammer controlVars = do
               iWNext = iW + 1 
        -- choose between lock unlock or just pay to wallet 
           let 
+              selectScriptIndBasedOnDistr :: Number -> Maybe Int  
+              selectScriptIndBasedOnDistr x = findIndex (x > _) distribution 
+
+              maybeIScript = selectScriptIndBasedOnDistr randomNumber
+
+
               makeTransaction _ _ false = do 
                  liftAff $ delay (wrap 10.0)
-              makeTransaction randNum _ _
-                | randNum < 0.8 = do
-                   let pkh  = unsafePartial $ unsafeIndex pkhs iWNext
-                   _ <- try $ payFromKeyToPkh key pkh 
-                   pure unit
-              makeTransaction _ nLock _ 
-              -- lock transaction
-                | nLock < maxNScriptLock = do
-                   iS <- liftEffect $ RF.read iScript
-                   let iSNext | iS == nScripts - 1 = 0
-                       iSNext = iS + 1 
-                   let _ /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
-                   eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash   
-                   case eitherTxHash of
-                       Left e -> logShow e 
-                       Right txHash' -> do 
-                         newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
-                         liftEffect $ RF.write newLen nLocked
-                         log "locked successfully"
-                   liftEffect $ RF.write iSNext iScript
+
+              -- pay to wallet / simple transaction
+              makeTransaction Nothing _ _  =  do
+                     let pkh  = unsafePartial $ unsafeIndex pkhs iWNext
+                     _ <- try $ payFromKeyToPkh key pkh 
+                     pure unit
 
               -- unlock transaction
+              makeTransaction _ nLock _ 
                 | nLock >= maxNScriptLock = do
                    -- extract first element from array
                    maybeTuple <- liftEffect $ toEffect $ ST.shift lockedTxScriptId
                    case maybeTuple of
                        -- Nothing -> pure unit
                        Nothing -> log "no elements in locked transactions" 
-                       Just (txHash' /\ iS) -> do 
+                       Just (txHash /\ iS) -> do 
                          liftEffect $ RF.modify_ (_-1) nLocked
                          let script /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
-                         eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash'
+                         eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash
                          case eitherTxHash of
-                             Right _ -> logShow "unlock successfully" 
+                             Right _ -> do 
+                                logShow "unlock successfully" 
                              Left e -> do
                                newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
                                liftEffect $ RF.write newLen nLocked
                                logShow e
+
+
+              -- lock transaction
+              makeTransaction (Just iS) nLock _ 
+                | nLock < maxNScriptLock = do
+                   let _ /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
+                   eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash   
+                   case eitherTxHash of
+                       Left e -> logShow e 
+                       Right txHash -> do 
+                         newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
+                         log $ "lockedTx Len: " <> show newLen
+                         log $ "lockedTx scriptHash: " <> show scriptHash 
+                         liftEffect $ RF.write newLen nLocked
+                         log "locked successfully"
+
               makeTransaction _ _ _ = pure unit 
 
 
-          makeTransaction randomNumber nL (allowTx controlVars) 
+          makeTransaction maybeIScript  nL (allowTx controlVars) 
           -- next wallet
           liftEffect $ RF.write iWNext iWallet
 
