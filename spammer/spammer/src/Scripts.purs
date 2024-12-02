@@ -28,28 +28,25 @@ import Effect.Exception (error)
 import Spammer.Config (config, getEnvVars)
 
 foreign import alwaysSucceeds :: Array String
-foreign import distribution  :: Array Number 
-
-
+foreign import distribution :: Array Number
 
 main :: Effect Unit
 main = do
   envVars <- getEnvVars
-  let 
+  let
     params = config envVars
   launchAff_ do
-     runContract params $ do 
-        scriptStr <- liftContractM "can't read string script" $ head alwaysSucceeds
-        logShow $ scriptStr
-        script <- liftContractM "can't decode script from string" $ decodeCborHexToScript scriptStr 
-        let scriptHash = hash script
-        txHash <- payToAlwaysSucceeds scriptHash 
-        awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
-        logShow txHash
-        txHash2 <- spendFromAlwaysSucceeds scriptHash script txHash 
-        awaitTxConfirmedWithTimeout (wrap 1000.0) txHash2
-        logShow txHash2 
-
+    runContract params $ do
+      scriptStr <- liftContractM "can't read string script" $ head alwaysSucceeds
+      logShow $ scriptStr
+      script <- liftContractM "can't decode script from string" $ decodeCborHexToScript scriptStr
+      let scriptHash = hash script
+      txHash <- payToAlwaysSucceeds scriptHash
+      awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
+      logShow txHash
+      txHash2 <- spendFromAlwaysSucceeds scriptHash script txHash
+      awaitTxConfirmedWithTimeout (wrap 1000.0) txHash2
+      logShow txHash2
 
 payToAlwaysSucceeds :: ScriptHash -> Contract TransactionHash
 payToAlwaysSucceeds vhash = do
@@ -100,19 +97,16 @@ spendFromAlwaysSucceeds vhash validator txId = do
     ]
   pure $ Transaction.hash spendTx
 
-
-
-decodeCborHexToScript :: String -> Maybe PlutusScript 
+decodeCborHexToScript :: String -> Maybe PlutusScript
 decodeCborHexToScript cborHex = do
   cborBa <- hexToByteArray cborHex
   ba <- hush $ toByteArray $ wrap $ wrap cborBa
   pure $ wrap $ ba /\ PlutusV2
 
-
 alwaysTrueScripts :: Effect (Array (PlutusScript /\ ScriptHash))
-alwaysTrueScripts = 
+alwaysTrueScripts =
   let
-      extract scriptStr = unsafeFromJust "wrong script code" $ decodeCborHexToScript scriptStr  
-      scriptAndHash script = script /\ (hash script)
+    extract scriptStr = unsafeFromJust "wrong script code" $ decodeCborHexToScript scriptStr
+    scriptAndHash script = script /\ (hash script)
   in
-  pure $ (extract >>> scriptAndHash) <$> alwaysSucceeds 
+    pure $ (extract >>> scriptAndHash) <$> alwaysSucceeds

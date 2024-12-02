@@ -13,5 +13,5 @@ to generate this file without the comments in this block.
 { name = "spago-ctl-example"
 , dependencies = [ "cardano-transaction-lib", "bigints", "datetime", "maybe", "uint"]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs"]
+, sources = [ "Example.purs"]
 }

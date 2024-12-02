@@ -34,6 +34,8 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
          }; 
         }
       ) 
+      spammers[i].on("error", async error => { console.error(error); process.exit(1);});
+      spammers[i].on("exit", async code => { console.error(code); process.exit(1);});
   }
 
   // start measure tx time 
@@ -44,6 +46,15 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
       }
   })
 
+  measureTxTime.on("error", async error => {
+    console.error(error);
+    process.exit(1);
+  })
+
+  measureTxTime.on("exit", async code => {
+    console.error(code);
+    process.exit(1);
+  })
 
   // faucet 
   const faucet = new Worker(path.resolve(__dirname, "./faucet.js"), {workerData: null}) 
@@ -53,7 +64,15 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
        await pauseSpammersnSec(spammers)(8)
     }
   })
+  faucet.on("error", async error => {
+    console.error(error);
+    process.exit(1);
+  })
 
+  faucet.on("exit", async code => {
+    console.error(code);
+    process.exit(1);
+  })
 
 })()
 

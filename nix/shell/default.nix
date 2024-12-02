@@ -36,6 +36,7 @@
           pyright
           nodePackages.svelte-language-server
           nodePackages.typescript-language-server
+          nodePackages.prettier
           nodejs
           ogmios
           kupo
@@ -60,13 +61,15 @@
         pkgs.mkShell {
           name = "purescript-custom-shell";
           buildInputs = [
-            easy-ps.purs-0_14_5
+            easy-ps.purs-0_15_4
             easy-ps.spago
             easy-ps.purescript-language-server
             easy-ps.purs-tidy
             pkgs.nodejs-18_x
             pkgs.esbuild
           ];
+        # ++
+        # self'.devShells.ctl.buildInputs;
           shellHook = ''
             source <(spago --bash-completion-script `which spago`)
             source <(node --completion-bash)

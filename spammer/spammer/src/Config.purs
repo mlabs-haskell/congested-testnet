@@ -8,14 +8,13 @@ import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 
-
 type EnvVars =
   { walletPath :: String
-  , ogmiosUrl  :: String
+  , ogmiosUrl :: String
   , kupoUrl :: String
   }
 
-foreign import getEnvVars :: Effect EnvVars 
+foreign import getEnvVars :: Effect EnvVars
 
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
@@ -37,16 +36,15 @@ defaultSynchronizationParams =
       { errorOnTimeout: false, beforeTxConfirmed: false }
   }
 
-
 config :: EnvVars -> ContractParams
 config envVars =
   { backendParams: CtlBackendParams
-      { ogmiosConfig: defaultOgmiosWsConfig { host = envVars.ogmiosUrl, port = fromInt 1337}
+      { ogmiosConfig: defaultOgmiosWsConfig { host = envVars.ogmiosUrl, port = fromInt 1337 }
       , kupoConfig: defaultKupoServerConfig { host = envVars.kupoUrl, port = fromInt 1442, path = Nothing }
       }
       Nothing
-  , networkId: TestnetId 
-  , logLevel: Info 
+  , networkId: TestnetId
+  , logLevel: Info
   , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile $ envVars.walletPath) Nothing Nothing
   , customLogger: Nothing
   , suppressLogs: true

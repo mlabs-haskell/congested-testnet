@@ -50,5 +50,5 @@
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs" ]
+, sources = [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs", "Example.purs" ]
 }

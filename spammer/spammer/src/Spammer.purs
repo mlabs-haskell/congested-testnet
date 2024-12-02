@@ -29,186 +29,178 @@ import Partial.Unsafe (unsafePartial)
 import Scripts (alwaysTrueScripts, distribution, payToAlwaysSucceeds, spendFromAlwaysSucceeds)
 import Spammer.Config (config, getEnvVars)
 
-
-payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash 
+payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash
 payToWallets amount pkhs = do
   let constraints = mconcat $ map (\pkh -> mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
-  txHash <- submitTxFromConstraints mempty constraints 
+  txHash <- submitTxFromConstraints mempty constraints
   logShow txHash
   pure txHash
 
-
 payFromKeyToPkh :: KeyWallet -> PaymentPubKeyHash -> Contract TransactionHash
-payFromKeyToPkh  key pkh = do 
-   withKeyWallet key do  
-      payToWallets "3000000" (pure pkh) 
+payFromKeyToPkh key pkh = do
+  withKeyWallet key do
+    payToWallets "3000000" (pure pkh)
 
-
-foreign import paidToSpammerWalletsSuccess  :: Foreign -> Promise Unit  
-foreign import pauseSpammer :: Foreign -> Promise Unit 
+foreign import paidToSpammerWalletsSuccess :: Foreign -> Promise Unit
+foreign import pauseSpammer :: Foreign -> Promise Unit
 foreign import addTxHash :: Foreign -> String -> Effect Unit
-foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash 
-foreign import allowTx :: Foreign -> Boolean 
-foreign import updateLastTime :: Seconds -> Foreign -> Effect Unit 
+foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash
+foreign import allowTx :: Foreign -> Boolean
+foreign import updateLastTime :: Seconds -> Foreign -> Effect Unit
 
-getFundsFromFaucet :: Foreign -> Effect Unit 
-getFundsFromFaucet obj = do 
+getFundsFromFaucet :: Foreign -> Effect Unit
+getFundsFromFaucet obj = do
   envVars <- getEnvVars
-  let 
+  let
     params = config envVars
     ed25519hash = ed25519KeyHash obj
 
-  _ <- launchAff do 
-     runContract params do 
-        log "here"
-        logShow ed25519hash  
-        txHash <- payToWallets "1000000000" (pure (wrap ed25519hash))
-        liftEffect (addTxHash obj (show txHash))
-        pure txHash
+  _ <- launchAff do
+    runContract params do
+      log "here"
+      logShow ed25519hash
+      txHash <- payToWallets "1000000000" (pure (wrap ed25519hash))
+      liftEffect (addTxHash obj (show txHash))
+      pure txHash
   pure unit
 
-
-
-
-spammer :: Foreign -> Effect Unit  
-spammer controlVars = do 
+spammer :: Foreign -> Effect Unit
+spammer controlVars = do
   envVars <- getEnvVars
-  let 
+  let
     params = config envVars
     nWallets = 200
     maxNScriptLock = 100
   scripts <- alwaysTrueScripts
   -- generate random wallets
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
-  let 
-    keys :: Array KeyWallet  
-    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
-    pkhs :: Array PaymentPubKeyHash 
-    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
+  let
+    keys :: Array KeyWallet
+    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys
 
-  launchAff_ do 
-     -- send tada to spammer wallets
-     runContract params do 
-       liftAff $ toAff $ pauseSpammer controlVars
-       log "pay to spammer wallets..."
-       txHash' <- payToWallets "1000000000000" pkhs 
-       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash'
-       -- notify about full spammer wallets to fill wallets in other spammers
-       liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
-       iWallet <- liftEffect $ RF.new 0
-       nLocked <- liftEffect $ RF.new 0 
-       -- mutable array with tuples of locked txHash and script id
-       lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new 
-       -- spammer loop
-       forever do 
-          randomNumber <- liftEffect $ random
-          iW <- liftEffect $ RF.read iWallet
-          nL <- liftEffect $ RF.read nLocked 
-          let key  = unsafePartial $ unsafeIndex keys iW
+    pkhs :: Array PaymentPubKeyHash
+    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys
 
-          let 
-              iWNext | iW == nWallets - 1 = 0
-              iWNext = iW + 1 
-       -- choose between lock unlock or just pay to wallet 
-          let 
-              selectScriptIndBasedOnDistr :: Number -> Maybe Int  
-              selectScriptIndBasedOnDistr x = findIndex (x > _) distribution 
+  launchAff_ do
+    -- send tada to spammer wallets
+    runContract params do
+      liftAff $ toAff $ pauseSpammer controlVars
+      log "pay to spammer wallets..."
+      txHash' <- payToWallets "1000000000000" pkhs
+      awaitTxConfirmedWithTimeout (wrap 100000.0) txHash'
+      -- notify about full spammer wallets to fill wallets in other spammers
+      liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
+      iWallet <- liftEffect $ RF.new 0
+      nLocked <- liftEffect $ RF.new 0
+      -- mutable array with tuples of locked txHash and script id
+      lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new
+      -- spammer loop
+      forever do
+        randomNumber <- liftEffect $ random
+        iW <- liftEffect $ RF.read iWallet
+        nL <- liftEffect $ RF.read nLocked
+        let key = unsafePartial $ unsafeIndex keys iW
 
-              maybeIScript = selectScriptIndBasedOnDistr randomNumber
+        let
+          iWNext | iW == nWallets - 1 = 0
+          iWNext = iW + 1
+        -- choose between lock unlock or just pay to wallet 
+        let
+          selectScriptIndBasedOnDistr :: Number -> Maybe Int
+          selectScriptIndBasedOnDistr x = findIndex (x > _) distribution
 
+          maybeIScript = selectScriptIndBasedOnDistr randomNumber
 
-              makeTransaction _ _ false = do 
-                 liftAff $ delay (wrap 10.0)
+          makeTransaction _ _ false = do
+            liftAff $ delay (wrap 10.0)
 
-              -- pay to wallet / simple transaction
-              makeTransaction Nothing _ _  =  do
-                     let pkh  = unsafePartial $ unsafeIndex pkhs iWNext
-                     _ <- try $ payFromKeyToPkh key pkh 
-                     pure unit
+          -- pay to wallet / simple transaction
+          makeTransaction Nothing _ _ = do
+            let pkh = unsafePartial $ unsafeIndex pkhs iWNext
+            _ <- try $ payFromKeyToPkh key pkh
+            pure unit
 
-              -- unlock transaction
-              makeTransaction _ nLock _ 
-                | nLock >= maxNScriptLock = do
-                   -- extract first element from array
-                   maybeTuple <- liftEffect $ toEffect $ ST.shift lockedTxScriptId
-                   case maybeTuple of
-                       -- Nothing -> pure unit
-                       Nothing -> log "no elements in locked transactions" 
-                       Just (txHash /\ iS) -> do 
-                         liftEffect $ RF.modify_ (_-1) nLocked
-                         let script /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
-                         eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash
-                         case eitherTxHash of
-                             Right _ -> do 
-                                logShow "unlock successfully" 
-                             Left e -> do
-                               newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
-                               liftEffect $ RF.write newLen nLocked
-                               logShow e
+          -- unlock transaction
+          makeTransaction _ nLock _
+            | nLock >= maxNScriptLock = do
+                -- extract first element from array
+                maybeTuple <- liftEffect $ toEffect $ ST.shift lockedTxScriptId
+                case maybeTuple of
+                  -- Nothing -> pure unit
+                  Nothing -> log "no elements in locked transactions"
+                  Just (txHash /\ iS) -> do
+                    liftEffect $ RF.modify_ (_ - 1) nLocked
+                    let script /\ scriptHash = unsafePartial $ unsafeIndex scripts iS
+                    eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash
+                    case eitherTxHash of
+                      Right _ -> do
+                        logShow "unlock successfully"
+                      Left e -> do
+                        newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
+                        liftEffect $ RF.write newLen nLocked
+                        logShow e
 
+          -- lock transaction
+          makeTransaction (Just iS) nLock _
+            | nLock < maxNScriptLock = do
+                let _ /\ scriptHash = unsafePartial $ unsafeIndex scripts iS
+                eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash
+                case eitherTxHash of
+                  Left e -> logShow e
+                  Right txHash -> do
+                    newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
+                    log $ "lockedTx Len: " <> show newLen
+                    log $ "lockedTx scriptHash: " <> show scriptHash
+                    liftEffect $ RF.write newLen nLocked
+                    log "locked successfully"
 
-              -- lock transaction
-              makeTransaction (Just iS) nLock _ 
-                | nLock < maxNScriptLock = do
-                   let _ /\ scriptHash  = unsafePartial $ unsafeIndex scripts iS
-                   eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash   
-                   case eitherTxHash of
-                       Left e -> logShow e 
-                       Right txHash -> do 
-                         newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
-                         log $ "lockedTx Len: " <> show newLen
-                         log $ "lockedTx scriptHash: " <> show scriptHash 
-                         liftEffect $ RF.write newLen nLocked
-                         log "locked successfully"
+          makeTransaction _ _ _ = pure unit
 
-              makeTransaction _ _ _ = pure unit 
+        makeTransaction maybeIScript nL (allowTx controlVars)
+        -- next wallet
+        liftEffect $ RF.write iWNext iWallet
 
-
-          makeTransaction maybeIScript  nL (allowTx controlVars) 
-          -- next wallet
-          liftEffect $ RF.write iWNext iWallet
-
-
-measureTxTime :: Foreign -> Effect Unit  
-measureTxTime controlVars = do 
+measureTxTime :: Foreign -> Effect Unit
+measureTxTime controlVars = do
   envVars <- getEnvVars
-  let 
+  let
     params = config envVars
     nWallets = 200
   -- generate random wallets
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate 
-  let 
-    keys :: Array KeyWallet  
-    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys  
-    pkhs :: Array PaymentPubKeyHash 
-    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys 
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
+  let
+    keys :: Array KeyWallet
+    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys
 
-  launchAff_ do 
-     -- send tada to spammer wallets
-     runContract params do 
-       log "pay to wallets in time measurer..."
-       txHash <- payToWallets "1000000000000" pkhs 
-       awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
-       liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
-       iWallet <- liftEffect $ RF.new 0
-       forever do 
-          iW <- liftEffect $ RF.read iWallet
-          let 
-              iWNext | iW == nWallets - 1 = 0
-              iWNext = iW + 1 
-              key  = unsafePartial $ unsafeIndex keys iW
-              pkh  = unsafePartial $ unsafeIndex pkhs iWNext
-          eitherTxHash <- try $ payFromKeyToPkh key pkh 
-          case eitherTxHash of
-              Left _ -> log " ============ bad tx ==============="
-              Right x -> do
-                 start <- liftEffect nowTime
-                 awaitTxConfirmedWithTimeout (wrap 10000.0) x 
-                 end <- liftEffect nowTime
-                 let dt :: Seconds 
-                     dt = diff end start
-                 log $ " ============ measure tx time =============== time:" <> (show dt) 
-                 liftEffect $ updateLastTime dt controlVars 
+    pkhs :: Array PaymentPubKeyHash
+    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys
 
+  launchAff_ do
+    -- send tada to spammer wallets
+    runContract params do
+      log "pay to wallets in time measurer..."
+      txHash <- payToWallets "1000000000000" pkhs
+      awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+      liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
+      iWallet <- liftEffect $ RF.new 0
+      forever do
+        iW <- liftEffect $ RF.read iWallet
+        let
+          iWNext | iW == nWallets - 1 = 0
+          iWNext = iW + 1
+          key = unsafePartial $ unsafeIndex keys iW
+          pkh = unsafePartial $ unsafeIndex pkhs iWNext
+        eitherTxHash <- try $ payFromKeyToPkh key pkh
+        case eitherTxHash of
+          Left _ -> log " ============ bad tx ==============="
+          Right x -> do
+            start <- liftEffect nowTime
+            awaitTxConfirmedWithTimeout (wrap 10000.0) x
+            end <- liftEffect nowTime
+            let
+              dt :: Seconds
+              dt = diff end start
+            log $ " ============ measure tx time =============== time:" <> (show dt)
+            liftEffect $ updateLastTime dt controlVars
 
-          liftEffect $ RF.write iWNext iWallet
+        liftEffect $ RF.write iWNext iWallet
