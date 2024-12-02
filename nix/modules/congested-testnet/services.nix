@@ -34,9 +34,6 @@ in
       ExecStart = ''
         ${make-config-and-run-spo}/bin/make-config-and-run-spo 
       '';
-      ExecReload = ''
-       systemctl restart cardano-node 
-      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
@@ -68,14 +65,29 @@ in
       ExecStart = ''
        ${ogmios}/bin/ogmios
       '';
-      ExecReload = ''
-       systemctl restart ogmios 
-      '';
       Restart = "on-failure";
       RestartSec = 5;
     };
     reloadIfChanged = true;
   };
+
+systemd.services.restart-network = {
+  description = "restart network";
+  serviceConfig = {
+    ExecStart = ''
+      systemctl restart cardano-node.service kupo.service ogmios.service spammer-and-faucet.service
+    '';
+  };
+};
+
+systemd.timers.restart-schedule = {
+  wantedBy = [ "timers.target" ];
+  timerConfig = {
+    OnBootSec = "1s";
+    OnUnitActiveSec = "2h";
+    Unit = "restart-network.service";
+  };
+};
 
   systemd.services.kupo = let 
       kupo = pkgs.writeShellApplication {
@@ -103,9 +115,6 @@ in
     serviceConfig = {
       ExecStart = ''
        ${kupo}/bin/kupo
-      '';
-      ExecReload = ''
-       systemctl restart kupo 
       '';
       Restart = "on-failure";
       RestartSec = 5;
@@ -138,9 +147,6 @@ in
     wantedBy = ["multi-user.target"];
     serviceConfig = {
       ExecStart = ''${helper}/bin/spammer'';
-      ExecReload = ''
-       systemctl restart spammer-and-faucet 
-      '';
       Restart = "on-failure";
       RestartSec = 5;
     };

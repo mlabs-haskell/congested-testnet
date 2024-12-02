@@ -8,7 +8,7 @@ module Example where
 
       ```
       it will generate a pair of keys and request ADA from the faucet.
-  2. install spago with purescript 0_14_5 , or use inside this repo 
+  2. install spago with purescript, or use inside this repo 
       ```
       nix develop .#purs
 
@@ -70,8 +70,8 @@ defaultSynchronizationParams =
 config :: ContractParams
 config =
   { backendParams: CtlBackendParams
-      { ogmiosConfig: defaultOgmiosWsConfig { host = "congested-testnet-dev.staging.mlabs.city", port = fromInt 1337 }
-      , kupoConfig: defaultKupoServerConfig { host = "congested-testnet-dev.staging.mlabs.city", port = fromInt 1442, path = Nothing }
+      { ogmiosConfig: defaultOgmiosWsConfig { host = "congested-testnet.staging.mlabs.city", port = fromInt 1337 }
+      , kupoConfig: defaultKupoServerConfig { host = "congested-testnet.staging.mlabs.city", port = fromInt 1442, path = Nothing }
       }
       Nothing
   , networkId: TestnetId
