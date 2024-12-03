@@ -47,6 +47,8 @@ foreign import addTxHash :: Foreign -> String -> Effect Unit
 foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash
 foreign import allowTx :: Foreign -> Boolean
 foreign import updateLastTime :: Seconds -> Foreign -> Effect Unit
+foreign import spammerId :: Foreign -> Int
+foreign import isWaitTx :: Foreign -> Boolean 
 
 getFundsFromFaucet :: Foreign -> Effect Unit
 getFundsFromFaucet obj = do
@@ -66,11 +68,32 @@ getFundsFromFaucet obj = do
 
 spammer :: Foreign -> Effect Unit
 spammer controlVars = do
+  log " ============ start spammer =============== "
   envVars <- getEnvVars
+  
   let
+    spammerId' = spammerId controlVars
     params = config envVars
     nWallets = 200
     maxNScriptLock = 100
+    waitTx = isWaitTx controlVars
+
+    awaitOrMoveForwardTx :: Either _ TransactionHash -> Contract Unit
+    awaitOrMoveForwardTx eTxHash = do
+       case eTxHash of
+           Left e -> logShow e
+           Right txHash | waitTx -> do 
+              start <- liftEffect nowTime
+              awaitTxConfirmedWithTimeout (wrap 10000.0) txHash
+              end <- liftEffect nowTime
+              let
+                dt :: Seconds
+                dt = diff end start
+              log $ " ============ measure tx time =============== time:" <> (show dt)
+              liftEffect $ updateLastTime dt controlVars
+           Right _ -> do 
+              pure unit
+
   scripts <- alwaysTrueScripts
   -- generate random wallets
   privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
@@ -117,8 +140,8 @@ spammer controlVars = do
           -- pay to wallet / simple transaction
           makeTransaction Nothing _ _ = do
             let pkh = unsafePartial $ unsafeIndex pkhs iWNext
-            _ <- try $ payFromKeyToPkh key pkh
-            pure unit
+            eTxHash <- try $ payFromKeyToPkh key pkh
+            awaitOrMoveForwardTx eTxHash
 
           -- unlock transaction
           makeTransaction _ nLock _
@@ -132,9 +155,10 @@ spammer controlVars = do
                     liftEffect $ RF.modify_ (_ - 1) nLocked
                     let script /\ scriptHash = unsafePartial $ unsafeIndex scripts iS
                     eitherTxHash <- try $ withKeyWallet key $ spendFromAlwaysSucceeds scriptHash script txHash
+                    awaitOrMoveForwardTx eitherTxHash 
                     case eitherTxHash of
                       Right _ -> do
-                        logShow "unlock successfully"
+                        log $ "unlock successfully" <> show spammerId'
                       Left e -> do
                         newLen <- liftEffect $ toEffect $ ST.push (txHash' /\ iS) lockedTxScriptId
                         liftEffect $ RF.write newLen nLocked
@@ -145,62 +169,16 @@ spammer controlVars = do
             | nLock < maxNScriptLock = do
                 let _ /\ scriptHash = unsafePartial $ unsafeIndex scripts iS
                 eitherTxHash <- try $ withKeyWallet key $ payToAlwaysSucceeds scriptHash
+                awaitOrMoveForwardTx eitherTxHash 
                 case eitherTxHash of
                   Left e -> logShow e
                   Right txHash -> do
                     newLen <- liftEffect $ toEffect $ ST.push (txHash /\ iS) lockedTxScriptId
-                    log $ "lockedTx Len: " <> show newLen
-                    log $ "lockedTx scriptHash: " <> show scriptHash
                     liftEffect $ RF.write newLen nLocked
-                    log "locked successfully"
+                    log $ "locked successfully" <> show spammerId'
 
           makeTransaction _ _ _ = pure unit
 
         makeTransaction maybeIScript nL (allowTx controlVars)
         -- next wallet
-        liftEffect $ RF.write iWNext iWallet
-
-measureTxTime :: Foreign -> Effect Unit
-measureTxTime controlVars = do
-  envVars <- getEnvVars
-  let
-    params = config envVars
-    nWallets = 200
-  -- generate random wallets
-  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
-  let
-    keys :: Array KeyWallet
-    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys
-
-    pkhs :: Array PaymentPubKeyHash
-    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys
-
-  launchAff_ do
-    -- send tada to spammer wallets
-    runContract params do
-      log "pay to wallets in time measurer..."
-      txHash <- payToWallets "1000000000000" pkhs
-      awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
-      liftAff $ toAff $ paidToSpammerWalletsSuccess controlVars
-      iWallet <- liftEffect $ RF.new 0
-      forever do
-        iW <- liftEffect $ RF.read iWallet
-        let
-          iWNext | iW == nWallets - 1 = 0
-          iWNext = iW + 1
-          key = unsafePartial $ unsafeIndex keys iW
-          pkh = unsafePartial $ unsafeIndex pkhs iWNext
-        eitherTxHash <- try $ payFromKeyToPkh key pkh
-        case eitherTxHash of
-          Left _ -> log " ============ bad tx ==============="
-          Right x -> do
-            start <- liftEffect nowTime
-            awaitTxConfirmedWithTimeout (wrap 10000.0) x
-            end <- liftEffect nowTime
-            let
-              dt :: Seconds
-              dt = diff end start
-            log $ " ============ measure tx time =============== time:" <> (show dt)
-            liftEffect $ updateLastTime dt controlVars
-
         liftEffect $ RF.write iWNext iWallet

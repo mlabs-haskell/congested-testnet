@@ -37,7 +37,7 @@ in
       Restart = "on-failure";
       RestartSec = 5;
     };
-    reloadIfChanged = true;
+    # reloadIfChanged = true;
   };
 
 
@@ -68,7 +68,7 @@ in
       Restart = "on-failure";
       RestartSec = 5;
     };
-    reloadIfChanged = true;
+    # reloadIfChanged = true;
   };
 
 systemd.services.restart-network = {
@@ -119,7 +119,7 @@ systemd.timers.restart-schedule = {
       Restart = "on-failure";
       RestartSec = 5;
     };
-    reloadIfChanged = true;
+    # reloadIfChanged = true;
   };
 
 
@@ -150,7 +150,7 @@ systemd.timers.restart-schedule = {
       Restart = "on-failure";
       RestartSec = 5;
     };
-    reloadIfChanged = true;
+    # reloadIfChanged = true;
   };
 
   systemd.services.prometheus = {

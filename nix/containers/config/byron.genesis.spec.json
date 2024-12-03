@@ -1,12 +1,12 @@
   {
     "heavyDelThd":     "300000000000",
-    "maxBlockSize":    "5000",
+    "maxBlockSize":    "8500",
     "maxTxSize":       "4096",
     "maxHeaderSize":   "2000000",
     "maxProposalSize": "700",
     "mpcThd": "20000000000000",
     "scriptVersion": 0,
-    "slotDuration": "20000",
+    "slotDuration": "100000",
     "softforkRule": {
       "initThd": "900000000000000",
       "minThd": "600000000000000",

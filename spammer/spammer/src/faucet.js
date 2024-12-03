@@ -6,7 +6,7 @@ function waitForTxHash(obj) {
         clearInterval(interval);
         resolve(obj.txHash);
       }
-    }, 200); 
+    }, 100); 
   });
 }
 
