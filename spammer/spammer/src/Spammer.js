@@ -1,5 +1,7 @@
 export const paidToSpammerWalletsSuccess = obj => new Promise((resolve, reject) => {
       obj.parentPort.postMessage("successfullyPaidToSpammerWallet");
+      obj.isAllowTransactions = false;
+      // console.log(f`${obj.isAllowTransactions}`);
       resolve();
 })
 

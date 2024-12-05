@@ -26,7 +26,7 @@
 
    spammer(controlVars)();
 
-     // prometheus exporter if wait Tx
+   // prometheus exporter if waitTx
    if (workerData.waitTx ) { 
     const http = await import("http");
     const promExporter = http.createServer((req, res) => {

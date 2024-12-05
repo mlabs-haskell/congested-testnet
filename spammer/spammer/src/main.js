@@ -13,7 +13,6 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
 
 (async () => {
   const {Worker, workerData} = await import("node:worker_threads");
-  const {} = await import("prom-client");
   const path = await import("node:path");
   const nSpammers = 3 
   const spammers = Array.from({length : nSpammers},(_,spammerId) => {
@@ -34,8 +33,8 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
       };
     spammers[nSpammers - 1].on(
        "message", msg => { 
-         if (msg == "successfullyPaidToSpammerWallet") {
-             console.log("unpause all")
+         if (msg == "successfullyPaidToSpammerWallet")   {
+             console.log("last spammer initialized. unpause all spammers")
              spammers.map(sp => sp.postMessage("unpause"));
           };
        }
@@ -61,6 +60,51 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
       console.error(code);
       process.exit(1);
     })
+
+    // ogmios websocket connection
+    // stop spammers if mempool is large and proceed, if mempool is small
+    const {WebSocket} = await import("ws");
+    const ws =  new WebSocket("ws://0.0.0.0:1337");
+    var isAllSpammersPaused = false;
+    ws.on('message', (data) => {
+      const resp = JSON.parse(data);
+      if (resp.method == 'sizeOfMempool') {
+        let memPoolSize = resp.result.currentSize.bytes;
+        // pause / unpause
+        if (memPoolSize > 100000 && !isAllSpammersPaused) {
+           isAllSpammersPaused = true;
+           spammers.map(sp => sp.postMessage("pause"));
+        } else if (memPoolSize < 70000 && isAllSpammersPaused) {
+           isAllSpammersPaused = false;
+           spammers.map(sp => sp.postMessage("unpause"));
+        }
+
+        console.log(memPoolSize);
+      }
+    });
+    setInterval(() => {
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'acquireMempool',
+          params : {}
+        })
+      );
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'sizeOfMempool',
+          params : {}
+        })
+      );
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'releaseMempool',
+          params : {}
+        })
+      );
+    },2000);
 
 })()
 

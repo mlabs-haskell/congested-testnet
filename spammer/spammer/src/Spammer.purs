@@ -6,6 +6,7 @@ import Cardano.Types (Ed25519KeyHash, PaymentPubKeyHash, PrivateKey)
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
+import Contract.Backend.Ogmios.Mempool (acquireMempoolSnapshot)
 import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
@@ -119,6 +120,7 @@ spammer controlVars = do
       lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new
       -- spammer loop
       forever do
+        _ <- acquireMempoolSnapshot
         randomNumber <- liftEffect $ random
         iW <- liftEffect $ RF.read iWallet
         nL <- liftEffect $ RF.read nLocked

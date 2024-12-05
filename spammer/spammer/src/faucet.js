@@ -43,7 +43,7 @@ const faucet = async () => {
                       getFundsFromFaucet(obj)();
                       await waitForTxHash(obj); 
                       res.writeHead(200, { 'Content-Type': 'application/json' });
-                      res.end(JSON.stringify({ message: `Received pubKeyHashHex: ${pubKeyHashHex}; paid 1000 tada txHash : ${obj.txHash}`}));
+                      res.end(JSON.stringify({ message: `Received pubKeyHashHex: ${pubKeyHashHex}; paid 1000 tada txHash : ${obj.txHash}\n`}));
                   } else {
                       res.writeHead(400, { 'Content-Type': 'application/json' });
                       res.end(JSON.stringify({ error: 'pubKeyHashHex field is required' }));
