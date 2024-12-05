@@ -48,7 +48,7 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
     faucet.on("message", async msg => {
       // pause spammers to get tada
       if (msg == "tryGetTAda") {
-         await pauseSpammersnSec(spammers)(8)
+         await pauseSpammersnSec(spammers)(10)
       }
     })
     faucet.on("error", async error => {
@@ -71,15 +71,15 @@ const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
       if (resp.method == 'sizeOfMempool') {
         let memPoolSize = resp.result.currentSize.bytes;
         // pause / unpause
-        if (memPoolSize > 100000 && !isAllSpammersPaused) {
+        if (memPoolSize > 80000 && !isAllSpammersPaused) {
            isAllSpammersPaused = true;
            spammers.map(sp => sp.postMessage("pause"));
-        } else if (memPoolSize < 70000 && isAllSpammersPaused) {
+        } else if (memPoolSize < 40000 && isAllSpammersPaused) {
            isAllSpammersPaused = false;
            spammers.map(sp => sp.postMessage("unpause"));
         }
 
-        console.log(memPoolSize);
+        // console.log(memPoolSize);
       }
     });
     setInterval(() => {

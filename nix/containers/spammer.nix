@@ -17,7 +17,6 @@
         cp -r ${self'.packages.compiled}/output/* $out/output
         cp $src/src/main.js $out/src/main.js
         cp $src/src/spammer.js $out/src/spammer.js
-        cp $src/src/measureTxTime.js $out/src/measureTxTime.js
         cp $src/src/faucet.js $out/src/faucet.js
         cp -r ${self'.packages.nodeModules}/lib/node_modules $out/node_modules
       '';
