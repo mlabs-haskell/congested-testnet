@@ -1,5 +1,8 @@
 {lib, modulesPath, pkgs, ...}: {
-  imports = [ "${modulesPath}/virtualisation/digital-ocean-config.nix" ];
+  # imports = [ "${modulesPath}/virtualisation/digital-ocean-config.nix" ];
+  imports = [
+    ../congested-testnet/services.nix
+  ];
 
   boot.initrd.kernelModules = [ "nvme" ];
   boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "xen_blkfront" "vmw_pvscsi" ];
@@ -18,14 +21,7 @@
   virtualisation.podman.dockerSocket.enable = true;
   virtualisation.podman.defaultNetwork.settings.dns_enabled = true;
   environment.systemPackages = [
-    pkgs.docker-client
-    pkgs.dnsutils
-    pkgs.docker
-    pkgs.arion-with-prebuilt
-    pkgs.add-ping
     pkgs.htop
-    pkgs.cardano-node
-    pkgs.inetutils
   ];
 
   systemd.services.createDockerSocketSymlink = {

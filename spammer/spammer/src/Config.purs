@@ -1,13 +1,20 @@
-module Spammer.Config (config) where
+module Spammer.Config (getEnvVars, EnvVars, config) where
 
 import Contract.Prelude
 
-import Contract.Address (NetworkId(..))
+import Cardano.Types (NetworkId(..))
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
-import Data.Maybe (Maybe(..))
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
+
+type EnvVars =
+  { walletPath :: String
+  , ogmiosUrl :: String
+  , kupoUrl :: String
+  }
+
+foreign import getEnvVars :: Effect EnvVars
 
 defaultTimeParams :: ContractTimeParams
 defaultTimeParams =
@@ -29,16 +36,16 @@ defaultSynchronizationParams =
       { errorOnTimeout: false, beforeTxConfirmed: false }
   }
 
-config :: String -> String -> String -> Int -> Int -> ContractParams
-config walletPath ogmiosHost kupoHost ogmiosPort kupoPort =
+config :: EnvVars -> ContractParams
+config envVars =
   { backendParams: CtlBackendParams
-      { ogmiosConfig: defaultOgmiosWsConfig { host = ogmiosHost, port = fromInt ogmiosPort }
-      , kupoConfig: defaultKupoServerConfig { host = kupoHost, port = fromInt kupoPort, path = Nothing }
+      { ogmiosConfig: defaultOgmiosWsConfig { host = envVars.ogmiosUrl, port = fromInt 1337 }
+      , kupoConfig: defaultKupoServerConfig { host = envVars.kupoUrl, port = fromInt 1442, path = Nothing }
       }
       Nothing
   , networkId: TestnetId
-  , logLevel: Info 
-  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile walletPath) Nothing
+  , logLevel: Info
+  , walletSpec: Just $ UseKeys (PrivatePaymentKeyFile $ envVars.walletPath) Nothing Nothing
   , customLogger: Nothing
   , suppressLogs: true
   , hooks: emptyHooks

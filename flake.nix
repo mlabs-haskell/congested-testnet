@@ -4,13 +4,9 @@
   inputs.arion.url = "github:hercules-ci/arion/f295eabd25b7c894ab405be784e2a010f83fde55";
   inputs.aiken.url = "github:aiken-lang/aiken/7b452c21f01e5342b2c210e0a32f024c58ea2693";
   inputs.easy-purescript-nix.url = "github:justinwoo/easy-purescript-nix";
-  inputs.ctl = {
-    type = "github";
-    owner = "Plutonomicon";
-    repo = "cardano-transaction-lib";
-    rev = "b212a58a544d979b5e49dfe5db7f623a2c69e25b";
-  };
+  inputs.ctl.url = "github:Plutonomicon/cardano-transaction-lib/v9.3.1";
   inputs.nixpkgs.follows = "ctl/nixpkgs";
+  inputs.spo-anywhere.url = "github:mlabs-haskell/spo-anywhere";
   inputs.flake-compat = {
     url = "github:edolstra/flake-compat";
     flake = false;
@@ -24,12 +20,13 @@
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
-        ./nix/shell
+        ./nix/overlays.nix
         ./nix/ctl
+        ./nix/shell
         ./nix/modules
         ./nix/containers
         ./nix/cardano
-        ./nix/research
+        # ./nix/research
         ./nix/tests
         ./examples/get-tada.nix
       ];

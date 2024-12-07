@@ -8,9 +8,10 @@
         }
       ],
       "advertise": false,
+      "trustable": false,
       "valency": 1
     }
   ],
   "publicRoots":[],
-  "useLedgerAfterSlot": 322000
+  "useLedgerAfterSlot": 10
 }

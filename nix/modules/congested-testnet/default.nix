@@ -1,6 +1,9 @@
 { lib, pkgs, modulesPath, ... }:
 {
-  imports = [ "${modulesPath}/virtualisation/digital-ocean-config.nix" ];
+  imports = [ 
+    # "${modulesPath}/virtualisation/digital-ocean-config.nix" 
+    ./services.nix
+  ];
 
   boot.initrd.kernelModules = [ "nvme" ];
   boot.initrd.availableKernelModules = [ "ata_piix" "uhci_hcd" "xen_blkfront" "vmw_pvscsi" ];
@@ -14,18 +17,17 @@
 
   system.stateVersion = "23.11";
 
-  virtualisation.docker.enable = false;
-  virtualisation.podman.enable = true;
-  virtualisation.podman.dockerSocket.enable = true;
-  virtualisation.podman.defaultNetwork.settings.dns_enabled = true;
+  # virtualisation.docker.enable = false;
+  # virtualisation.podman.enable = true;
+  # virtualisation.podman.dockerSocket.enable = true;
+  # virtualisation.podman.defaultNetwork.settings.dns_enabled = true;
   environment.systemPackages = [
-    pkgs.docker-client
-    pkgs.dnsutils
-    pkgs.docker
-    pkgs.arion-with-prebuilt
-    pkgs.add-ping
+    # pkgs.docker-client
+    # pkgs.dnsutils
+    # pkgs.docker
+    # pkgs.arion-with-prebuilt
     pkgs.htop
-    pkgs.cardano-node
+    # pkgs.cardano-node
   ];
 
   networking.hostName = "congested-testnet";

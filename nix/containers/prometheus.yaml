@@ -12,3 +12,9 @@ scrape_configs:
      static_configs:
        - targets: ['node-relay-1.local:12789']
        - targets: ['node-spo-1.local:12789']
+       - targets: ['0.0.0.0:12789']
+   - job_name: 'TX-TIME' 
+     scrape_interval: 4s
+     static_configs:
+       - targets: ['0.0.0.0:8001']
+       # - targets: ['172.17.0.1:8001']

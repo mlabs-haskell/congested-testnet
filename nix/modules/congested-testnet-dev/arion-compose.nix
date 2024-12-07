@@ -11,19 +11,45 @@ let
   faucet-wallet = "faucet-wallet";
   share-config-dir = "share-config-dir";
   relay-config = "relay-config";
+  copy-config = "copy-config";
+
   spo-port = "3000";
+  relay-port = "3000";
   node-prometheus-port = "12789";
   prometheus-port = "9090";
   ogmios-port = "1337";
   kupo-port = "1442";
   faucet-port = "8000";
+  cardano-cli-remote-port = "8001";
+  share-config-port = "8002";
 
 
+  config-url = "0.0.0.0:8002/";
 
   bindPort = port: "${port}:${port}";
+  spammer-wallet = name: { "${name}-wallet" = { }; };
+  spammer-conf = name: {
+    ${name} = {
 
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        restart = "always";
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.spammer}/bin/spammer wallet 0.0.0.0:8000
+          ''
+        ];
+        volumes = [
+          "${name}-wallet:/wallet"
+        ];
+      };
+    };
+  };
 in
-rec {
+{
   project.name = "testnet";
 
   docker-compose.volumes = {
@@ -38,6 +64,12 @@ rec {
     "${share-config-dir}" = { };
     "${relay-config}" = { };
   }
+  // spammer-wallet "spammer-1"
+  # // spammer-wallet "spammer-2"
+  # // spammer-wallet "spammer-3"
+  # // spammer-wallet "spammer-4"
+  # // spammer-wallet "spammer-5"
+  # // spammer-wallet "spammer-6"
   ;
 
 
@@ -45,68 +77,33 @@ rec {
 
   services = {
 
-    testnet-config = {
+
+    node-relay-dev-1 = {
       image.enableRecommendedContents = true;
       service = {
+        depends_on = [testnet-config copy-config];
         useHostStore = true;
-        command = [
-          "sh"
-          "-c"
-          ''
-            ${pkgs.gen-testnet-conf}/bin/gen-testnet-conf  testnet-config 
-          ''
-        ];
-        volumes = [
-          "${testnet-config}:/testnet-config"
-        ];
-      };
-    };
-
-
-    generate-additional-utxo-for-ctl = {
-      image.enableRecommendedContents = true;
-      service =
-        {
-          networks.default.aliases = [ "faucet.local" ];
-          useHostStore = true;
-          command = [ "sh" "-c" '''' ];
-          entrypoint = ''
-             sh -c "
-            ${pkgs.generate-additional-utxo-for-ctl}/bin/generate-additional-utxo-for-ctl /wallet /socket /config  
-            "
-        '';
-          volumes = [
-            "/tmp/wallet:/wallet"
-            "${socket-relay}:/socket"
-            "${testnet-config}:/config"
-          ];
-        };
-    };
-
-
-    node-spo-1 = {
-      image.enableRecommendedContents = true;
-      service = {
-        networks.default.aliases = [ "node-spo-1.local" ];
-        useHostStore = true;
-        capabilities = { NET_RAW = true; NET_ADMIN = true; };
+        capabilities = { NET_RAW = true; };
+        networks.default.aliases = [ "node-relay-dev-1.local" ];
+        ports = [ (bindPort relay-port) ];
         defaultExec = [
           "/bin/sh"
           "export PATH=${pkgs.iproute2}/bin:$PATH"
         ];
         entrypoint = ''
-           sh -c "
-          ${pkgs.spo-node}/bin/spo-node /config /data ${spo-port} topology-spo-1.json /socket
+          sh -c "
+          ${pkgs.relay-node}/bin/relay-node /config /socket /data ${relay-port} topology-relay-dev.json
           "
         '';
-        expose = [ spo-port node-prometheus-port ];
+        expose = [ relay-port node-prometheus-port ];
         volumes = [
           "${socket-relay}:/socket"
-          "${data-spo}:/data"
+          "${data-relay}:/data"
           "${testnet-config}:/config"
         ];
       };
     };
+
 
 
     ogmios = {
@@ -130,8 +127,6 @@ rec {
         ];
       };
     };
-
-
 
 
     kupo = {
@@ -159,25 +154,53 @@ rec {
 
 
 
-    prometheus = {
+
+    share-config = {
       image.enableRecommendedContents = true;
       service = {
         restart = "always";
         useHostStore = true;
-        networks.default.aliases = [ "prometheus.local" ];
-        ports = [ (bindPort prometheus-port) ];
+        networks.default.aliases = [ "share-config.local" ];
+        ports = [ (bindPort share-config-port) ];
         volumes = [
-          "${prometheus-db}:/data"
+          "${testnet-config}:/config"
+          "${share-config-dir}:/dir"
         ];
         command = [
           "sh"
           "-c"
           ''
-            ${pkgs.prometheus-run}/bin/prometheus-run 
+            ${pkgs.share-config}/bin/share-config /config /dir ${share-config-port} 
           ''
         ];
       };
     };
 
-  };
+    copy-config = {
+      image.enableRecommendedContents = true;
+      service = {
+        useHostStore = true;
+        networks.default.aliases = [ "copy-config.local" ];
+        volumes = [
+          "${testnet-config}:/config"
+        ];
+        command = [
+          "sh"
+          "-c"
+          ''
+            ${pkgs.copy-config}/bin/copy-config ${config-url} /config  
+          ''
+        ];
+      };
+    };
+
+  }
+  // spammer-conf "spammer-1"
+  # // spammer-conf "spammer-2"
+  # // spammer-conf "spammer-3"
+  # // spammer-conf "spammer-4"
+  # // spammer-conf "spammer-5"
+  # // spammer-conf "spammer-6"
+  ;
+
 } 

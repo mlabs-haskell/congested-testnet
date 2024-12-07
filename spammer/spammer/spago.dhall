@@ -1,8 +1,4 @@
-{-
-Welcome to a Spago project!
-You can edit this file as you like.
--}
-{ name = "ctl-package-example"
+{ name = "spammer"
 , dependencies =
   [ "aeson"
   , "aff"
@@ -10,14 +6,20 @@ You can edit this file as you like.
   , "affjax"
   , "argonaut"
   , "arrays"
+  , "avar"
   , "bigints"
   , "bignumber"
+  , "bytearrays"
+  , "cardano-serialization-lib"
+  , "cardano-transaction-builder"
   , "cardano-transaction-lib"
+  , "cardano-types"
   , "console"
   , "control"
   , "datetime"
   , "effect"
   , "exceptions"
+  , "foreign"
   , "http-methods"
   , "lists"
   , "maybe"
@@ -28,19 +30,25 @@ You can edit this file as you like.
   , "node-http"
   , "node-process"
   , "node-streams"
+  , "now"
+  , "nullable"
   , "numbers"
   , "ordered-collections"
   , "partial"
   , "posix-types"
   , "prelude"
+  , "random"
+  , "refs"
   , "safely"
-  , "sequences"
   , "spec"
+  , "st"
   , "strings"
   , "stringutils"
+  , "tailrec"
   , "transformers"
+  , "typelevel"
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/**/*.purs", "app/**/*.purs", "test/**/*.purs" ]
+, sources = [ "src/Config.purs", "src/Scripts.purs", "src/Spammer.purs", "Example.purs" ]
 }

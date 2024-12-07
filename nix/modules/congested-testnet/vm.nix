@@ -41,6 +41,16 @@
         host.port = 18000;
         guest.port = 8000;
       }
+      {
+        from = "host";
+        host.port = 12789;
+        guest.port = 12789;
+      }
+      {
+        from = "host";
+        host.port = 18001;
+        guest.port = 8001;
+      }
     ];
   };
 }

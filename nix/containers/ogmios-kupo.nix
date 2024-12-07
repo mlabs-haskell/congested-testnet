@@ -4,8 +4,8 @@
     let
       runtimeInputs = [
         pkgs.coreutils
-        self'.packages.ogmios
-        self'.packages.kupo
+        pkgs.ogmios
+        pkgs.kupo
       ];
     in
     {
