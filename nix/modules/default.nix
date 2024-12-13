@@ -22,7 +22,7 @@
 
   perSystem = { system, pkgs, self', inputs', ... }:
     {
-      packages.vm = (self.nixosConfigurations.congested-testnet-dev.extendModules {
+      packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;
 
