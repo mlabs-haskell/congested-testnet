@@ -6,7 +6,6 @@ import Cardano.Types (Ed25519KeyHash, PaymentPubKeyHash, PrivateKey)
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
-import Contract.Backend.Ogmios.Mempool (acquireMempoolSnapshot)
 import Contract.Monad (Contract, launchAff_, runContract)
 import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints)
 import Contract.TxConstraints (mustPayToPubKey)
@@ -20,7 +19,7 @@ import Data.Array.ST as ST
 import Data.List.Lazy (replicateM)
 import Data.Time (diff)
 import Data.Time.Duration (Seconds)
-import Effect.Aff (delay, launchAff, try)
+import Effect.Aff (delay, try)
 import Effect.Class.Console (logShow)
 import Effect.Now (nowTime)
 import Effect.Random (random)
@@ -45,27 +44,59 @@ payFromKeyToPkh key pkh = do
 foreign import paidToSpammerWalletsSuccess :: Foreign -> Promise Unit
 foreign import pauseSpammer :: Foreign -> Promise Unit
 foreign import addTxHash :: Foreign -> String -> Effect Unit
-foreign import ed25519KeyHash :: Foreign -> Ed25519KeyHash
+foreign import ed25519KeyHash :: Foreign -> Effect Ed25519KeyHash
 foreign import allowTx :: Foreign -> Boolean
 foreign import updateLastTime :: Seconds -> Foreign -> Effect Unit
 foreign import spammerId :: Foreign -> Int
 foreign import isWaitTx :: Foreign -> Boolean 
+foreign import isPayFaucet :: Foreign -> Effect Boolean 
+foreign import sendTxHash :: String -> Foreign -> Effect Unit 
+foreign import getIWallet ::  Foreign -> Effect Int 
+foreign import putIWallet :: Int -> Foreign -> Effect Unit 
+foreign import resetKeyHash :: Foreign -> Effect Unit 
 
-getFundsFromFaucet :: Foreign -> Effect Unit
-getFundsFromFaucet obj = do
+faucet :: Foreign -> Effect Unit
+faucet obj = do
   envVars <- getEnvVars
   let
+    nWallets = 100
     params = config envVars
-    ed25519hash = ed25519KeyHash obj
+  privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
+  let
+    keys :: Array KeyWallet
+    keys = map (\privKey -> privateKeysToKeyWallet (wrap privKey) Nothing Nothing) privKeys
 
-  _ <- launchAff do
+    pkhs :: Array PaymentPubKeyHash
+    pkhs = map (\privKey -> wrap $ hash $ toPublicKey $ privKey) privKeys
+
+  launchAff_ do
     runContract params do
-      log "here"
-      logShow ed25519hash
-      txHash <- payToWallets "1000000000" (pure (wrap ed25519hash))
-      liftEffect (addTxHash obj (show txHash))
-      pure txHash
-  pure unit
+      log "pay to faucet wallets..."
+      txHash' <- payToWallets "1000000000000" pkhs
+      awaitTxConfirmedWithTimeout (wrap 100000.0) txHash'
+      liftAff $ toAff $ paidToSpammerWalletsSuccess obj
+      let
+          iWNext x | x == nWallets - 1 = 0
+          iWNext x = x + 1
+
+          payOrWait true  = do
+            iW <- liftEffect $ getIWallet obj
+            ed25519hash <- liftEffect $ ed25519KeyHash obj 
+            let key = unsafePartial $ unsafeIndex keys iW
+            txHash <- withKeyWallet key $ payToWallets "1000000000" (pure (wrap ed25519hash))
+            liftEffect $ sendTxHash (show txHash) obj
+            liftEffect $ putIWallet (iWNext iW) obj
+            liftEffect $ resetKeyHash obj 
+
+          payOrWait false = do 
+             liftAff $ delay (wrap 100.0)
+
+
+      forever do
+         x <- liftEffect $ isPayFaucet obj
+         payOrWait x
+
+
 
 spammer :: Foreign -> Effect Unit
 spammer controlVars = do
@@ -120,7 +151,6 @@ spammer controlVars = do
       lockedTxScriptId :: ST.STArray Global (TransactionHash /\ Int) <- liftEffect $ toEffect ST.new
       -- spammer loop
       forever do
-        _ <- acquireMempoolSnapshot
         randomNumber <- liftEffect $ random
         iW <- liftEffect $ RF.read iWallet
         nL <- liftEffect $ RF.read nLocked
@@ -136,6 +166,7 @@ spammer controlVars = do
 
           maybeIScript = selectScriptIndBasedOnDistr randomNumber
 
+          -- skip transaction
           makeTransaction _ _ false = do
             liftAff $ delay (wrap 10.0)
 
