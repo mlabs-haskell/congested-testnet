@@ -94,7 +94,9 @@ main = do
       pkh <- liftContractM "no pkh" mPkh  
       let constraint = mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe "3000000") 
       txHash <- submitTxFromConstraints mempty constraint
+      log $ "tx :" <> show txHash  <> " submitted and sent to mempool"
       start <- liftEffect nowTime
+      log " wait tx will be added to the block..." 
       awaitTxConfirmedWithTimeout (wrap 10000.0) txHash
       end <- liftEffect nowTime
       let

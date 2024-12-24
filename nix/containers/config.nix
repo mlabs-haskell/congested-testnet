@@ -40,15 +40,27 @@
       };
       packages.gen-testnet-conf = pkgs.writeShellApplication {
         name = "gen-testnet-conf";
-        runtimeInputs = [
-          pkgs.jq
-          pkgs.coreutils
-          pkgs.cardano-node
-          pkgs.cardano-cli
+        runtimeInputs = with pkgs; [
+          cardano-node
+          cardano-cli
+          jq
+          coreutils
+          gnugrep
+          websocat
+          curl
+          iputils
+          bashInteractive
+          cacert
+          glibcLocales
+          iproute
+          socat
+          utillinux
+          dnsutils
+          tree
+          iproute2
         ];
         text = ''
           ROOT=$1
-          # chmod 777 -R "$ROOT"
 
           if [ -f "$ROOT/finish_config" ]; then
             exit 1
@@ -96,6 +108,18 @@
 
           jq --argjson maxSupply "$MAX_SUPPLY" --argjson secParam "$SECURITY_PARAM" '.maxLovelaceSupply = $maxSupply | .slotLength = 2 | .securityParam = $secParam | .activeSlotsCoeff = 0.05 | .epochLength = 432000 | .updateQuorum = 2 | .protocolParams.protocolVersion.major = 9 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 1 | .protocolParams.rho = 0.003 | .protocolParams.tau = 0.2 | .protocolParams.a0 = 0.3 | .protocolParams.maxBlockBodySize = 17000 | .protocolParams.maxBlockHeaderSize = 1100' "$ROOT/shelley-genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/shelley-genesis.json"
           touch "$ROOT/finish_config" 
+        '';
+      };
+
+      packages.add-spo-node = pkgs.writeShellApplication {
+        name = "add-spo-node";
+        runtimeInputs = with pkgs; [
+          cardano-node
+          cardano-cli
+        ];
+        text = ''
+          # ROOT=$1
+          cardano-cli --help
         '';
       };
 };

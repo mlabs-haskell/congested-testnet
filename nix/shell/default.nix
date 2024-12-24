@@ -20,7 +20,7 @@
           # pkgs.audacity
           # pkgs.shotcut
           nixd
-          # pkgs.rust-analyzer
+          pkgs.rust-analyzer
           # pkgs.cargo
           # pkgs.fileshare
           # self'.packages.arion-with-prebuilt

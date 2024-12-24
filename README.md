@@ -45,3 +45,6 @@ Run
 ```bash
 nixos-rebuild test --flake .#congested-testnet --target-host root@congested-testnet.staging.mlabs.city
 ```
+### custom node 
+
+
