@@ -16,9 +16,15 @@
           (python311.withPackages (ps : with ps; [fire]) )
         ];
         text = ''
+         # some config files
          export BYRON_GENESIS_SPEC_JSON=${../../scripts/byron.genesis.spec.json}
-         export GEN_TESTNET_CONF_SH=${../../scripts/gen_testnet_conf.sh}
          export CONFIGURATION_YAML=${../../scripts/configuration.yaml}
+         export TOPOLOGY_GENESIS_SPO_JSON=${../../scripts/topology_genesis_spo.json}
+
+         # scripts 
+         export GEN_TESTNET_CONF_SH=${../../scripts/gen_testnet_conf.sh}
+         export RUN_GENESIS_SPO_SH=${../../scripts/run_genesis_spo.sh}
+
          python ${./cli.py} "$@"
         '';
       };
