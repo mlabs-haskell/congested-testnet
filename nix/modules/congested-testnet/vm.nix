@@ -28,6 +28,11 @@
       }
       {
         from = "host";
+        host.port = 13000;
+        guest.port = 3000;
+      }
+      {
+        from = "host";
         host.port = 11442;
         guest.port = 1442;
       }

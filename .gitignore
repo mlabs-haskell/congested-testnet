@@ -3,7 +3,6 @@ cluster/socket
 examples/purescript-example/.spago
 examples/purescript-example/output
 examples/purescript-example/node_modules
-tmp
 secrets
 .ipynb_checkpoints
 *.pkl

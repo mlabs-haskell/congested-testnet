@@ -40,6 +40,7 @@
           nodejs
           ogmios
           kupo
+          python311Packages.fire
         ] 
         ++
         self'.devShells.ctl.buildInputs

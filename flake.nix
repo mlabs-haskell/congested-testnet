@@ -24,10 +24,10 @@
         ./nix/ctl
         ./nix/shell
         ./nix/modules
-        ./nix/containers
+        ./nix/components
         ./nix/cardano
         # ./nix/research
-        ./nix/docker
+        ./nix/cli
         ./nix/tests
         ./examples/get-tada.nix
       ];

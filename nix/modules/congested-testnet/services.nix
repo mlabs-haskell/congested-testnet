@@ -164,34 +164,12 @@ systemd.timers.restart-schedule = {
     };
   };
 
-  systemd.services.share-config = let 
-      helper = pkgs.writeShellApplication {
-        runtimeInputs = [
-          pkgs.fileshare
-        ];
-        name = "share-config";
-        text = ''
-          ROOT=${root} 
-          DIR=${share-config}
-          rm -rf "$DIR"
-          mkdir -p "$DIR"
-          cp "$ROOT/pools-keys/pool1/kes.skey" "$DIR" 
-              # --shelley-operational-certificate "$ROOT/pools-keys/pool1/opcert.cert" \
-              # --shelley-vrf-key "$ROOT/pools-keys/pool1/vrf.skey" \
-              # --byron-signing-key  "$ROOT/byron-gen-command/delegate-keys.000.key" \
-              # --byron-delegation-certificate  "$ROOT/byron-gen-command/delegation-cert.000.json" \
-              # --host-addr "0.0.0.0" \
-              # --socket-path "$ROOT/node.socket" \
-              # --topology ${../../containers/config/topology-spo-1.json}  
-          fileshare -p 5000 "$DIR"
-        '';
-      };
-  in
+  systemd.services.share-config =  
   {
     description = "share-config"; 
     wantedBy = ["multi-user.target"];
     serviceConfig = {
-      ExecStart = ''${helper}/bin/share-config'';
+      ExecStart = ''${pkgs.share-config}/bin/share-config ${root} ${share-config} 5000'';
       Restart = "on-failure";
       RestartSec = 5;
     };

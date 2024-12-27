@@ -47,4 +47,8 @@ nixos-rebuild test --flake .#congested-testnet --target-host root@congested-test
 ```
 ### custom node 
 
+create `config` folder with testnet configs
+```bash
+nix run .#congested-testnet-cli -- gen_testnet_conf config
+```
 

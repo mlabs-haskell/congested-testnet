@@ -78,16 +78,6 @@
           --host-addr "0.0.0.0" \
           --socket-path "$SOCKET/node.socket" \
           --topology "$CONFIG/$TOPOLOGY"  
-          # cardano-node run --config "$CONFIG/configuration.yaml" \
-          # --topology "$CONFIG/$TOPOLOGY"  \
-          # --database-path "$DB/db" \
-          # --port "$PORT" \
-          # --shelley-kes-key "$CONFIG/pools/kes1.skey" \
-          # --shelley-operational-certificate "$CONFIG/pools/opcert1.cert" \
-          # --shelley-vrf-key "$CONFIG/pools/vrf1.skey" \
-          # --byron-signing-key  "$CONFIG/byron-gen-command/delegate-keys.000.key" \
-          # --byron-delegation-certificate  "$CONFIG/byron-gen-command/delegation-cert.000.json" \
-          # --host-addr "0.0.0.0"
         '';
       };
       packages.ping-relay-spo = pkgs.writeShellApplication {
