@@ -14,7 +14,7 @@ cat <<EOF > topology.json
           "port": 3000
         }
       ],
-      "advertise": false 
+      "advertise": true 
     }
   ],
   "localRoots": [],

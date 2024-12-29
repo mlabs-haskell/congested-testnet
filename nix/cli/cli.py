@@ -38,6 +38,43 @@ def run_staking_node(genesis_config_pth_or_url, node_config_path, port : int, ac
     cmd = [os.environ["RUN_STAKING_NODE_SH"], node_config_path, str(port), access_point_url]
     subprocess.run(cmd)
 
+def run_kupo(genesis_config_pth_or_url):
+    """
+    run staking node 
+    args:
+        genesis_config_pth_or_url : folder or web with genesis and configuration.yaml files
+        node_config_path : path where necessary config will be generated for spo node 
+        port 
+    """
+    cmd = [os.environ["RUN_KUPO_SH"], genesis_config_pth_or_url]
+    subprocess.run(cmd)
+
+def run_ogmios(genesis_config_pth_or_url):
+    """
+    run staking node 
+    args:
+        genesis_config_pth_or_url : folder or web with genesis and configuration.yaml files
+        node_config_path : path where necessary config will be generated for spo node 
+        port 
+    """
+    cmd = [os.environ["GEN_STAKING_CONF_SH"], genesis_config_pth_or_url, node_config_path]
+    subprocess.run(cmd)
+    cmd = [os.environ["RUN_STAKING_NODE_SH"], node_config_path, str(port), access_point_url]
+    subprocess.run(cmd)
+
+def run_spammer(genesis_config_pth_or_url):
+    """
+    run spammers on genesis node, local faucet (port 8000), ogmios (port 1337) and kupo (port 1442)
+    args:
+        genesis_config_pth_or_url : folder with genesis node metadata 
+        node_config_path : path where necessary config will be generated for spo node 
+        port 
+    """
+    cmd = [os.environ["RUN_OGMIOS_SH"], genesis_config_pth_or_url, node_config_path]
+    subprocess.run(cmd)
+    cmd = [os.environ["RUN_KUPO_SH"], genesis_config_pth_or_url, node_config_path]
+    subprocess.run(cmd)
+
 
 if __name__ == '__main__':
   fire.Fire()
