@@ -1,6 +1,5 @@
 {
-  "localRoots": [
-  ],
+  "localRoots": [],
   "publicRoots":[],
-  "useLedgerAfterSlot": 10
+  "useLedgerAfterSlot": -1 
 }

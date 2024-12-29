@@ -19,7 +19,6 @@
           # pkgs.kazam
           # pkgs.audacity
           # pkgs.shotcut
-          nixd
           pkgs.rust-analyzer
           # pkgs.cargo
           # pkgs.fileshare

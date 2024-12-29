@@ -24,6 +24,8 @@
          # scripts 
          export GEN_TESTNET_CONF_SH=${../../scripts/gen_testnet_conf.sh}
          export RUN_GENESIS_SPO_SH=${../../scripts/run_genesis_spo.sh}
+         export GEN_STAKING_CONF_SH=${../../scripts/gen_staking_conf.sh}
+         export RUN_STAKING_NODE_SH=${../../scripts/run_stacking_node.sh}
 
          python ${./cli.py} "$@"
         '';

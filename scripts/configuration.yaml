@@ -51,7 +51,6 @@ ApplicationName: cardano-sl
 ApplicationVersion: 1
 
 
-PeerSharing: True
 
 ##### Logging configuration #####
 
@@ -87,16 +86,16 @@ defaultBackends:
 # EKG is a simple metrics monitoring system. Uncomment the following to enable
 # this backend and listen on the given local port and point your web browser to
 # http://localhost:12788/
-hasEKG: 
-  - "0.0.0.0"
-  - 12788
+# hasEKG: 
+#   - "0.0.0.0"
+#   - 12788
 
 # The Prometheus monitoring system exports EKG metrics. Uncomment the following
 # to listen on the given port. Output is provided on
 # http://localhost:12789/metrics
-hasPrometheus:
-  - "0.0.0.0"
-  - 12789
+# hasPrometheus:
+#   - "0.0.0.0"
+#   - 12789
 
 # To enable the legacy 'TraceForwarder' backend, uncomment the following setting. Log
 # items are then forwarded based on an entry in 'mapBackends' to a separate
@@ -318,7 +317,13 @@ TestBabbageHardForkAtEpoch: 0
 TestConwayHardForkAtEpoch: 0
 ExperimentalProtocolsEnabled: True
 ExperimentalHardForksEnabled: True
+
 EnableP2P: True
+PeerSharing: True
+TargetNumberOfActivePeers: 20
+TargetNumberOfEstablishedPeers: 40
+TargetNumberOfKnownPeers: 100
+TargetNumberOfRootPeers: 100
 
 
 # override mempool
