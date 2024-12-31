@@ -51,6 +51,8 @@ create `config` folder with testnet configs
 ```bash
 nix run .#congested-testnet-cli -- gen_testnet_conf config
 nix run .#congested-testnet-cli -- run_genesis_spo config 3000 --gen_config
-nix run .#congested-testnet-cli -- run_staking_node config 3000 --gen_config
+# nix run .#congested-testnet-cli -- run_staking_node config 3000 --gen_config
+nix run .#congested-testnet-cli -- run_ogmios config 
+nix run .#congested-testnet-cli -- run_kupo config 
 ```
 

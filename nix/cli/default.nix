@@ -1,10 +1,6 @@
 { inputs, self, ... }:
 {
   perSystem = { system, self', pkgs, ... } : {
-    # packages.congested-testnet-cli = pkgs.dockerTools.buildImage {
-    # name = "congested-testnet-cli";
-    # config.Cmd = "${self'.packages.gen-testnet-conf}/bin/gen-testnet-conf"; 
-    # };
 
     packages.congested-testnet-cli = pkgs.writeShellApplication {
         name = "congested-testnet-cli";
@@ -15,6 +11,7 @@
           kupo
           ogmios
           python311Packages.fire
+          spammer
           (python311.withPackages (ps : with ps; [fire]) )
         ];
         text = ''
@@ -29,25 +26,66 @@
          export GEN_STAKING_CONF_SH=${../../scripts/gen_staking_conf.sh}
          export RUN_STAKING_NODE_SH=${../../scripts/run_stacking_node.sh}
          export RUN_KUPO_SH=${../../scripts/run_kupo.sh}
-
+         export RUN_OGMIOS_SH=${../../scripts/run_ogmios.sh}
+         export CREATE_ADDITIONAL_UTXO_SH=${../../scripts/create_additional_utxo.sh}
          python ${./cli.py} "$@"
         '';
       };
+
+    packages.congested-testnet-cli-image = pkgs.dockerTools.buildLayeredImage {
+      name = "congested-testnet-cli";
+      tag = "latest";
+      contents = with pkgs; [
+          self'.packages.congested-testnet-cli
+          bashInteractive
+          jq
+          coreutils
+          gnugrep
+          websocat
+          curl
+          iputils
+          cacert
+          glibcLocales
+          iproute
+          socat
+          utillinux
+          dnsutils
+      ];
+    };
+    # packages.congested-testnet-cli-image =
+    # let
+    #   python311 = pkgs.dockerTools.pullImage {
+    #       imageName = "python";
+    #       imageDigest = ""; # Replace with actual digest
+    #   };
+    # in
+    # pkgs.dockerTools.buildLayeredImage {
+    # # packages.congested-testnet-cli-image = pkgs.dockerTools.streamLayeredImage {
+    #   name = "congested-testnet-cli";
+    #   tag = "latest";
+    #   contents = with pkgs; [
+    #    spammer
+    #   ];
+    # };
+    # packages.congested-testnet-cli-image = pkgs.dockerTools.buildNixShellImage {
+    #   name = "congested-testnet-cli";
+    #   tag = "latest";
+    #   contents = with pkgs; [
+    #       self'.packages.congested-testnet-cli
+    #       bashInteractive
+    #       jq
+    #       coreutils
+    #       gnugrep
+    #       websocat
+    #       curl
+    #       iputils
+    #       cacert
+    #       glibcLocales
+    #       iproute
+    #       socat
+    #       utillinux
+    #       dnsutils
+    #   ];
+    # };
   };
 }
-          # ROOT="congested-testnet-$(openssl rand -hex 4)"
-          # export ROOT
-          # mkdir -p "$ROOT"
-          # echo "testnet configs in $ROOT"
-          # gen-testnet-conf "$ROOT"
-          # cardano-node run --config "$ROOT/configuration.yaml" \
-          #     --database-path "$ROOT/db" \
-          #     --port 3000 \
-          #     --shelley-kes-key "$ROOT/pools-keys/pool1/kes.skey" \
-          #     --shelley-operational-certificate "$ROOT/pools-keys/pool1/opcert.cert" \
-          #     --shelley-vrf-key "$ROOT/pools-keys/pool1/vrf.skey" \
-          #     --byron-signing-key  "$ROOT/byron-gen-command/delegate-keys.000.key" \
-          #     --byron-delegation-certificate  "$ROOT/byron-gen-command/delegation-cert.000.json" \
-          #     --host-addr "0.0.0.0" \
-          #     --socket-path "$ROOT/node.socket" \
-          #     --topology ${../containers/config/topology-spo-1.json}  
