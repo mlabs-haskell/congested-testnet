@@ -61,7 +61,7 @@ faucet obj = do
   envVars <- getEnvVars
   let
     -- generate many wallets for faucet in order to handle many requests 
-    nWallets = 100
+    nWallets = 50
     params = config envVars
   privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
   let
@@ -218,3 +218,6 @@ spammer controlVars = do
         makeTransaction maybeIScript nL (allowTx controlVars)
         -- next wallet
         liftEffect $ RF.write iWNext iWallet
+
+
+-- worker :: Foreign -> Effect Unit
