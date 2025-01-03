@@ -54,11 +54,13 @@ foreign import sendTxHash :: String -> Foreign -> Effect Unit
 foreign import getIWallet ::  Foreign -> Effect Int 
 foreign import putIWallet :: Int -> Foreign -> Effect Unit 
 foreign import resetKeyHash :: Foreign -> Effect Unit 
+foreign import payLovelace :: Foreign -> Effect String 
 
 faucet :: Foreign -> Effect Unit
 faucet obj = do
   envVars <- getEnvVars
   let
+    -- generate many wallets for faucet in order to handle many requests 
     nWallets = 100
     params = config envVars
   privKeys :: Array PrivateKey <- fromFoldable <$> replicateM nWallets generate
@@ -83,7 +85,8 @@ faucet obj = do
             iW <- liftEffect $ getIWallet obj
             ed25519hash <- liftEffect $ ed25519KeyHash obj 
             let key = unsafePartial $ unsafeIndex keys iW
-            txHash <- withKeyWallet key $ payToWallets "1000000000" (pure (wrap ed25519hash))
+            payAmount' <- liftEffect $ payLovelace obj
+            txHash <- withKeyWallet key $ payToWallets payAmount' (pure (wrap ed25519hash))
             liftEffect $ sendTxHash (show txHash) obj
             liftEffect $ putIWallet (iWNext iW) obj
             liftEffect $ resetKeyHash obj 

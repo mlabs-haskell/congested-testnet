@@ -33,4 +33,5 @@ export const sendTxHash = txHash => obj => () => {obj.txHash = txHash};
 export const getIWallet = obj => () => obj.iWallet;
 export const putIWallet = iW => obj => () => {obj.iWallet = iW};
 export const resetKeyHash = obj => () => {obj.ed25519KeyHash = null;};
+export const payLovelace = obj => () => obj.payLovelace;
 

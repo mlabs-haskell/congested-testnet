@@ -39,8 +39,9 @@
         }
     });
 
-     promExporter.listen(8001, () => {
-         console.log(`Prometheus metrics available at http://0.0.0.0:${8001}/metrics`);
+     const SPAMMER_METRIC_PORT = process.env.SPAMMER_METRIC_PORT  
+     promExporter.listen(SPAMMER_METRIC_PORT, () => {
+         console.log(`Prometheus metrics available at http://0.0.0.0:${SPAMMER_METRIC_PORT}/metrics`);
      });
     }
 

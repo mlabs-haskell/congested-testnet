@@ -48,9 +48,15 @@
         ;
         shellHook = ''
           export SSHOPTS="-p 2222"
-          export walletPath="/tmp/wallet/wallet.skey";
-          export kupoUrl="0.0.0.0"
-          export ogmiosUrl="0.0.0.0"
+          export OGMIOS_URL="0.0.0.0"
+          export OGMIOS_PORT="1337"
+          export KUPO_URL="0.0.0.0"
+          export KUPO_PORT="1442"
+          export NSPAMMERS=3
+          export SPAMMER_METRIC_PORT="8001"
+          export FAUCET_PORT="8000"
+          export FAUCET_LOVELACE_AMOUNT="1000000000000"
+          export walletPath="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
         '';
       };
 

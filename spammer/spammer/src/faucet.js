@@ -22,11 +22,17 @@ const faucetServer = async () => {
   const {faucet} = await import(path.resolve(__dirname, "../output/Spammer/index.js"));
 
 
-  const PORT = 8000;
+  const FAUCET_PORT = process.env.FAUCET_PORT;
+  const FAUCET_LOVELACE_AMOUNT = process.env.FAUCET_LOVELACE_AMOUNT;
 
   console.log("create faucet server....")
-  var faucetPars = {ed25519KeyHash : null, txHash : null, iWallet : 0, parentPort : parentPort, isAllowTransactions : false};
+  var faucetPars = {ed25519KeyHash : null, txHash : null, iWallet : 0, 
+    parentPort : parentPort, isAllowTransactions : false, payLovelace : FAUCET_LOVELACE_AMOUNT};
+
+  // run faucet script
   faucet(faucetPars)();
+
+  // faucet server changes faucetPars
   const server = http.createServer((req, res) => {
       if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
           let body = '';
@@ -44,7 +50,7 @@ const faucetServer = async () => {
                       faucetPars.ed25519KeyHash = csl.Ed25519KeyHash.from_hex(pubKeyHashHex);
                       const txHash = await waitForTxHash(faucetPars); 
                       res.writeHead(200, { 'Content-Type': 'application/json' });
-                      const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid 1000 tada txHash : ${txHash}\n . Transaction added to mempool`;
+                      const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid ${FAUCET_LOVELACE_AMOUNT} tada txHash : ${txHash}\n . Transaction added to mempool`;
                       res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
                   } else {
                       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -61,8 +67,8 @@ const faucetServer = async () => {
       }
   });
 
-  server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+  server.listen(FAUCET_PORT, () => {
+      console.log(`Server is running on port ${FAUCET_PORT}`);
   });
 };
 

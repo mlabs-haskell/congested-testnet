@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"  
     volumes:
-      - genesis_spo_data:/data
+      - ./genesis_spo_data:/data
 
   ogmios:
     image: congested-testnet-cli:latest
@@ -13,7 +13,7 @@ services:
     ports:
       - "1337:1337"  
     volumes:
-      - genesis_spo_data:/data
+      - ./genesis_spo_data:/data
     restart: always
 
   kupo:
@@ -22,27 +22,27 @@ services:
     ports:
       - "1442:1442"  
     volumes:
-      - genesis_spo_data:/data
+      - ./genesis_spo_data:/data
     restart: always
 
   wallet:
     image: congested-testnet-cli:latest
     command: congested-testnet-cli create_additional_utxo /data 
     volumes:
-      - genesis_spo_data:/data
+      - ./genesis_spo_data:/data
 
-  spammer:
-    image: congested-testnet-cli:latest
-    command: congested-testnet-cli run_spammer /data ogmios kupo 
-    # ports:
-    #   - ":1442"  
-    volumes:
-      - genesis_spo_data:/data
-    depends_on:
-      - ogmios
-      - kupo
-    restart: always
+  # spammer:
+  #   image: congested-testnet-cli:latest
+  #   command: congested-testnet-cli run_spammer /data ogmios kupo 
+  #   # ports:
+  #   #   - ":1442"  
+  #   volumes:
+  #     - genesis_spo_data:/data
+  #   depends_on:
+  #     - ogmios
+  #     - kupo
+  #   restart: always
+#
 
-
-volumes:
-  genesis_spo_data:
+# volumes:
+#   genesis_spo_data:
