@@ -30,7 +30,7 @@ import Effect.Class.Console (logShow)
 import Effect.Now (nowTime)
 import Effect.Random (random)
 import Effect.Ref as RF
-import Foreign (Foreign, unsafeFromForeign, unsafeToForeign)
+import Foreign (F, Foreign, isNull, unsafeFromForeign, unsafeToForeign)
 import Partial.Unsafe (unsafePartial)
 
 type BackendPars =
@@ -39,17 +39,38 @@ type BackendPars =
   , kupoUrl :: String
   }
 
--- type txPars =
---   { walletPath :: String
---   , ogmiosUrl :: String
---   , kupoUrl :: String
---   }
+type TxPars =
+  { 
+    tx :: String,
+    amount :: String,
+    from :: Foreign,
+    to :: Array Ed25519KeyHash,
+    script :: Foreign,
+    utxo :: Foreign 
+  }
 
 type ParentPort = Foreign
 type State = Foreign
 type PostMsg = Foreign 
 type RespType = String 
+
 foreign import postP :: ParentPort -> PostMsg -> RespType -> State -> Promise Unit 
+
+
+makeTransaction :: ParentPort -> State -> TxPars -> Contract Unit  
+makeTransaction pport state txPars 
+  |txPars.tx == "initWallets" = do   
+    txHash <- payToWallets txPars.amount txPars.to
+    awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+    liftAff $ toAff $ postP pport (unsafeToForeign "mainWalletFree") "OK" state 
+
+makeTransaction _ _ _ = pure unit
+
+
+    
+
+
+
 
 executeTransactionLoop :: ParentPort -> State -> Effect Unit
 executeTransactionLoop pport state = launchAff_ do
@@ -58,20 +79,24 @@ executeTransactionLoop pport state = launchAff_ do
      env :: BackendPars
      env = unsafeFromForeign state
    runContract (contractParams env) do
-      -- liftAff $ toAff $ postP pport "reqNextTransaction" "respNextTransaction" state 
+      liftAff $ toAff $ postP pport (unsafeToForeign "reqNextTransaction") "TxPars" state 
+      let
+        txPars :: TxPars
+        txPars = unsafeFromForeign state
+
+      makeTransaction txPars
       logShow "hi"
+      -- logShow txPars 
 
-
-
-payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash
+payToWallets :: String -> Array Ed25519KeyHash -> Contract TransactionHash
 payToWallets amount pkhs = do
-  let constraints = mconcat $ map (\pkh -> mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
+  let constraints = mconcat $ map (\pkh -> mustPayToPubKey (wrap pkh) (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
   txHash <- submitTxFromConstraints mempty constraints
   logShow txHash
   pure txHash
 
 
-payFromKeyToPkh :: KeyWallet -> PaymentPubKeyHash -> Contract TransactionHash
+payFromKeyToPkh :: KeyWallet -> Ed25519KeyHash  -> Contract TransactionHash
 payFromKeyToPkh key pkh = do
   withKeyWallet key do
     payToWallets "3000000" (pure pkh)

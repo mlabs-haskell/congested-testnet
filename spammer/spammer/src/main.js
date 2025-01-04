@@ -49,17 +49,20 @@
 //
 const txResponseFromState = (state) => {
   resp = {
-    type : "respNextTransaction",
+    type : "TxPars",
+    amount : "1000000000000",
+    await : null,
     tx : "skip",
     from : null,
-    to : null,
+    to : [],
     script : null,
-    utxo : null
+    utxo : null,
   };
 
   if (!state.wallets.isFilled && !state.mainWallet.isInUse ) {
-    state.mainWallet.inUse = true;
-    resp.tx = "pay";
+    // initialize spammer wallets
+    state.mainWallet.isInUse = true;
+    resp.tx = "initWallets";
     resp.to = state.wallets.hashes;
   } else {
     resp.tx = "skip";
@@ -81,8 +84,12 @@ const spawnWorker = async (state) => {
          walletPath : state.mainWallet.path})
      } else if (msg == "reqNextTransaction") {
        worker.postMessage(txResponseFromState(state));
+     } else if (msg == "walletsFilled") {
+       state.mainWallet.isInUse = false;
+       state.wallets.isFilled = true;
+       worker.postMessage({ type : "OK" })
      };
-     });
+   });
 };
 
 // MAIN 

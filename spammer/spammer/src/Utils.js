@@ -14,3 +14,4 @@ export const postP = parentPort => reqMsg => respType => state => new Promise(as
   resolve();
 })
 
+export const sTest = null; 
