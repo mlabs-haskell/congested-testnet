@@ -8,10 +8,12 @@ import Ctl.Internal.Contract.QueryBackend (QueryBackendParams(..))
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
 
-type EnvVars =
+type BackendVars =
   { walletPath :: String
   , ogmiosUrl :: String
+  , ogmiosPort :: Int 
   , kupoUrl :: String
+  , kupoPort :: Int 
   }
 
 foreign import getEnvVars :: Effect EnvVars

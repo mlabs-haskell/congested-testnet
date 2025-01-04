@@ -1,4 +1,4 @@
-export const getEnvVars = () => {
+export const getBackendEnvVars = () => {
     const result = {}
     result["ogmiosUrl"] = process.env.OGMIOS_URL
     result["kupoUrl"] = process.env.KUPO_URL

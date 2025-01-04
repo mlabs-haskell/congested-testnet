@@ -56,7 +56,9 @@
           export SPAMMER_METRIC_PORT="8001"
           export FAUCET_PORT="8000"
           export FAUCET_LOVELACE_AMOUNT="1000000000000"
-          export walletPath="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
+          # export walletPath="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
+          export WALLET_SKEY_PATH="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
+          export N_WORKERS=3
         '';
       };
 

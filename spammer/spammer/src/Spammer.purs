@@ -101,11 +101,11 @@ faucet obj = do
 
 
 
-spammer :: Foreign -> Effect Unit
-spammer controlVars = do
-  log " ============ start spammer =============== "
+
+worker :: Effect Unit
+worker = do
+  log " ============ start worker =============== "
   envVars <- getEnvVars
-  
   let
     spammerId' = spammerId controlVars
     params = config envVars
@@ -220,4 +220,3 @@ spammer controlVars = do
         liftEffect $ RF.write iWNext iWallet
 
 
--- worker :: Foreign -> Effect Unit
