@@ -8,8 +8,9 @@ const waitUntilCondition = callbackConditionCheck => new Promise((resolve) => {
 }
 );
 
-export const requestP = parentPort => reqMsg => respMsg => state => new Promise(async (resolve) => {
+export const postP = parentPort => reqMsg => respType => state => new Promise(async (resolve) => {
   parentPort.postMessage(reqMsg);
-  await waitUntilCondition(() => {return (state.type == respMsg);})
+  await waitUntilCondition(() => {return (state.type == respType);})
   resolve();
 })
+

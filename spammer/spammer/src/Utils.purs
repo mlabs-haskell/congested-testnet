@@ -30,7 +30,7 @@ import Effect.Class.Console (logShow)
 import Effect.Now (nowTime)
 import Effect.Random (random)
 import Effect.Ref as RF
-import Foreign (Foreign, unsafeFromForeign)
+import Foreign (Foreign, unsafeFromForeign, unsafeToForeign)
 import Partial.Unsafe (unsafePartial)
 
 type BackendPars =
@@ -39,19 +39,26 @@ type BackendPars =
   , kupoUrl :: String
   }
 
+-- type txPars =
+--   { walletPath :: String
+--   , ogmiosUrl :: String
+--   , kupoUrl :: String
+--   }
+
 type ParentPort = Foreign
 type State = Foreign
-
-foreign import requestP :: ParentPort -> String -> String -> State -> Promise Unit 
+type PostMsg = Foreign 
+type RespType = String 
+foreign import postP :: ParentPort -> PostMsg -> RespType -> State -> Promise Unit 
 
 executeTransactionLoop :: ParentPort -> State -> Effect Unit
 executeTransactionLoop pport state = launchAff_ do
-   toAff $ requestP pport "reqBackendPars" "respBackendPars" state 
+   toAff $ postP pport (unsafeToForeign "reqBackendPars") "BackendPars" state 
    let
      env :: BackendPars
      env = unsafeFromForeign state
    runContract (contractParams env) do
-      -- liftAff $ toAff $ requestP pport "reqNextTransaction" "respNextTransaction" state 
+      -- liftAff $ toAff $ postP pport "reqNextTransaction" "respNextTransaction" state 
       logShow "hi"
 
 

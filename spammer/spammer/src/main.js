@@ -46,6 +46,27 @@
 
 // const createWorkerWallets = async () => {
 // };
+//
+const txResponseFromState = (state) => {
+  resp = {
+    type : "respNextTransaction",
+    tx : "skip",
+    from : null,
+    to : null,
+    script : null,
+    utxo : null
+  };
+
+  if (!state.wallets.isFilled && !state.mainWallet.isInUse ) {
+    state.mainWallet.inUse = true;
+    resp.tx = "pay";
+    resp.to = state.wallets.hashes;
+  } else {
+    resp.tx = "skip";
+  };
+  return resp;
+};
+
 
 const spawnWorker = async (state) => {
    const path = await import("path");
@@ -54,18 +75,13 @@ const spawnWorker = async (state) => {
    worker.on("message", msg => {
      if (msg == "reqBackendPars") {
        worker.postMessage({
-         type : "respBackendPars",
+         type : "BackendPars",
          ogmiosUrl : state.ogmiosUrl,
          kupoUrl : state.kupoUrl,
-         walletPath : state.mainWalletPath})
+         walletPath : state.mainWallet.path})
+     } else if (msg == "reqNextTransaction") {
+       worker.postMessage(txResponseFromState(state));
      };
-     // if (msg == "reqNextTransaction") {
-     //   worker.postMessage({
-     //     type : "respNextTransaction",
-     //     txType : txType(state)
-     //
-     //   })
-     // };
      });
 };
 
@@ -74,17 +90,29 @@ const spawnWorker = async (state) => {
   // generate wallets and fill them with funds 
   // spammers and faucet share same wallets
   
+  const path = await import("path");
+  const utils = await import(path.resolve(__dirname, "./utils.js"));
+  const keys = utils.uploadKeys(path.resolve(__dirname, "./Keys.json"));  
+
   var state = {
-    mainWalletPath : process.env.WALLET_SKEY_PATH,
+    mainWallet : {
+      path : process.env.WALLET_SKEY_PATH,
+      isInUse : false
+    },
     ogmiosUrl : process.env.OGMIOS_URL,
     kupoUrl : process.env.KUPO_URL,
 
     // generate 200 spammer wallets in order to use different keys and not wait until tx is finished  
     // which is necessary for spamming approach
-    spammerWalletsPkeys : generateKeys() ,  
-
+    wallets : {
+      keys : keys, 
+      hashes: keys.map(pkey => utils.hash(pkey)),
+      // if false, need take funds from main wallet
+      isFilled: false 
+    }
   };
 
+  // console.log(state)
   
 
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
