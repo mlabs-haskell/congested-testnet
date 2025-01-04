@@ -42,15 +42,16 @@ type BackendPars =
 type ParentPort = Foreign
 type State = Foreign
 
-foreign import requestP :: ParentPort -> String -> State -> Promise Unit 
+foreign import requestP :: ParentPort -> String -> String -> State -> Promise Unit 
 
 executeTransactionLoop :: ParentPort -> State -> Effect Unit
 executeTransactionLoop pport state = launchAff_ do
-   toAff $ requestP pport "reqBackendPars" state 
+   toAff $ requestP pport "reqBackendPars" "respBackendPars" state 
    let
      env :: BackendPars
      env = unsafeFromForeign state
    runContract (contractParams env) do
+      -- liftAff $ toAff $ requestP pport "reqNextTransaction" "respNextTransaction" state 
       logShow "hi"
 
 

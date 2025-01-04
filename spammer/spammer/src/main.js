@@ -47,7 +47,7 @@
 // const createWorkerWallets = async () => {
 // };
 
-const spawnWorker = async () => {
+const spawnWorker = async (state) => {
    const path = await import("path");
    const {Worker} = await import("node:worker_threads");
    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
@@ -55,22 +55,40 @@ const spawnWorker = async () => {
      if (msg == "reqBackendPars") {
        worker.postMessage({
          type : "respBackendPars",
-         ogmiosUrl : process.env.OGMIOS_URL,
-         kupoUrl : process.env.KUPO_URL,
-         walletPath : process.env.WALLET_SKEY_PATH
-       })
+         ogmiosUrl : state.ogmiosUrl,
+         kupoUrl : state.kupoUrl,
+         walletPath : state.mainWalletPath})
      };
+     // if (msg == "reqNextTransaction") {
+     //   worker.postMessage({
+     //     type : "respNextTransaction",
+     //     txType : txType(state)
+     //
+     //   })
+     // };
      });
 };
 
+// MAIN 
 (async () => {
-  // pars = await initParams();
   // generate wallets and fill them with funds 
   // spammers and faucet share same wallets
-  // var params = await generateWalletsForWorkersAndFillThemWithFunds();
+  
+  var state = {
+    mainWalletPath : process.env.WALLET_SKEY_PATH,
+    ogmiosUrl : process.env.OGMIOS_URL,
+    kupoUrl : process.env.KUPO_URL,
+
+    // generate 200 spammer wallets in order to use different keys and not wait until tx is finished  
+    // which is necessary for spamming approach
+    spammerWalletsPkeys : generateKeys() ,  
+
+  };
+
+  
 
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
-     spawnWorker();
+     spawnWorker(state);
   }
 
   

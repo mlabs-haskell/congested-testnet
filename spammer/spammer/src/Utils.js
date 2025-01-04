@@ -7,22 +7,9 @@ const waitUntilCondition = callbackConditionCheck => new Promise((resolve) => {
     }, 10);
 }
 );
-export const requestP = parentPort => msg => state => new Promise(async (resolve) => {
-  parentPort.postMessage(msg);
-  if (msg == "reqBackendPars") {
-    await waitUntilCondition(() => {return (state.type == "respBackendPars");})
-  };
-  console.log("resolved")
+
+export const requestP = parentPort => reqMsg => respMsg => state => new Promise(async (resolve) => {
+  parentPort.postMessage(reqMsg);
+  await waitUntilCondition(() => {return (state.type == respMsg);})
   resolve();
 })
-
-// export const getResult = state => () => {console.log(state); return state}; 
-// export const getResult = state => () => {console.log(state)}; 
-export const getResult = state => () => {
-  const {type, ...body} = state;
-  if (type == "respBackendPars") {
-    console.log(body);
-    // return { constructor: "ResultEnvVars", value: body };
-  };
-}; 
-
