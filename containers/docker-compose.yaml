@@ -4,6 +4,7 @@ services:
     command: congested-testnet-cli run_genesis_spo data 3000 --gen_config
     ports:
       - "3000:3000"  
+      - "12789:12789"  
     volumes:
       - ./genesis_spo_data:/data
 
@@ -28,6 +29,14 @@ services:
   wallet:
     image: congested-testnet-cli:latest
     command: congested-testnet-cli create_additional_utxo /data 
+    volumes:
+      - ./genesis_spo_data:/data
+
+  prometheus:
+    image: congested-testnet-cli:latest
+    command: congested-testnet-cli run_prometheus /data genesis_spo:12789 
+    ports:
+      - "9090:9090"  
     volumes:
       - ./genesis_spo_data:/data
 

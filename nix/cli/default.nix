@@ -6,12 +6,13 @@
         name = "congested-testnet-cli";
         runtimeInputs = with pkgs; [
           fileshare
+          prometheus
           cardano-node
           cardano-cli
           kupo
           ogmios
           python311Packages.fire
-          spammer
+          # spammer
           (python311.withPackages (ps : with ps; [fire]) )
         ];
         text = ''
@@ -27,6 +28,7 @@
          export RUN_STAKING_NODE_SH=${../../scripts/run_stacking_node.sh}
          export RUN_KUPO_SH=${../../scripts/run_kupo.sh}
          export RUN_OGMIOS_SH=${../../scripts/run_ogmios.sh}
+         export RUN_PROMETHEUS_SH=${../../scripts/run_prometheus.sh}
          export CREATE_ADDITIONAL_UTXO_SH=${../../scripts/create_additional_utxo.sh}
          python ${./cli.py} "$@"
         '';

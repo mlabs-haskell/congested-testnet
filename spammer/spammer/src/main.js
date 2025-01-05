@@ -59,13 +59,17 @@ const txResponseFromState = (state) => {
     utxo : null,
   };
 
-  if (!state.wallets.isFilled && !state.mainWallet.isInUse ) {
+  if (state.mainWalletFree() && state.walletsEmpty()) {
     // initialize spammer wallets
-    state.mainWallet.isInUse = true;
+    state.setMainWalletBusy()
     resp.tx = "initWallets";
-    resp.to = state.wallets.hashes;
-  } else {
+    resp.to = state.walletHashes();
+  } else if (state.pause()) {
     resp.tx = "skip";
+  } else {
+    resp.tx = "pay";
+    resp.from = state.wallets.keys[];
+    resp.to = state.wallets.hashes;
   };
   // console.log(`resp is : ${resp}`);
   return resp;
@@ -99,30 +103,7 @@ const spawnWorker = async (state) => {
   // spammers and faucet share same wallets
   
   const path = await import("path");
-  const utils = await import(path.resolve(__dirname, "./utils.js"));
-  const keys = utils.generatePkeys(200);
-  debugger;
-
-  var state = {
-    mainWallet : {
-      path : process.env.WALLET_SKEY_PATH,
-      isInUse : false
-    },
-    ogmiosUrl : process.env.OGMIOS_URL,
-    kupoUrl : process.env.KUPO_URL,
-
-    // generate 200 spammer wallets in order to use different keys and not wait until tx is finished  
-    // which is necessary for spamming approach
-    wallets : {
-      // bech32
-      keys : keys, 
-      hashes: keys.map(utils.hash),
-      // if false, need take funds from main wallet
-      isFilled: false 
-    }
-  };
-  console.log(state)
-
+  const state = await import(path.resolve(__dirname, "./state.js"));
   
 
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {

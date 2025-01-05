@@ -65,7 +65,14 @@ makeTransaction pport state txPars
   |txPars.tx == "initWallets" = do   
     let
       pkhs = (wrap <<< wrap <<< edHash) <$> txPars.to
-    logShow pkhs
+    txHash <- payToWallets txPars.amount pkhs 
+    log $ "init spammer wallets : " <> (show txHash) 
+    awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+    liftAff $ toAff $ postP pport (unsafeToForeign "mainWalletFree") "OK" state 
+  |txPars.tx == "pay" = do   
+    let
+      -- keyWallet = txPars.from
+      pkhs = (wrap <<< wrap <<< edHash) <$> txPars.to
     txHash <- payToWallets txPars.amount pkhs 
     log $ "init spammer wallets : " <> (show txHash) 
     awaitTxConfirmedWithTimeout (wrap 100000.0) txHash

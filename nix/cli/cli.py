@@ -66,6 +66,15 @@ def run_ogmios(node_config_path):
     cmd = [os.environ["RUN_OGMIOS_SH"], node_config_path]
     subprocess.run(cmd)
 
+def run_prometheus(data, cardano_node_metrics_url, spammer_metrics_url):
+    """
+    run prometheus 
+    args:
+        data: where to put data, cardano_node_metrics_url (like 0.0.0.0:12789), spammer_metrics_url 
+    """
+    cmd = [os.environ["RUN_PROMETHEUS_SH"], data, src_url ]
+    subprocess.run(cmd)
+
 def run_spammer(node_config_path, ogmios_url, kupo_url):
     """
     run spammers on node, local faucet (port 8000), ogmios (port 1337) and kupo (port 1442)

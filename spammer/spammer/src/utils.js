@@ -1,6 +1,6 @@
-const csl = require("@emurgo/cardano-serialization-lib-nodejs");
+const csl = await import("@emurgo/cardano-serialization-lib-nodejs");
 
-const generatePkeys = N => {
+export const generatePkeys = N => {
   var pkeys = [];
 
   for (var i = 1; i <= N; i++) {
@@ -11,23 +11,23 @@ const generatePkeys = N => {
   return pkeys;
 };
 
-const saveKeys = pkeys => fname => {
+export const saveKeys = pkeys => fname => {
   const fs = require("fs");
   fs.writeFileSync(fname, JSON.stringify(pkeys));
 };
 
-const uploadKeys = fname => {
+export const uploadKeys = fname => {
   const fs = require("fs");
   const bechs = JSON.parse(fs.readFileSync(fname, 'utf8'));
   return bechs 
 };
 
-const hash = pkey_hex => csl.PrivateKey.from_hex(pkey_hex).to_public().hash().to_hex();
+export const hash = pkey_hex => csl.PrivateKey.from_hex(pkey_hex).to_public().hash().to_hex();
 
-module.exports = {
-  hash,
-  generatePkeys,
-  saveKeys,
-  uploadKeys
-};
+// module.exports = {
+//   hash,
+//   generatePkeys,
+//   saveKeys,
+//   uploadKeys
+// };
 
