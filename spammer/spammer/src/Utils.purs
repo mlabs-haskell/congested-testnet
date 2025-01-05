@@ -3,8 +3,9 @@ module Utils where
 import Contract.Prelude
 import Contract.Prelude
 
-import Cardano.Types (Ed25519KeyHash, PaymentPubKeyHash, PrivateKey)
+import Cardano.Serialization.Lib (Ed25519KeyHash)
 import Cardano.Types (NetworkId(..))
+import Cardano.Types (PaymentPubKeyHash, PrivateKey)
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.PrivateKey (generate, toPublicKey)
 import Cardano.Types.PublicKey (hash)
@@ -43,8 +44,8 @@ type TxPars =
   { 
     tx :: String,
     amount :: String,
-    from :: Foreign,
-    to :: Array Ed25519KeyHash,
+    from :: String,
+    to :: Array String,
     script :: Foreign,
     utxo :: Foreign 
   }
@@ -55,21 +56,22 @@ type PostMsg = Foreign
 type RespType = String 
 
 foreign import postP :: ParentPort -> PostMsg -> RespType -> State -> Promise Unit 
+foreign import edHash :: String -> Ed25519KeyHash 
+foreign import pKey  :: String -> PrivateKey 
 
 
 makeTransaction :: ParentPort -> State -> TxPars -> Contract Unit  
 makeTransaction pport state txPars 
   |txPars.tx == "initWallets" = do   
-    txHash <- payToWallets txPars.amount txPars.to
+    let
+      pkhs = (wrap <<< wrap <<< edHash) <$> txPars.to
+    logShow pkhs
+    txHash <- payToWallets txPars.amount pkhs 
+    log $ "init spammer wallets : " <> (show txHash) 
     awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
     liftAff $ toAff $ postP pport (unsafeToForeign "mainWalletFree") "OK" state 
 
 makeTransaction _ _ _ = pure unit
-
-
-    
-
-
 
 
 executeTransactionLoop :: ParentPort -> State -> Effect Unit
@@ -79,24 +81,24 @@ executeTransactionLoop pport state = launchAff_ do
      env :: BackendPars
      env = unsafeFromForeign state
    runContract (contractParams env) do
-      liftAff $ toAff $ postP pport (unsafeToForeign "reqNextTransaction") "TxPars" state 
-      let
-        txPars :: TxPars
-        txPars = unsafeFromForeign state
+      forever do
+        liftAff $ toAff $ postP pport (unsafeToForeign "reqNextTransaction") "TxPars" state 
+        let
+          txPars :: TxPars
+          txPars = unsafeFromForeign state
+        makeTransaction pport state txPars
+        -- logShow $ txPars.to
+        -- logShow "hi"
+        liftAff $ delay (wrap 1000.0)
 
-      makeTransaction txPars
-      logShow "hi"
-      -- logShow txPars 
-
-payToWallets :: String -> Array Ed25519KeyHash -> Contract TransactionHash
+payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash
 payToWallets amount pkhs = do
-  let constraints = mconcat $ map (\pkh -> mustPayToPubKey (wrap pkh) (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
+  let constraints = mconcat $ map (\pkh -> mustPayToPubKey pkh (lovelaceValueOf $ fromStringUnsafe amount)) pkhs
   txHash <- submitTxFromConstraints mempty constraints
-  logShow txHash
   pure txHash
 
 
-payFromKeyToPkh :: KeyWallet -> Ed25519KeyHash  -> Contract TransactionHash
+payFromKeyToPkh :: KeyWallet -> PaymentPubKeyHash  -> Contract TransactionHash
 payFromKeyToPkh key pkh = do
   withKeyWallet key do
     payToWallets "3000000" (pure pkh)

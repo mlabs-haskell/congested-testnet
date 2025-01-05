@@ -67,6 +67,7 @@ const txResponseFromState = (state) => {
   } else {
     resp.tx = "skip";
   };
+  // console.log(`resp is : ${resp}`);
   return resp;
 };
 
@@ -99,7 +100,8 @@ const spawnWorker = async (state) => {
   
   const path = await import("path");
   const utils = await import(path.resolve(__dirname, "./utils.js"));
-  const keys = utils.uploadKeys(path.resolve(__dirname, "./Keys.json"));  
+  const keys = utils.generatePkeys(200);
+  debugger;
 
   var state = {
     mainWallet : {
@@ -112,14 +114,15 @@ const spawnWorker = async (state) => {
     // generate 200 spammer wallets in order to use different keys and not wait until tx is finished  
     // which is necessary for spamming approach
     wallets : {
+      // bech32
       keys : keys, 
-      hashes: keys.map(pkey => utils.hash(pkey)),
+      hashes: keys.map(utils.hash),
       // if false, need take funds from main wallet
       isFilled: false 
     }
   };
+  console.log(state)
 
-  // console.log(state)
   
 
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {

@@ -4,26 +4,25 @@ const generatePkeys = N => {
   var pkeys = [];
 
   for (var i = 1; i <= N; i++) {
-    hex = csl.PrivateKey.generate_ed25519();
-    pkeys.push(hex);
+    pkey_bech = csl.PrivateKey.generate_ed25519().to_hex();
+    pkeys.push(pkey_bech);
   };
 
   return pkeys;
-
 };
 
 const saveKeys = pkeys => fname => {
   const fs = require("fs");
-  fs.writeFileSync(fname, JSON.stringify(pkeys.map(pk => pk.to_hex())));
+  fs.writeFileSync(fname, JSON.stringify(pkeys));
 };
 
 const uploadKeys = fname => {
   const fs = require("fs");
-  const hexs = JSON.parse(fs.readFileSync(fname, 'utf8'));
-  return hexs.map(h => csl.PrivateKey.from_hex(h));
+  const bechs = JSON.parse(fs.readFileSync(fname, 'utf8'));
+  return bechs 
 };
 
-const hash = pkey => pkey.to_public().hash();
+const hash = pkey_hex => csl.PrivateKey.from_hex(pkey_hex).to_public().hash().to_hex();
 
 module.exports = {
   hash,
