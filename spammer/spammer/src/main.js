@@ -88,7 +88,8 @@ const spawnWorker = async (state) => {
    const {Worker} = await import("node:worker_threads");
    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
    worker.on("message", msg => {
-     if (msg == "reqBackendPars") {
+     if (msg == "backendPars") {
+       console.log("here")
        worker.postMessage(state.backendPars())
      } else if (msg == "reqNextTransaction") {
        worker.postMessage(txResponseFromState(state));
