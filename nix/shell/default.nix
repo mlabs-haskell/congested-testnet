@@ -52,13 +52,14 @@
           export OGMIOS_PORT="1337"
           export KUPO_URL="0.0.0.0"
           export KUPO_PORT="1442"
-          export NSPAMMERS=3
+          export NSPAMMERS=1
           export SPAMMER_METRIC_PORT="8001"
           export FAUCET_PORT="8000"
           export FAUCET_LOVELACE_AMOUNT="1000000000000"
+          export SPAMMER_STATE_FILE="/home/maxim/work/projects/congested-testnet/spammer/spammer/state.json"
           # export walletPath="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
           export WALLET_SKEY_PATH="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
-          export N_WORKERS=3
+          export N_WORKERS=1
         '';
       };
 

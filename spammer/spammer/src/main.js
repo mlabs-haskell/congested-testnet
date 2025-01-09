@@ -48,31 +48,38 @@
 // };
 //
 const txResponseFromState = (state) => {
-  resp = {
-    type : "TxPars",
-    amount : "1000000000000",
-    await : null,
-    tx : "skip",
-    from : null,
-    to : [],
-    script : null,
-    utxo : null,
-  };
-
-  if (state.mainWalletFree() && state.walletsEmpty()) {
+  if (state.isWalletsEmpty()) {
     // initialize spammer wallets
-    state.setMainWalletBusy()
-    resp.tx = "initWallets";
-    resp.to = state.walletHashes();
-  } else if (state.pause()) {
-    resp.tx = "skip";
+    // set pause because use mainWallet
+    state.setPause();
+    return {
+      type : "TxPars",
+      tx : "initWallets",
+      pars : {
+        hashes : state.walletsHashes(),
+        amount : "1000000000000000"
+      }
+    };
+  } else if (state.isPause()) {
+    return {
+      type : "TxPars",
+      tx : "pause",
+      pars : {
+      }
+    };
   } else {
-    resp.tx = "pay";
-    resp.from = state.wallets.keys[];
-    resp.to = state.wallets.hashes;
+    const resp = {
+      type : "TxPars",
+      tx : "pay",
+      pars : {
+        key : state.walletKey(),
+        hash : state.walletHash(),
+        amount : "3000000" 
+      }
+    };
+    state.nextWallet();
+    return resp;
   };
-  // console.log(`resp is : ${resp}`);
-  return resp;
 };
 
 
@@ -82,16 +89,13 @@ const spawnWorker = async (state) => {
    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
    worker.on("message", msg => {
      if (msg == "reqBackendPars") {
-       worker.postMessage({
-         type : "BackendPars",
-         ogmiosUrl : state.ogmiosUrl,
-         kupoUrl : state.kupoUrl,
-         walletPath : state.mainWallet.path})
+       worker.postMessage(state.backendPars())
      } else if (msg == "reqNextTransaction") {
        worker.postMessage(txResponseFromState(state));
-     } else if (msg == "walletsFilled") {
-       state.mainWallet.isInUse = false;
-       state.wallets.isFilled = true;
+     } else if (msg == "initializedWallets") {
+       // after fill spammer wallets change state
+       state.setUnPause();
+       state.setWalletsInitiated(); 
        worker.postMessage({ type : "OK" })
      };
    });

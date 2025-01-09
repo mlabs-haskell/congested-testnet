@@ -72,7 +72,7 @@ def run_prometheus(data, cardano_node_metrics_url, spammer_metrics_url):
     args:
         data: where to put data, cardano_node_metrics_url (like 0.0.0.0:12789), spammer_metrics_url 
     """
-    cmd = [os.environ["RUN_PROMETHEUS_SH"], data, src_url ]
+    cmd = [os.environ["RUN_PROMETHEUS_SH"], data, cardano_node_metrics_url,  spammer_metrics_url ]
     subprocess.run(cmd)
 
 def run_spammer(node_config_path, ogmios_url, kupo_url):

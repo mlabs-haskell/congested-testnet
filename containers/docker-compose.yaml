@@ -34,7 +34,7 @@ services:
 
   prometheus:
     image: congested-testnet-cli:latest
-    command: congested-testnet-cli run_prometheus /data genesis_spo:12789 
+    command: congested-testnet-cli run_prometheus /data genesis_spo:12789 0.0.0.0:8001 
     ports:
       - "9090:9090"  
     volumes:
