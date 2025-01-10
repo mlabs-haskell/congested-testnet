@@ -48,53 +48,64 @@ type TxPars =
     pars :: Foreign 
   }
 
-type ParentPort = Foreign
-type State = Foreign
-type PostMsg = Foreign 
-type EventEmitter = Foreign 
-type RespType = String 
+-- type ParentPort = Foreign
+-- type State = Foreign
+-- type PostMsg = Foreign 
+-- type EventEmitter = Foreign 
+-- type RespType = String 
 
--- requests with Emitter updates state
+-- requests parentPort (main worker)
 foreign import requestParent :: Foreign -> String -> Effect (Promise Foreign) 
--- foreign import requestTx:: EventEmitter -> Promise Foreign 
--- foreign import requestTx   :: EventEmitter -> Effect Unit 
 
--- foreign import postP :: ParentPort -> PostMsg -> RespType -> State -> Promise Unit 
--- foreign import edHash :: String -> Ed25519KeyHash 
--- foreign import pKey  :: String -> PrivateKey 
--- foreign import delState  :: Foreign -> Effect Unit 
--- foreign import isEmptyState  :: Foreign -> Boolean 
+foreign import edHash :: String -> Ed25519KeyHash 
+foreign import pKey  :: String -> PrivateKey 
 
 
+makeTransaction :: TxPars -> Contract String 
+makeTransaction txPars 
 
--- makeTransaction :: ParentPort -> State -> TxPars -> Contract Unit  
--- makeTransaction pport state txPars 
---   | isEmptyState state = log "nothing to do" 
---
---   | txPars.tx == "initWallets" = do   
---     let
---       pars :: {hashes :: Array String, amount :: String}
---       pars = unsafeFromForeign txPars.pars 
---       pkhs = (wrap <<< wrap <<< edHash) <$> pars.hashes
---     txHash <- payToWallets pars.amount pkhs 
---     log $ "init spammer wallets : " <> (show txHash) 
---     awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
---     -- response to server
---     liftAff $ toAff $ postP pport (unsafeToForeign "initializedWallets") "OK" state 
---
---   |txPars.tx == "pay" = do   
---     let
---       pars :: {key :: String, hash :: String, amount :: String}
---       pars = unsafeFromForeign txPars.pars 
---       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
---       pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
---     logShow pars.hash
---     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
---     log $ "pay : " <> (show txHash) 
---     -- response to server
---     -- liftAff $ toAff $ postP pport (unsafeToForeign "paid") "OK" state 
---
---   | otherwise = pure unit   
+  | txPars.tx == "initWallets" = do   
+    let
+      pars :: {hashes :: Array String, amount :: String}
+      pars = unsafeFromForeign txPars.pars 
+      pkhs = (wrap <<< wrap <<< edHash) <$> pars.hashes
+    txHash <- payToWallets pars.amount pkhs 
+    log $ "init spammer wallets : " <> (show txHash) 
+    awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
+    pure "initializedWallets"
+
+  | txPars.tx == "pay" = do   
+    let
+      pars :: {key :: String, hash :: String, amount :: String}
+      pars = unsafeFromForeign txPars.pars 
+      keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
+      pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
+    txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
+    log $ "pay : " <> (show txHash) 
+    pure "paid"
+
+
+  -- | txPars.tx == "lock" = do   
+  --   let
+  --     pars :: {key :: String, hash :: String, amount :: String}
+  --     pars = unsafeFromForeign txPars.pars 
+  --     keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
+  --     pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
+  --   txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
+  --   log $ "pay : " <> (show txHash) 
+  --   pure ""
+  --
+  -- | txPars.tx == "unlock" = do   
+  --   let
+  --     pars :: {key :: String, hash :: String, amount :: String}
+  --     pars = unsafeFromForeign txPars.pars 
+  --     keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
+  --     pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
+  --   txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
+  --   log $ "pay : " <> (show txHash) 
+  --   pure "paid"
+
+  | otherwise = pure "" 
 
 
 executeTransactionLoop :: Foreign -> Effect Unit
@@ -104,16 +115,12 @@ executeTransactionLoop parentPort = launchAff_ do
   runContract (contractParams backendPars) do
      forever do
         txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ requestParent parentPort "txPars") 
-        log $ txPars.tx
-        liftAff $ delay (wrap 100.0)
-   --       log "here"
-   --      liftAff $ toAff $ postP pport (unsafeToForeign "reqNextTransaction") "TxPars" state 
-   --      -- let
-   --      --   txPars :: TxPars
-   --      --   txPars = unsafeFromForeign state
-   --      -- log (unsafeFromForeign txPars.pars).hash
-   --      -- makeTransaction pport state txPars 
-   --      -- liftEffect $ delState state
+        log $ "tx type : " <> txPars.tx
+        res <- try $ makeTransaction txPars 
+        _ <- liftAff <<< toAffE $ case res of 
+            Right resp ->  requestParent parentPort resp 
+            Left e -> requestParent parentPort $ "Fail : " <> show e
+        liftAff $ delay (wrap 10.0)
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash
