@@ -47,41 +47,6 @@
 // const createWorkerWallets = async () => {
 // };
 //
-const txResponseFromState = (state) => {
-  if (state.isWalletsEmpty()) {
-    // initialize spammer wallets
-    // set pause because use mainWallet
-    state.setPause();
-    return {
-      type : "TxPars",
-      tx : "initWallets",
-      pars : {
-        hashes : state.walletsHashes(),
-        amount : "1000000000000000"
-      }
-    };
-  } else if (state.isPause()) {
-    return {
-      type : "TxPars",
-      tx : "pause",
-      pars : {
-      }
-    };
-  } else {
-    const resp = {
-      type : "TxPars",
-      tx : "pay",
-      pars : {
-        key : state.walletKey(),
-        hash : state.walletHash(),
-        amount : "3000000" 
-      }
-    };
-    state.nextWallet();
-    return resp;
-  };
-};
-
 
 const spawnWorker = async (state) => {
    const path = await import("path");
@@ -89,10 +54,9 @@ const spawnWorker = async (state) => {
    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
    worker.on("message", msg => {
      if (msg == "backendPars") {
-       console.log("here")
        worker.postMessage(state.backendPars())
-     } else if (msg == "reqNextTransaction") {
-       worker.postMessage(txResponseFromState(state));
+     } else if (msg == "txPars") {
+       worker.postMessage(state.txPars());
      } else if (msg == "initializedWallets") {
        // after fill spammer wallets change state
        state.setUnPause();

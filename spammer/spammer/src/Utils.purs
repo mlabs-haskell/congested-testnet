@@ -101,12 +101,12 @@ executeTransactionLoop :: Foreign -> Effect Unit
 executeTransactionLoop parentPort = launchAff_ do
   backendPars :: BackendPars <- unsafeFromForeign <$> (toAffE $ requestParent parentPort "backendPars") 
   logShow backendPars 
-   -- toAff $ postP pport (unsafeToForeign "reqBackendPars") "BackendPars" state 
-   -- let
-   --   env :: BackendPars
-   --   env = unsafeFromForeign state
-   -- runContract (contractParams env) do
-   --    forever do
+  runContract (contractParams backendPars) do
+     forever do
+        txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ requestParent parentPort "txPars") 
+        log $ txPars.tx
+        liftAff $ delay (wrap 100.0)
+   --       log "here"
    --      liftAff $ toAff $ postP pport (unsafeToForeign "reqNextTransaction") "TxPars" state 
    --      -- let
    --      --   txPars :: TxPars
@@ -114,7 +114,6 @@ executeTransactionLoop parentPort = launchAff_ do
    --      -- log (unsafeFromForeign txPars.pars).hash
    --      -- makeTransaction pport state txPars 
    --      -- liftEffect $ delState state
-   --      liftAff $ delay (wrap 1000.0)
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash

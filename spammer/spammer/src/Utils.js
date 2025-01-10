@@ -3,7 +3,7 @@ import * as csl from "@emurgo/cardano-serialization-lib-nodejs";
 export const requestParent = parentPort => msg => () => { 
   parentPort.postMessage(msg);
   const promise = new Promise(resolve => {
-    parentPort.on("message", resp => {resolve(resp)});
+    parentPort.once("message", resp => {resolve(resp)});
   }); 
   return promise;
 

@@ -10,7 +10,7 @@ const load = () => {
     const parsedState = JSON.parse(fileContent);
     // unpause of spammer if state saved with true
     parsedState.pause = false;
-    return JSON.parse(fileContent);
+    return parsedState;
   };
   // default state
   return  {
@@ -103,6 +103,39 @@ const walletsHashes= () => state.wallets.hashes;
 const mainWalletFree = () => state.mainWallet.free; 
 const setMainWalletBusy = () => {state.mainWallet.free = false;}; 
 
+const txPars = () => {
+  if (isPause()) {
+    return {
+      tx : "pause",
+      pars : {
+      }
+    };
+  } else if (isWalletsEmpty()) {
+    // initialize spammer wallets
+    // set pause because use mainWallet
+    setPause();
+    return {
+      tx : "initWallets",
+      pars : {
+        hashes : walletsHashes(),
+        amount : "1000000000000000"
+      }
+    };
+  } else {
+    const resp = {
+      tx : "pay",
+      pars : {
+        key : walletKey(),
+        hash : walletHash(),
+        amount : "3000000" 
+      }
+    };
+    nextWallet();
+    return resp;
+  };
+};
+
+
 
 module.exports = {
   walletKey,
@@ -117,6 +150,7 @@ module.exports = {
   walletsHashes,
   mainWalletFree,
   setMainWalletBusy,
-  setWalletsInitiated
+  setWalletsInitiated,
+  txPars
 };
 
