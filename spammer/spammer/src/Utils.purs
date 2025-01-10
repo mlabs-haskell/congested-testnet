@@ -82,6 +82,7 @@ makeTransaction txPars
       pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
     log $ "pay : " <> (show txHash) 
+    -- logShow pars
     pure "paid"
 
 
@@ -115,12 +116,17 @@ executeTransactionLoop parentPort = launchAff_ do
   runContract (contractParams backendPars) do
      forever do
         txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ requestParent parentPort "txPars") 
-        log $ "tx type : " <> txPars.tx
+        -- log $ "tx type : " <> txPars.tx
+        -- liftAff $ delay (wrap 0.0)
         res <- try $ makeTransaction txPars 
-        _ <- liftAff <<< toAffE $ case res of 
+        -- logShow res
+        -- resp <- liftAff <<< toAffE $ requestParent parentPort $ show res 
+        -- x <- liftAff <<< toAffE $ requestParent parentPort "paid" 
+        x <- liftAff <<< toAffE $ case res of 
             Right resp ->  requestParent parentPort resp 
             Left e -> requestParent parentPort $ "Fail : " <> show e
-        liftAff $ delay (wrap 10.0)
+        liftAff $ delay (wrap 0.0)
+        pure unit
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash

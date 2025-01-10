@@ -61,6 +61,12 @@ const spawnWorker = async (state) => {
        // after fill spammer wallets change state
        state.setUnPause();
        state.setWalletsInitiated(); 
+       worker.postMessage("OK");
+     } else if (msg == "paid") {
+       worker.postMessage("OK");
+     } else {
+       // failed worker tx
+       worker.postMessage("");
      };
    });
 };
