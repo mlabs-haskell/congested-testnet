@@ -50,5 +50,6 @@
   , "uint"
   ]
 , packages = ./packages.dhall
-, sources = [ "src/Utils.purs"]
+, sources = [ "src/Utils.purs", "src/TT.purs"]
+-- , sources = [ "src/TT.purs"]
 }

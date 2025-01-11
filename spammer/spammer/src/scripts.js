@@ -9,8 +9,19 @@ const alwaysSucceeds = [
 // cumulative distribution to choose scripts, it is estimated to be close to mainnet distro in congested periods 
 const distribution = [0.30463038180341184, 0.47517262388302195, 0.4827883834281072, 0.5176177904142973, 0.8030564581640942, 0.9390739236393176, 1.0]
 
+const script = () => {
+  let randomNumber = Math.random();
+  let i  = distribution.findIndex(x => x > randomNumber);
+  // no script (simple pay tx)
+  if (i == 0) {
+    return ""; 
+  };
+  return alwaysSucceeds[i-1];
+};
+
 module.exports = {
   alwaysSucceeds,
-  distribution
+  distribution,
+  script
 };
 

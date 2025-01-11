@@ -2,9 +2,12 @@ const fs = require("fs");
 const path = require("path");
 const utils = require(path.resolve(__dirname, "./utils.js"));
 const scripts = require(path.resolve(__dirname, "./scripts.js"));
-const keys = utils.generatePkeys(200);
+const keys = utils.generatePkeys(300);
+
+
 
 const load = () => {
+  // upload state from file if exists
   if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
     const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, 'utf-8');
     const parsedState = JSON.parse(fileContent);
@@ -12,6 +15,7 @@ const load = () => {
     parsedState.pause = false;
     return parsedState;
   };
+
   // default state
   return  {
     mainWallet : {
@@ -34,9 +38,14 @@ const load = () => {
       // current index
     },
     tx : {
-      // "pay" | "lock" | "unlock"
+      // transactions types like  "pay" | "lock" | "unlock"
       type : "pay", 
-      lockedUtxos : []
+      // locked  transactions
+      locked : {
+        txHash : [],
+        // from scripts.js
+        script : []
+      }, 
     },
     pause : false };
 
@@ -103,6 +112,13 @@ const walletsHashes= () => state.wallets.hashes;
 const mainWalletFree = () => state.mainWallet.free; 
 const setMainWalletBusy = () => {state.mainWallet.free = false;}; 
 
+function pushLocked(script, txHash) {
+  state.tx.locked.txHash.push(txHash);
+  state.tx.locked.script.push(script);
+};
+
+
+
 const txPars = () => {
   if (isPause()) {
     return {
@@ -122,16 +138,45 @@ const txPars = () => {
       }
     };
   } else {
-    const resp = {
-      tx : "pay",
-      pars : {
-        key : walletKey(),
-        hash : walletHash(),
-        amount : "3000000" 
-      }
+    let resp;
+    //unlock
+    if (state.tx.locked.txHash.length > 10) {
+      let txHash = state.tx.locked.txHash.shift();
+      let script = state.tx.locked.script.shift();
+      resp = {
+        tx : "unlock",
+        pars : {
+          key : walletKey(),
+          script : script ,
+          lockedTxHash : txHash
+        }
+      };
+    } else {
+      let script = scripts.script();
+      // pay
+      if (script == "") {
+      resp = {
+        tx : "pay",
+        pars : {
+          key : walletKey(),
+          hash : walletHash(),
+          amount : "3000000" 
+        }
+      };
+      } else {
+        // lock
+        resp = {
+          tx : "lock",
+          pars : {
+            key : walletKey(),
+            script : script,
+            amount : "3000000" 
+          }
+        };
+      };
     };
-    nextWallet();
-    return resp;
+  nextWallet();
+  return resp;
   };
 };
 
@@ -151,6 +196,7 @@ module.exports = {
   mainWalletFree,
   setMainWalletBusy,
   setWalletsInitiated,
-  txPars
+  txPars,
+  pushLocked
 };
 
