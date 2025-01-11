@@ -62,13 +62,31 @@ const spawnWorker = async (state) => {
        state.setUnPause();
        state.setWalletsInitiated(); 
        worker.postMessage("ok");
-     } else if (msg.includes("locked")) {
+     } else if (msg.startsWith("locked")) {
        let [_, lockedScript, lockedTxHash ] = msg.split("_"); 
        state.pushLocked(lockedScript, lockedTxHash);
+       worker.postMessage("ok");
+     } else if (msg.startsWith("unlocked")) {
+       let [_, txHash] = msg.split("_"); 
+       state.clearLocked(txHash);
        worker.postMessage("ok");
      } else {
        worker.postMessage("ok");
      };
+   });
+
+   worker.on("error", (error) => {
+     console.error("Worker encountered an error:", error);
+   });
+
+   // Handle the exit of the worker and restart if needed
+   worker.on("exit", (code) => {
+     if (code !== 0) {
+       console.error(`Worker exited with code ${code}. Restarting...`);
+       spawnWorker(state); 
+     } else {
+       console.log("Worker exited gracefully.");
+     }
    });
 };
 
@@ -76,11 +94,8 @@ const spawnWorker = async (state) => {
 (async () => {
   // generate wallets and fill them with funds 
   // spammers and faucet share same wallets
-  
   const path = await import("path");
   const state = await import(path.resolve(__dirname, "./state.js"));
-  
-
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
      spawnWorker(state);
   }

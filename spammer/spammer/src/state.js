@@ -42,10 +42,9 @@ const load = () => {
       type : "pay", 
       // locked  transactions
       locked : {
-        txHash : [],
-        // from scripts.js
-        script : []
+        txHashScript : []
       }, 
+
     },
     pause : false };
 
@@ -113,10 +112,12 @@ const mainWalletFree = () => state.mainWallet.free;
 const setMainWalletBusy = () => {state.mainWallet.free = false;}; 
 
 function pushLocked(script, txHash) {
-  state.tx.locked.txHash.push(txHash);
-  state.tx.locked.script.push(script);
+  state.tx.locked.txHashScript.push([txHash, script]);
 };
 
+function clearLocked(txHash) {
+  state.tx.locked.txHashScript = state.tx.locked.txHashScript.filter(arr => arr[0] != txHash);
+};
 
 
 const txPars = () => {
@@ -140,9 +141,9 @@ const txPars = () => {
   } else {
     let resp;
     //unlock
-    if (state.tx.locked.txHash.length > 10) {
-      let txHash = state.tx.locked.txHash.shift();
-      let script = state.tx.locked.script.shift();
+    if (state.tx.locked.txHashScript.length > 100) {
+      let [txHash, script] = state.tx.locked.txHashScript.shift();
+      state.tx.locked.txHashScript.push([txHash, script]);
       resp = {
         tx : "unlock",
         pars : {
@@ -197,6 +198,7 @@ module.exports = {
   setMainWalletBusy,
   setWalletsInitiated,
   txPars,
-  pushLocked
+  pushLocked,
+  clearLocked
 };
 

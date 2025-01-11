@@ -145,7 +145,7 @@ makeTransaction txPars
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
     txHash <- withKeyWallet keyWallet $ spendFromAlwaysSucceeds scriptHash script txHash
     log $ "unlocked : " <> (show txHash) 
-    pure "unlocked"
+    pure $ "unlocked_" <> pars.lockedTxHash 
 
   | otherwise = pure "" 
 
@@ -219,18 +219,6 @@ decodeCborHexToScript cborHex = do
   ba <- hush $ toByteArray $ wrap $ wrap cborBa
   pure $ wrap $ ba /\ PlutusV2
 
-
-
--- scriptHash' :: String -> PlutusScript 
--- scriptHash' scriptStr = 
-
--- alwaysTrueScripts :: Effect (Array (PlutusScript /\ ScriptHash))
--- alwaysTrueScripts =
---   let
---     extract scriptStr = unsafeFromJust "wrong script code" $ decodeCborHexToScript scriptStr
---     scriptAndHash script = script /\ (hash script)
---   in
---     pure $ (extract >>> scriptAndHash) <$> alwaysSucceeds
 
 
 contractParams :: BackendPars -> ContractParams
