@@ -66,89 +66,102 @@ type BackendPars =
 type TxPars =
   { 
     tx :: String,
-    pars :: Foreign 
+    pars :: Foreign
   }
 
--- main :: Effect Unit
--- main = launchAff_ do
---   let
---       backendPars = { kupoUrl: "0.0.0.0", ogmiosUrl: "0.0.0.0", walletPath: "/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey" }
---   logShow backendPars
---   runContract (contractParams backendPars) do
---     log "here"
+type TxResponse = {
+  msg :: String, 
+  time :: String 
+}
 
 
 executeTransactionLoop :: Foreign -> Effect Unit
 executeTransactionLoop parentPort = launchAff_ do
-  backendPars :: BackendPars <- unsafeFromForeign <$> (toAffE $ requestParent parentPort "backendPars") 
+  backendPars :: BackendPars <- unsafeFromForeign <$> (toAffE $ requestParent parentPort $ unsafeToForeign "backendPars") 
   logShow backendPars 
   runContract (contractParams backendPars) do
      forever do
-        txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ requestParent parentPort "txPars") 
-        -- logShow txPars.tx
+        txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ requestParent parentPort $ unsafeToForeign "txPars") 
         res <- try $ makeTransaction txPars 
         resp' <- liftAff <<< toAffE $ case res of 
-            Right resp ->  requestParent parentPort resp 
-            Left e -> requestParent parentPort $ "Fail : " <> show e
+            Right resp ->  requestParent parentPort $ unsafeToForeign resp 
+            Left e -> requestParent parentPort $  unsafeToForeign $ "Fail : " <> show e
         pure unit
 
 
-foreign import requestParent :: Foreign -> String -> Effect (Promise Foreign) 
+foreign import requestParent :: Foreign -> Foreign -> Effect (Promise Foreign) 
 foreign import edHash :: String -> CSL.Ed25519KeyHash 
 foreign import pKey  :: String -> PrivateKey 
 foreign import txHashToHex :: CSL.TransactionHash -> String
 foreign import txHashFromHex :: String -> CSL.TransactionHash
 
 
-makeTransaction :: TxPars -> Contract String 
+makeTransaction :: TxPars -> Contract TxResponse 
 makeTransaction txPars 
 
   | txPars.tx == "initWallets" = do   
     let
-      pars :: {hashes :: Array String, amount :: String}
+      pars :: {hashes :: Array String, amount :: String, await :: Boolean}
       pars = unsafeFromForeign txPars.pars 
       pkhs = (wrap <<< wrap <<< edHash) <$> pars.hashes
     txHash <- payToWallets pars.amount pkhs 
     log $ "init spammer wallets : " <> (show txHash) 
-    awaitTxConfirmedWithTimeout (wrap 100000.0) txHash
-    pure "initializedWallets"
+    time <- if pars.await then measureAwaitTxTime txHash else pure ""  
+    pure {msg : "initializedWallets", time : time}
 
   | txPars.tx == "pay" = do   
     let
-      pars :: {key :: String, hash :: String, amount :: String}
+      pars :: {key :: String, hash :: String, amount :: String, await :: Boolean}
       pars = unsafeFromForeign txPars.pars 
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
       pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
+    logShow pars.await
     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
+    time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "pay : " <> (show txHash) 
-    pure "paid"
+    pure {msg : "paid", time : time}
 
 
   | txPars.tx == "lock" = do   
     let
-      pars :: {key :: String, script :: String, amount :: String}
+      pars :: {key :: String, script :: String, amount :: String, await :: Boolean}
       pars = unsafeFromForeign txPars.pars 
       script = unsafeFromJust "wrong script code" $ decodeCborHexToScript pars.script 
       scriptHash = PScript.hash script
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
+    logShow pars.await
     txHash <- withKeyWallet keyWallet $ payToAlwaysSucceeds scriptHash
+    time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "locked : " <> (show txHash) 
-    pure $ "locked_" <> pars.script <> "_" <> (txHashToHex <<< unwrap $ txHash) 
+    let msg = "locked_" <> pars.script <> "_" <> (txHashToHex <<< unwrap $ txHash) 
+    pure {msg : msg , time : time}
 
   | txPars.tx == "unlock" = do   
     let
-      pars :: {key :: String, script :: String, lockedTxHash :: String}
+      pars :: {key :: String, script :: String, lockedTxHash :: String, await :: Boolean}
       pars = unsafeFromForeign txPars.pars 
       script = unsafeFromJust "wrong script code" $ decodeCborHexToScript pars.script 
       scriptHash = PScript.hash script
       txHash = wrap <<< txHashFromHex $ pars.lockedTxHash 
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
+    logShow pars.await
     txHash <- withKeyWallet keyWallet $ spendFromAlwaysSucceeds scriptHash script txHash
+    time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "unlocked : " <> (show txHash) 
-    pure $ "unlocked_" <> pars.lockedTxHash 
+    let msg = "unlocked_" <> pars.lockedTxHash 
+    pure {msg : msg , time : time}
 
-  | otherwise = pure "" 
+  | otherwise = pure {msg : "", time : ""} 
 
+measureAwaitTxTime :: TransactionHash -> Contract String 
+measureAwaitTxTime txHash = do 
+  start <- liftEffect nowTime
+  awaitTxConfirmedWithTimeout (wrap 10000.0) txHash
+  end <- liftEffect nowTime
+  let
+    dt :: Seconds
+    dt = diff end start
+  pure $ show dt 
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash

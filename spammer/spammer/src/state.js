@@ -13,6 +13,7 @@ const load = () => {
     const parsedState = JSON.parse(fileContent);
     // unpause of spammer if state saved with true
     parsedState.pause = false;
+    parsedState.await = false;
     return parsedState;
   };
 
@@ -46,7 +47,10 @@ const load = () => {
       }, 
 
     },
-    pause : false };
+    pause : false, 
+    // use await to awaiting tx for time measure
+    await : false  
+  };
 
 };
 
@@ -100,9 +104,9 @@ const setWalletsInitiated = () => {
 }; 
 
 const getState = () => state; 
-const isPause = () => state.pause; 
-const setPause = () => {state.pause = true;}; 
-const setUnPause = () => {state.pause = false;}; 
+const noAwaitTxToMeasureTime = () => {state.await = false;}; 
+const pause = () => {state.pause = true;}; 
+const unpause = () => {state.pause = false;}; 
 
 
 const isWalletsEmpty = () => state.wallets.empty; 
@@ -121,41 +125,48 @@ function clearLocked(txHash) {
 
 
 const txPars = () => {
-  if (isPause()) {
+  if (state.await && state.pause){
     return {
       tx : "pause",
-      pars : {
-      }
+      pars : {}
     };
-  } else if (isWalletsEmpty()) {
+  } 
+
+  if (isWalletsEmpty()) {
     // initialize spammer wallets
     // set pause because use mainWallet
-    setPause();
+    pause();
+    state.await = true;
     return {
       tx : "initWallets",
       pars : {
         hashes : walletsHashes(),
-        amount : "1000000000000000"
+        amount : "1000000000000000",
+        await : true 
+      }
+    };
+  }; 
+  
+  let resp;
+
+  //unlock
+  if (state.tx.locked.txHashScript.length > 100) {
+    // move unlock tx data to the end, to clear it after successfull submission 
+    let [txHash, script] = state.tx.locked.txHashScript.shift();
+    state.tx.locked.txHashScript.push([txHash, script]);
+    resp = {
+      tx : "unlock",
+      pars : {
+        key : walletKey(),
+        script : script ,
+        lockedTxHash : txHash
       }
     };
   } else {
-    let resp;
-    //unlock
-    if (state.tx.locked.txHashScript.length > 100) {
-      let [txHash, script] = state.tx.locked.txHashScript.shift();
-      state.tx.locked.txHashScript.push([txHash, script]);
-      resp = {
-        tx : "unlock",
-        pars : {
-          key : walletKey(),
-          script : script ,
-          lockedTxHash : txHash
-        }
-      };
-    } else {
-      let script = scripts.script();
-      // pay
-      if (script == "") {
+    let script = scripts.script();
+
+    // pay
+    if (script == "") {
       resp = {
         tx : "pay",
         pars : {
@@ -164,22 +175,29 @@ const txPars = () => {
           amount : "3000000" 
         }
       };
-      } else {
-        // lock
-        resp = {
-          tx : "lock",
-          pars : {
-            key : walletKey(),
-            script : script,
-            amount : "3000000" 
-          }
-        };
+    } else {
+
+      // lock
+      resp = {
+        tx : "lock",
+        pars : {
+          key : walletKey(),
+          script : script,
+          amount : "3000000" 
+        }
       };
     };
+  };
   nextWallet();
+
+  resp.pars.await = false;
+  if (!state.await) {
+    state.await = true;
+    resp.pars.await = true;
+  };
+
   return resp;
   };
-};
 
 
 
@@ -189,14 +207,14 @@ module.exports = {
   nextWallet, 
   backendPars,
   getState,
-  setPause,
-  setUnPause,
-  isPause,
+  pause,
+  unpause,
   isWalletsEmpty,
   walletsHashes,
   mainWalletFree,
   setMainWalletBusy,
   setWalletsInitiated,
+  noAwaitTxToMeasureTime,
   txPars,
   pushLocked,
   clearLocked

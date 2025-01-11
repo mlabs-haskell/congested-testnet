@@ -7,10 +7,10 @@ const spawnMemPoolChecker = async (state) => {
         let memPoolSize = resp.result.currentSize.bytes;
         if (memPoolSize > process.env.MEMPOOL_PAUSE_LIMIT) {
           console.log("PAUSE")
-          state.setPause();
+          state.pause();
         } else if (memPoolSize < process.env.MEMPOOL_UNPAUSE_LIMIT) {
           console.log("UNPAUSE")
-          state.setUnPause();
+          state.unpause();
         }
       };
     }
@@ -41,6 +41,25 @@ const spawnMemPoolChecker = async (state) => {
 };
 
 
+const spawnAwaitTxMetric = async (state) => {
+    const http = await import("http");
+    const promExporter = http.createServer((req, res) => {
+        if (req.url === '/metrics') {
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(`# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime }\n`);
+        } else {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        }
+    });
+
+     promExporter.listen(process.env.SPAMMER_METRIC_PORT, () => {
+         console.log(`Prometheus metrics available at http://0.0.0.0:${process.env.SPAMMER_METRIC_PORT}/metrics`);
+     });
+
+};
+
+
 const spawnWorker = async (state) => {
    const path = await import("path");
    const {Worker} = await import("node:worker_threads");
@@ -50,18 +69,27 @@ const spawnWorker = async (state) => {
        worker.postMessage(state.backendPars())
      } else if (msg == "txPars") {
        worker.postMessage(state.txPars());
-     } else if (msg == "initializedWallets") {
-       // after fill spammer wallets change state
-       state.setUnPause();
-       state.setWalletsInitiated(); 
-       worker.postMessage("ok");
-     } else if (msg.startsWith("locked")) {
-       let [_, lockedScript, lockedTxHash ] = msg.split("_"); 
-       state.pushLocked(lockedScript, lockedTxHash);
-       worker.postMessage("ok");
-     } else if (msg.startsWith("unlocked")) {
-       let [_, txHash] = msg.split("_"); 
-       state.clearLocked(txHash);
+     } else if (Object.hasOwn(msg,"msg") && Object.hasOwn(msg,"time")) {
+       let message = msg.msg;
+       let time = msg.time;
+       if (message.startsWith("initializedWallets")) {
+         state.setUnPause();
+         state.setWalletsInitiated(); 
+         state.setAwaitTxTimeNotInProcess(); 
+       };
+       if (message.startsWith("locked")) {
+         let [_, lockedScript, lockedTxHash ] = message.split("_"); 
+         state.pushLocked(lockedScript, lockedTxHash);
+       };
+       if (message.startsWith("unlocked")) {
+         let [_, txHash] = message.split("_"); 
+         state.clearLocked(txHash);
+       }; 
+       if (time) {
+         // reset
+         console.log(`time : ${time}`)
+         state.noAwaitTxToMeasureTime(); 
+       };
        worker.postMessage("ok");
      } else {
        worker.postMessage("ok");

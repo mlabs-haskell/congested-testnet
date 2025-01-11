@@ -59,7 +59,7 @@
           export SPAMMER_STATE_FILE="/home/maxim/work/projects/congested-testnet/spammer/spammer/state.json"
           # export walletPath="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
           export WALLET_SKEY_PATH="/home/maxim/work/projects/congested-testnet/containers/genesis_spo_data/wallet.skey";
-          export N_WORKERS=1
+          export N_WORKERS=2
           export MEMPOOL_PAUSE_LIMIT=80000
           export MEMPOOL_UNPAUSE_LIMIT=60000
         '';
