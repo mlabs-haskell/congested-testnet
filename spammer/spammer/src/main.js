@@ -1,52 +1,45 @@
-// const { type } = require("node:os");
-//
-// const pauseSpammersnSec = spammers => nsec => new Promise((resolve) => {
-//     spammers.map(sp => sp.postMessage("pause"));
-//     let i = 0;
-//     const interval = setInterval(() => {
-//       i += 1;
-//       if (i > nsec) {
-//         clearInterval(interval);
-//         spammers.map(sp => sp.postMessage("unpause"));
-//         resolve();
-//       }
-//     }, 1000); 
-//   });
-//
-// const startMempoolChecker = async ws =>  setInterval(() => {
-//       ws.send(
-//         JSON.stringify({
-//           jsonrpc: '2.0',
-//           method : 'acquireMempool',
-//           params : {}
-//         })
-//       );
-//       ws.send(
-//         JSON.stringify({
-//           jsonrpc: '2.0',
-//           method : 'sizeOfMempool',
-//           params : {}
-//         })
-//       );
-//       ws.send(
-//         JSON.stringify({
-//           jsonrpc: '2.0',
-//           method : 'releaseMempool',
-//           params : {}
-//         })
-//       );
-//     },4000);
+const spawnMemPoolChecker = async (state) => { 
+  const {WebSocket} = await import("ws");
+  const ws =  new WebSocket(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`);
+  ws.on('message', (data) => {
+      const resp = JSON.parse(data);
+      if (resp.method == 'sizeOfMempool') {
+        let memPoolSize = resp.result.currentSize.bytes;
+        if (memPoolSize > process.env.MEMPOOL_PAUSE_LIMIT) {
+          console.log("PAUSE")
+          state.setPause();
+        } else if (memPoolSize < process.env.MEMPOOL_UNPAUSE_LIMIT) {
+          console.log("UNPAUSE")
+          state.setUnPause();
+        }
+      };
+    }
+  )
+  setInterval(() => {
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'acquireMempool',
+          params : {}
+        })
+      );
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'sizeOfMempool',
+          params : {}
+        })
+      );
+      ws.send(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          method : 'releaseMempool',
+          params : {}
+        })
+      );
+    },3000);
+};
 
-// const initParams = async () => {
-//   pars = {
-//     N_WORKERS : parseInt(process.env.N_WORKERS)
-//   };
-//   return pars;
-// };
-
-// const createWorkerWallets = async () => {
-// };
-//
 
 const spawnWorker = async (state) => {
    const path = await import("path");
@@ -99,6 +92,8 @@ const spawnWorker = async (state) => {
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
      spawnWorker(state);
   }
+  // pause if large mempool
+  spawnMemPoolChecker(state);
 
   
   // // console.log(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`)

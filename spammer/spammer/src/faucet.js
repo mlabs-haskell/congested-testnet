@@ -5,8 +5,7 @@ const faucetServer = async () => {
   const csl  = await import("@emurgo/cardano-serialization-lib-nodejs");
 
 
-  // const FAUCET_PORT = process.env.FAUCET_PORT;
-  // const FAUCET_LOVELACE_AMOUNT = process.env.FAUCET_LOVELACE_AMOUNT;
+  const FAUCET_PORT = process.env.FAUCET_PORT;
   console.log("create faucet server....")
 
   // faucet server changes faucetPars
