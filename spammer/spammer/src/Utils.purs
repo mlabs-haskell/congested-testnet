@@ -118,7 +118,7 @@ makeTransaction txPars
     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
     time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "pay : " <> (show txHash) 
-    let msg = "paid_" <> pars.hash
+    let msg = "paid_" <> pars.hash <> "_" <> (txHashToHex <<< unwrap $ txHash) 
     pure {msg : msg , time : time}
 
 

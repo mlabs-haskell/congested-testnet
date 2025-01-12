@@ -9,6 +9,7 @@
   // pause if large mempool
   spawnMemPoolChecker(state.default);
   spawnAwaitTxMetric(state.default);
+  spawnFaucet(state.default);
 })()
 
 const spawnWorker = async (state) => {
@@ -104,38 +105,31 @@ const handleWebSocketMessage = (state) => (data) => {
 
 const spawnFaucet = async (state) => {
   const http = await import("http");
-  const {parentPort} = await import("node:worker_threads");
-  const path = await import("node:path");
-  const csl  = await import("@emurgo/cardano-serialization-lib-nodejs");
-
-
-
   const FAUCET_PORT = process.env.FAUCET_PORT;
   console.log("create faucet server....")
-
-  // faucet server changes faucetPars
   const server = http.createServer((req, res) => {
       if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
           let body = '';
-
           req.on('data', chunk => {
               body += chunk;
           });
-
           req.on('end', async () => {
               try {
                   const data = JSON.parse(body);
                   const pubKeyHashHex = data.pubKeyHashHex;
-                  state.faucetPayHash(pubKeyHashHex);
+                  state.faucetPay(pubKeyHashHex);
                   if (pubKeyHashHex) {
                       const interval = setInterval(() => {
-                        if (state.faucetFinish()) {
+                        let txHash = state.faucetFinish(pubKeyHashHex)
+                        if (txHash) {
                           clearInterval(interval);
+                          clearTimeout(timeout);
                           res.writeHead(200, { 'Content-Type': 'application/json' });
-                          const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid 1K tada txHash : ${txHash}\n . Transaction added to mempool\n You need to wait it added to block `;
-                          res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
+                          const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid 1K tada txHash : ${txHash}\n . Transaction added to mempool\n You need to wait it added to block\n`;
+                          // res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
+                          res.end(JSON.stringify({ message }));
                         };
-                      },10);
+                      },100);
                       const timeout = setTimeout(() => {
                         clearInterval(interval); // Stop the interval
                         res.write('Error: Timeout! backend error.\n');
@@ -157,7 +151,7 @@ const spawnFaucet = async (state) => {
   });
 
   server.listen(FAUCET_PORT, () => {
-      console.log(`Server is running on port ${FAUCET_PORT}`);
+      console.log(`faucet server is running on port ${FAUCET_PORT}`);
   });
 };
 
@@ -192,9 +186,8 @@ const processDetailedMessage = (msg, state, worker) => {
     const [_, txHash] = message.split("_");
     state.clearLocked(txHash);
   } else if (message.startsWith("paid")) {
-    const [_, pKeyHash] = message.split("_");
-    // if pKeyHash in faucet set it paid
-    // state.setFaucetPaid(pKeyHash);
+    const [_, pKeyHash, txHash] = message.split("_");
+    state.faucetPaid(pKeyHash,txHash);
   }
 
   if (time) {

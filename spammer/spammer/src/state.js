@@ -30,7 +30,7 @@ const generateDefaultState = (keys) => ({
   // use await flag awaiting tx for time delay 
   await: false,
   awaitTxTime: "0.0",
-  // faucet {payKeyHash : "pay" | "inprogress" | "paid"}
+  // faucet {payKeyHash : "pay" | "inprogress" | if paid then txHash for paid transaction}
   faucet: {},
 });
 
@@ -95,11 +95,11 @@ const backendPars = () => ({
   walletPath: state.mainWallet.path,
 });
 
-const faucetPay = (pKeyHash) => {
-  state.faucet[pKeyHash] = "pay";
+const faucetPay = (hex) => {
+  state.faucet[hex] = "pay";
 };
 
-const faucetPayKeyHash = () => {
+const _faucetPay = () => {
   for (const [key, status] of Object.entries(state.faucet)) {
     if (status === "pay") {
       state.faucet[key] = "inprogress";
@@ -109,9 +109,18 @@ const faucetPayKeyHash = () => {
   return null;
 };
 
-const faucetPaid = (pKeyHash) => {
-  state.faucet[pKeyHash] = "paid";
+const faucetPaid = (pKeyHash, txHash) => {
+  state.faucet[pKeyHash] = txHash;
 };
+
+const faucetFinish = (pKeyHash) => {
+  txHash = state.faucet[pKeyHash]
+  if (txHash && txHash.length == 64) { 
+    delete state.faucet[pKeyHash];
+    return txHash
+  };
+  return null
+}; 
 
 const pushLocked = (script, txHash) => {
   state.tx.locked.txHashScript.push([txHash, script]);
@@ -122,13 +131,13 @@ const clearLocked = (txHash) => {
 };
 
 const txPars = () => {
-  const faucetHash = faucetPayKeyHash();
-  if (faucetHash && !state.wallets.empty) {
+  const faucetPubKeyHex = _faucetPay();
+  if (faucetPubKeyHex && !state.wallets.empty) {
     const response = {
       tx: "pay",
       pars: {
         key: walletKey(),
-        hash: faucetHash,
+        hash: faucetPubKeyHex,
         amount: "1000000000",
       },
     };
@@ -208,6 +217,9 @@ module.exports = {
   txPars,
   pushLocked,
   clearLocked,
+  faucetPay,
+  faucetPaid,
+  faucetFinish,
   awaitTxTime: () => state.awaitTxTime,
   setAwaitTxTime: (t) => (state.awaitTxTime = t),
 };
