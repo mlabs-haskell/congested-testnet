@@ -49,7 +49,9 @@ const load = () => {
     },
     pause : false, 
     // use await to awaiting tx for time measure
-    await : false  
+    await : false, 
+    // metric for 
+    awaitTxTime : "0.0"
   };
 
 };
@@ -107,6 +109,9 @@ const getState = () => state;
 const noAwaitTxToMeasureTime = () => {state.await = false;}; 
 const pause = () => {state.pause = true;}; 
 const unpause = () => {state.pause = false;}; 
+
+const awaitTxTime = () => state.awaitTxTime;
+const setAwaitTxTime = t => {state.awaitTxTime = t;};
 
 
 const isWalletsEmpty = () => state.wallets.empty; 
@@ -217,6 +222,8 @@ module.exports = {
   noAwaitTxToMeasureTime,
   txPars,
   pushLocked,
-  clearLocked
+  clearLocked,
+  awaitTxTime,
+  setAwaitTxTime
 };
 

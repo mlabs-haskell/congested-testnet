@@ -115,7 +115,6 @@ makeTransaction txPars
       pars = unsafeFromForeign txPars.pars 
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
       pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
-    logShow pars.await
     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
     time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "pay : " <> (show txHash) 
@@ -129,7 +128,6 @@ makeTransaction txPars
       script = unsafeFromJust "wrong script code" $ decodeCborHexToScript pars.script 
       scriptHash = PScript.hash script
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
-    logShow pars.await
     txHash <- withKeyWallet keyWallet $ payToAlwaysSucceeds scriptHash
     time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "locked : " <> (show txHash) 
@@ -144,7 +142,6 @@ makeTransaction txPars
       scriptHash = PScript.hash script
       txHash = wrap <<< txHashFromHex $ pars.lockedTxHash 
       keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing       
-    logShow pars.await
     txHash <- withKeyWallet keyWallet $ spendFromAlwaysSucceeds scriptHash script txHash
     time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "unlocked : " <> (show txHash) 
@@ -156,12 +153,12 @@ makeTransaction txPars
 measureAwaitTxTime :: TransactionHash -> Contract String 
 measureAwaitTxTime txHash = do 
   start <- liftEffect nowTime
-  awaitTxConfirmedWithTimeout (wrap 10000.0) txHash
+  awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
   end <- liftEffect nowTime
   let
     dt :: Seconds
     dt = diff end start
-  pure $ show dt 
+  pure $ show (unwrap dt) 
 
 
 payToWallets :: String -> Array PaymentPubKeyHash -> Contract TransactionHash

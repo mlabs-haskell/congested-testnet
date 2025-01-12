@@ -46,7 +46,7 @@ const spawnAwaitTxMetric = async (state) => {
     const promExporter = http.createServer((req, res) => {
         if (req.url === '/metrics') {
             res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end(`# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime }\n`);
+            res.end(`# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime() }\n`);
         } else {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('Not Found');
@@ -73,9 +73,9 @@ const spawnWorker = async (state) => {
        let message = msg.msg;
        let time = msg.time;
        if (message.startsWith("initializedWallets")) {
-         state.setUnPause();
+         state.unpause();
          state.setWalletsInitiated(); 
-         state.setAwaitTxTimeNotInProcess(); 
+         state.noAwaitTxToMeasureTime(); 
        };
        if (message.startsWith("locked")) {
          let [_, lockedScript, lockedTxHash ] = message.split("_"); 
@@ -88,6 +88,7 @@ const spawnWorker = async (state) => {
        if (time) {
          // reset
          console.log(`time : ${time}`)
+         state.setAwaitTxTime(time);
          state.noAwaitTxToMeasureTime(); 
        };
        worker.postMessage("ok");
@@ -122,6 +123,7 @@ const spawnWorker = async (state) => {
   }
   // pause if large mempool
   spawnMemPoolChecker(state);
+  spawnAwaitTxMetric(state);
 
   
   // // console.log(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`)
