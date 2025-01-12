@@ -15,9 +15,7 @@
         mkdir -p $out/bin
         mkdir -p $out/src
         cp -r ${self'.packages.compiled}/output/* $out/output
-        cp $src/src/main.js $out/src/main.js
-        cp $src/src/spammer.js $out/src/spammer.js
-        cp $src/src/faucet.js $out/src/faucet.js
+        cp -r $src/src/* $out/src/
         cp -r ${self'.packages.nodeModules}/lib/node_modules $out/node_modules
       '';
       installPhase = ''

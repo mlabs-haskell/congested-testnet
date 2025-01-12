@@ -16,9 +16,7 @@ const spawnWorker = async (state) => {
   try {
     const path = await import("path");
     const { Worker } = await import("node:worker_threads");
-
     const worker = new Worker(path.resolve(__dirname, "./worker.js"));
-
     worker.on("message", (msg) => handleWorkerMessage(msg, worker, state));
     worker.on("error", handleWorkerError);
     worker.on("exit", (code) => handleWorkerExit(code, state));
@@ -211,7 +209,3 @@ const handleWorkerExit = (code, state) => {
     console.log("Worker exited gracefully.");
   }
 };
-
-
-
-
