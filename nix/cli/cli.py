@@ -75,16 +75,13 @@ def run_prometheus(data, cardano_node_metrics_url, spammer_metrics_url):
     cmd = [os.environ["RUN_PROMETHEUS_SH"], data, cardano_node_metrics_url,  spammer_metrics_url ]
     subprocess.run(cmd)
 
-def run_spammer(node_config_path, ogmios_url, kupo_url):
+def run_spammer(mainwalletSKeyPath, ogmios_url, kupo_url):
     """
-    run spammers on node, local faucet (port 8000), ogmios (port 1337) and kupo (port 1442)
-    args:
-        node_config_path: folder with node metadata and socket 
+    run spammers on node, run faucet on port 8000, and await tx metrics on port 8001
     """
-    # (in docker compose) wait a little bit until genesis node started  
-    os.environ["ogmiosUrl"]=ogmios_url 
-    os.environ["kupoUrl"]=kupo_url 
-    os.environ["walletPath"]=f"{node_config_path}/wallet.skey"
+    os.environ["OGMIOS_URL"]=ogmios_url 
+    os.environ["KUPO_URL"]=kupo_url 
+    os.environ["WALLET_SKEY_PATH"]=mainwalletSKeyPath
     subprocess.run("spammer")
 
 

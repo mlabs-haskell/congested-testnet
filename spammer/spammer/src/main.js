@@ -185,7 +185,9 @@ const processDetailedMessage = (msg, state, worker) => {
     state.clearLocked(txHash);
   } else if (message.startsWith("paid")) {
     const [_, pKeyHash, txHash] = message.split("_");
-    state.faucetPaid(pKeyHash,txHash);
+
+    // mark if faucet paid 
+    state.faucetPaid(pKeyHash, txHash);
   }
 
   if (time) {

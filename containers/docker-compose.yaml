@@ -40,18 +40,21 @@ services:
     volumes:
       - ./genesis_spo_data:/data
 
-  # spammer:
-  #   image: congested-testnet-cli:latest
-  #   command: congested-testnet-cli run_spammer /data ogmios kupo 
-  #   # ports:
-  #   #   - ":1442"  
-  #   volumes:
-  #     - genesis_spo_data:/data
-  #   depends_on:
-  #     - ogmios
-  #     - kupo
-  #   restart: always
-#
+  spammer:
+    image: congested-testnet-cli:latest
+    command: congested-testnet-cli run_spammer /data/wallet.skey ogmios kupo 
+    ports:
+      - "8000:8000"  
+      - "8001:8001"  
+    volumes:
+      - genesis_spo_data:/data
+    environment:
+
+    depends_on:
+      - ogmios
+      - kupo
+    restart: always
+
 
 # volumes:
 #   genesis_spo_data:

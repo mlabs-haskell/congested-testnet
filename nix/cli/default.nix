@@ -12,7 +12,7 @@
           kupo
           ogmios
           python311Packages.fire
-          # spammer
+          spammer
           (python311.withPackages (ps : with ps; [fire]) )
         ];
         text = ''
@@ -30,6 +30,18 @@
          export RUN_OGMIOS_SH=${../../scripts/run_ogmios.sh}
          export RUN_PROMETHEUS_SH=${../../scripts/run_prometheus.sh}
          export CREATE_ADDITIONAL_UTXO_SH=${../../scripts/create_additional_utxo.sh}
+
+         # services: faucet , spammer, metrics vars
+         export OGMIOS_PORT="1337"
+         export KUPO_PORT="1442"
+         export SPAMMER_METRIC_PORT="8001"
+         export FAUCET_PORT="8000"
+         export SPAMMER_STATE_FILE="state.json"
+         export N_WORKERS=2
+         export MEMPOOL_PAUSE_LIMIT=80000
+         export MEMPOOL_UNPAUSE_LIMIT=60000
+
+         # cli tool
          python ${./cli.py} "$@"
         '';
       };

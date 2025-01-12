@@ -110,7 +110,7 @@ const _faucetPay = () => {
 };
 
 const faucetPaid = (pKeyHash, txHash) => {
-  state.faucet[pKeyHash] = txHash;
+  if (Object.hasOwn(state.faucet, pKeyHash)) state.faucet[pKeyHash] = txHash;
 };
 
 const faucetFinish = (pKeyHash) => {
