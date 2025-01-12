@@ -2,228 +2,212 @@ const fs = require("fs");
 const path = require("path");
 const utils = require(path.resolve(__dirname, "./utils.js"));
 const scripts = require(path.resolve(__dirname, "./scripts.js"));
-const keys = utils.generatePkeys(300);
 
+const generateInitialWalletState = (keys) => ({
+  keys,
+  ikey: 0,
+  hashes: keys.map(utils.hash),
+  ihash: 1,
+  empty: true,
+});
 
+const generateDefaultState = (keys) => ({
+  mainWallet: {
+    path: process.env.WALLET_SKEY_PATH,
+    free: true,
+  },
+  ogmiosUrl: process.env.OGMIOS_URL,
+  kupoUrl: process.env.KUPO_URL,
+  wallets: generateInitialWalletState(keys),
+  tx: {
+    // transactions types like  "pay" | "lock" | "unlock"
+    type: "pay",
+    // [[txHash, script]]
+    locked: { txHashScript: [] },
+  },
+  // pause workers 
+  pause: false,
+  // use await flag awaiting tx for time delay 
+  await: false,
+  awaitTxTime: "0.0",
+  // faucet {payKeyHash : "pay" | "inprogress" | "paid"}
+  faucet: {},
+});
 
-const load = () => {
-  // upload state from file if exists
+const loadState = () => {
   if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
-    const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, 'utf-8');
+    const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, "utf-8");
     const parsedState = JSON.parse(fileContent);
-    // unpause of spammer if state saved with true
     parsedState.pause = false;
     parsedState.await = false;
     return parsedState;
-  };
-
-  // default state
-  return  {
-    mainWallet : {
-      path : process.env.WALLET_SKEY_PATH,
-      free: true 
-    },
-    ogmiosUrl : process.env.OGMIOS_URL,
-    kupoUrl : process.env.KUPO_URL,
-
-    // generate 200 spammer wallets in order to use different keys and not wait until tx is finished  
-    // which is necessary for spamming approach
-    wallets : {
-      // bech32
-      keys : keys, 
-      ikey : 0,
-      hashes: keys.map(utils.hash),
-      ihash : 1,
-      // if false, need take funds from main wallet
-      empty: true, 
-      // current index
-    },
-    tx : {
-      // transactions types like  "pay" | "lock" | "unlock"
-      type : "pay", 
-      // locked  transactions
-      locked : {
-        txHashScript : []
-      }, 
-
-    },
-    pause : false, 
-    // use await to awaiting tx for time measure
-    await : false, 
-    // metric for 
-    awaitTxTime : "0.0"
-  };
-
+  }
+  return generateDefaultState(utils.generatePkeys(300));
 };
 
-const state = load(); 
+const state = loadState();
 
-
-['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach(signal => process.on(signal, () => {
-    fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
-    process.exit();
-  }));
-
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught exception:', error);
-    console.log('Saving state before exit due to uncaught exception...');
-    fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
-    process.exit(1); 
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled promise rejection:', reason);
-    console.log('Saving state before exit due to unhandled rejection...');
-    fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
-    process.exit(1); 
-});
-
-const nextI = i => {
-  if (i == state.wallets.keys.length - 1){
-    return 0;
-  };
-  return i+1;
+const saveState = () => {
+  fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
 };
+
+const handleExitSignals = () => {
+  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
+    process.on(signal, () => {
+      saveState();
+      process.exit();
+    })
+  );
+};
+
+const handleUncaughtErrors = () => {
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    console.log("Saving state before exit due to uncaught exception...");
+    saveState();
+    process.exit(1);
+  });
+
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+    console.log("Saving state before exit due to unhandled rejection...");
+    saveState();
+    process.exit(1);
+  });
+};
+
+handleExitSignals();
+handleUncaughtErrors();
+
+const nextIndex = (i, length) => (i === length - 1 ? 0 : i + 1);
 
 const walletKey = () => state.wallets.keys[state.wallets.ikey];
 const walletHash = () => state.wallets.hashes[state.wallets.ihash];
-
-
 const nextWallet = () => {
-  state.wallets.ikey = nextI(state.wallets.ikey)
-  state.wallets.ihash = nextI(state.wallets.ihash)
+  state.wallets.ikey = nextIndex(state.wallets.ikey, state.wallets.keys.length);
+  state.wallets.ihash = nextIndex(state.wallets.ihash, state.wallets.hashes.length);
 };
 
-const backendPars = () => { return {
-         type : "BackendPars",
-         ogmiosUrl : state.ogmiosUrl,
-         kupoUrl : state.kupoUrl,
-         walletPath : state.mainWallet.path
-};};
+const backendPars = () => ({
+  type: "BackendPars",
+  ogmiosUrl: state.ogmiosUrl,
+  kupoUrl: state.kupoUrl,
+  walletPath: state.mainWallet.path,
+});
 
-const setWalletsInitiated = () => {
-       state.wallets.empty = false;
-}; 
+const faucetPay = (pKeyHash) => {
+  state.faucet[pKeyHash] = "pay";
+};
 
-const getState = () => state; 
-const noAwaitTxToMeasureTime = () => {state.await = false;}; 
-const pause = () => {state.pause = true;}; 
-const unpause = () => {state.pause = false;}; 
+const faucetPayKeyHash = () => {
+  for (const [key, status] of Object.entries(state.faucet)) {
+    if (status === "pay") {
+      state.faucet[key] = "inprogress";
+      return key;
+    }
+  }
+  return null;
+};
 
-const awaitTxTime = () => state.awaitTxTime;
-const setAwaitTxTime = t => {state.awaitTxTime = t;};
+const faucetPaid = (pKeyHash) => {
+  state.faucet[pKeyHash] = "paid";
+};
 
-
-const isWalletsEmpty = () => state.wallets.empty; 
-const walletsHashes= () => state.wallets.hashes; 
-
-const mainWalletFree = () => state.mainWallet.free; 
-const setMainWalletBusy = () => {state.mainWallet.free = false;}; 
-
-function pushLocked(script, txHash) {
+const pushLocked = (script, txHash) => {
   state.tx.locked.txHashScript.push([txHash, script]);
 };
 
-function clearLocked(txHash) {
-  state.tx.locked.txHashScript = state.tx.locked.txHashScript.filter(arr => arr[0] != txHash);
+const clearLocked = (txHash) => {
+  state.tx.locked.txHashScript = state.tx.locked.txHashScript.filter(arr => arr[0] !== txHash);
 };
 
-
 const txPars = () => {
-  if (state.await && state.pause){
-    return {
-      tx : "pause",
-      pars : {}
+  const faucetHash = faucetPayKeyHash();
+  if (faucetHash && !state.wallets.empty) {
+    const response = {
+      tx: "pay",
+      pars: {
+        key: walletKey(),
+        hash: faucetHash,
+        amount: "1000000000",
+      },
     };
-  } 
+    nextWallet();
+    return response;
+  }
 
-  if (isWalletsEmpty()) {
-    // initialize spammer wallets
-    // set pause because use mainWallet
-    pause();
+  if (state.await && state.pause) {
+    return { tx: "pause", pars: {} };
+  }
+
+  if (state.wallets.empty) {
+    state.pause = true;
     state.await = true;
     return {
-      tx : "initWallets",
-      pars : {
-        hashes : walletsHashes(),
-        amount : "1000000000000000",
-        await : true 
-      }
+      tx: "initWallets",
+      pars: {
+        hashes: state.wallets.hashes,
+        amount: "1000000000000000",
+        await: true,
+      },
     };
-  }; 
-  
-  let resp;
+  }
 
-  //unlock
+  let response;
   if (state.tx.locked.txHashScript.length > 100) {
-    // move unlock tx data to the end, to clear it after successfull submission 
-    let [txHash, script] = state.tx.locked.txHashScript.shift();
+    const [txHash, script] = state.tx.locked.txHashScript.shift();
     state.tx.locked.txHashScript.push([txHash, script]);
-    resp = {
-      tx : "unlock",
-      pars : {
-        key : walletKey(),
-        script : script ,
-        lockedTxHash : txHash
-      }
+    response = {
+      tx: "unlock",
+      pars: {
+        key: walletKey(),
+        script,
+        lockedTxHash: txHash,
+      },
     };
   } else {
-    let script = scripts.script();
-
-    // pay
-    if (script == "") {
-      resp = {
-        tx : "pay",
-        pars : {
-          key : walletKey(),
-          hash : walletHash(),
-          amount : "3000000" 
-        }
+    const script = scripts.script();
+    if (script === "") {
+      response = {
+        tx: "pay",
+        pars: {
+          key: walletKey(),
+          hash: walletHash(),
+          amount: "3000000",
+        },
       };
     } else {
-
-      // lock
-      resp = {
-        tx : "lock",
-        pars : {
-          key : walletKey(),
-          script : script,
-          amount : "3000000" 
-        }
+      response = {
+        tx: "lock",
+        pars: {
+          key: walletKey(),
+          script,
+          amount: "3000000",
+        },
       };
-    };
-  };
+    }
+  }
+
   nextWallet();
-
-  resp.pars.await = false;
-  if (!state.await) {
-    state.await = true;
-    resp.pars.await = true;
-  };
-
-  return resp;
-  };
-
-
+  response.pars.await = !state.await;
+  state.await = true;
+  return response;
+};
 
 module.exports = {
-  walletKey,
-  walletHash,
-  nextWallet, 
   backendPars,
-  getState,
-  pause,
-  unpause,
-  isWalletsEmpty,
-  walletsHashes,
-  mainWalletFree,
-  setMainWalletBusy,
-  setWalletsInitiated,
-  noAwaitTxToMeasureTime,
+  getState: () => state,
+  pause: () => (state.pause = true),
+  unpause: () => (state.pause = false),
+  isWalletsEmpty: () => state.wallets.empty,
+  walletsHashes: () => state.wallets.hashes,
+  mainWalletFree: () => state.mainWallet.free,
+  setMainWalletBusy: () => (state.mainWallet.free = false),
+  setWalletsInitiated: () => (state.wallets.empty = false),
+  noAwaitTxToMeasureTime: () => (state.await = false),
   txPars,
   pushLocked,
   clearLocked,
-  awaitTxTime,
-  setAwaitTxTime
+  awaitTxTime: () => state.awaitTxTime,
+  setAwaitTxTime: (t) => (state.awaitTxTime = t),
 };
-

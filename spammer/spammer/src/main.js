@@ -1,198 +1,224 @@
-const spawnMemPoolChecker = async (state) => { 
+// MAIN 
+// spammers and faucet share same wallets
+(async () => {
+  const path = await import("path");
+  const state = await import(path.resolve(__dirname, "./state.js"));
+  for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
+     spawnWorker(state.default);
+  }
+  // pause if large mempool
+  spawnMemPoolChecker(state.default);
+  spawnAwaitTxMetric(state.default);
+})()
+
+const spawnWorker = async (state) => {
+  try {
+    const path = await import("path");
+    const { Worker } = await import("node:worker_threads");
+
+    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
+
+    worker.on("message", (msg) => handleWorkerMessage(msg, worker, state));
+    worker.on("error", handleWorkerError);
+    worker.on("exit", (code) => handleWorkerExit(code, state));
+  } catch (error) {
+    console.error("Failed to initialize worker:", error);
+  }
+};
+
+
+const spawnMemPoolChecker = async (state) => {
   const {WebSocket} = await import("ws");
-  const ws =  new WebSocket(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`);
-  ws.on('message', (data) => {
-      const resp = JSON.parse(data);
-      if (resp.method == 'sizeOfMempool') {
-        let memPoolSize = resp.result.currentSize.bytes;
-        if (memPoolSize > process.env.MEMPOOL_PAUSE_LIMIT) {
-          console.log("PAUSE")
-          state.pause();
-        } else if (memPoolSize < process.env.MEMPOOL_UNPAUSE_LIMIT) {
-          console.log("UNPAUSE")
-          state.unpause();
-        }
-      };
-    }
-  )
-  setInterval(() => {
-      ws.send(
-        JSON.stringify({
-          jsonrpc: '2.0',
-          method : 'acquireMempool',
-          params : {}
-        })
-      );
-      ws.send(
-        JSON.stringify({
-          jsonrpc: '2.0',
-          method : 'sizeOfMempool',
-          params : {}
-        })
-      );
-      ws.send(
-        JSON.stringify({
-          jsonrpc: '2.0',
-          method : 'releaseMempool',
-          params : {}
-        })
-      );
-    },3000);
+  const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`);
+
+  ws.on("message", handleWebSocketMessage(state));
+
+  setInterval(() => sendMempoolRequests(ws), 3000);
 };
 
 
 const spawnAwaitTxMetric = async (state) => {
-    const http = await import("http");
-    const promExporter = http.createServer((req, res) => {
+    // Dynamically import the HTTP module
+    const { createServer } = await import("http");
+
+    // Define the Prometheus exporter server
+    const promExporter = createServer((req, res) => {
         if (req.url === '/metrics') {
+            const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime()}\n`;
             res.writeHead(200, { 'Content-Type': 'text/plain' });
-            res.end(`# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime() }\n`);
+            res.end(metrics);
         } else {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('Not Found');
         }
     });
 
-     promExporter.listen(process.env.SPAMMER_METRIC_PORT, () => {
-         console.log(`Prometheus metrics available at http://0.0.0.0:${process.env.SPAMMER_METRIC_PORT}/metrics`);
-     });
-
+    // Start listening on the specified port
+    const port = process.env.SPAMMER_METRIC_PORT;
+    promExporter.listen(port, () => {
+        console.log(`Prometheus metrics available at http://0.0.0.0:${port}/metrics`);
+    });
 };
 
+const sendMempoolRequests = (ws) => {
+  const requests = [
+    { method: "acquireMempool" },
+    { method: "sizeOfMempool" },
+    { method: "releaseMempool" },
+  ];
 
-const spawnWorker = async (state) => {
-   const path = await import("path");
-   const {Worker} = await import("node:worker_threads");
-   const worker = new Worker(path.resolve(__dirname, "./worker.js"));
-   worker.on("message", msg => {
-     if (msg == "backendPars") {
-       worker.postMessage(state.backendPars())
-     } else if (msg == "txPars") {
-       worker.postMessage(state.txPars());
-     } else if (Object.hasOwn(msg,"msg") && Object.hasOwn(msg,"time")) {
-       let message = msg.msg;
-       let time = msg.time;
-       if (message.startsWith("initializedWallets")) {
-         state.unpause();
-         state.setWalletsInitiated(); 
-         state.noAwaitTxToMeasureTime(); 
-       };
-       if (message.startsWith("locked")) {
-         let [_, lockedScript, lockedTxHash ] = message.split("_"); 
-         state.pushLocked(lockedScript, lockedTxHash);
-       };
-       if (message.startsWith("unlocked")) {
-         let [_, txHash] = message.split("_"); 
-         state.clearLocked(txHash);
-       }; 
-       if (time) {
-         // reset
-         console.log(`time : ${time}`)
-         state.setAwaitTxTime(time);
-         state.noAwaitTxToMeasureTime(); 
-       };
-       worker.postMessage("ok");
-     } else {
-       worker.postMessage("ok");
-     };
-   });
-
-   worker.on("error", (error) => {
-     console.error("Worker encountered an error:", error);
-   });
-
-   // Handle the exit of the worker and restart if needed
-   worker.on("exit", (code) => {
-     if (code !== 0) {
-       console.error(`Worker exited with code ${code}. Restarting...`);
-       spawnWorker(state); 
-     } else {
-       console.log("Worker exited gracefully.");
-     }
-   });
+  requests.forEach((request) => {
+    ws.send(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        method: request.method,
+        params: {},
+      })
+    );
+  });
 };
 
-// MAIN 
-(async () => {
-  // generate wallets and fill them with funds 
-  // spammers and faucet share same wallets
-  const path = await import("path");
-  const state = await import(path.resolve(__dirname, "./state.js"));
-  for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
-     spawnWorker(state);
+const handleWebSocketMessage = (state) => (data) => {
+  try {
+    const resp = JSON.parse(data);
+
+    if (resp.method === "sizeOfMempool") {
+      const memPoolSize = resp.result.currentSize.bytes;
+
+      if (memPoolSize > process.env.MEMPOOL_PAUSE_LIMIT) {
+        console.log("PAUSE");
+        state.pause();
+      } else if (memPoolSize < process.env.MEMPOOL_UNPAUSE_LIMIT) {
+        console.log("UNPAUSE");
+        state.unpause();
+      }
+    }
+  } catch (error) {
+    console.error("Error handling WebSocket message:", error);
   }
-  // pause if large mempool
-  spawnMemPoolChecker(state);
-  spawnAwaitTxMetric(state);
+};
 
-  
-  // // console.log(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`)
-  // const workers = Array.from({length : nSpammers},(_,spammerId) => {
-  //    let wData = {spammerId : spammerId, waitTx : (spammerId == nSpammers - 1) ? true : false };
-  //    return new Worker(path.resolve(__dirname, "./spammer.js"), {workerData: wData})
-  // }
-  // ) 
-  //   // ogmios websocket connection
-  //   const {WebSocket} = await import("ws");
-  // 
-  //   const ws =  new WebSocket(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`);
-  //   // stop spammers if mempool is large and proceed, if mempool is small
-  //   ws.on('message', (data) => {
-  //     const resp = JSON.parse(data);
-  //     if (resp.method == 'sizeOfMempool') {
-  //       let memPoolSize = resp.result.currentSize.bytes;
-  //       // pause / unpause
-  //       if (memPoolSize > process.env.MEMPOOL_UP_LIMIT) {
-  //          spammers.map(sp => sp.postMessage("pause"));
-  //       } else if (memPoolSize < process.env.MEMPOOL_LO_LIMIT) {
-  //          spammers.map(sp => sp.postMessage("unpause"));
-  //       }
-  //     }
-  //   });
-  //
-  // // spammers
-  // // activate wallets in each spammer one by one 
-  // for (let i = 0; i < nSpammers - 1; i++) {
-  //     spammers[i].on(
-  //      "message",
-  //       msg => {
-  //        if (msg == "successfullyPaidToSpammerWallet") {
-  //            spammers[i+1].postMessage("unpause")
-  //         };
-  //        }); 
-  //     };
-  //   spammers[nSpammers - 1].on(
-  //      "message", msg => { 
-  //        if (msg == "successfullyPaidToSpammerWallet")   {
-  //            console.log("last spammer initialized. unpause all spammers")
-  //            spammers.map(sp => sp.postMessage("unpause"));
-  //            startMempoolChecker(ws);
-  //         };
-  //      }
-  //   )
-  //   spammers.map(sp => sp.on("error", async error => { console.error(error); process.exit(1);}));
-  //   spammers.map(sp => sp.on("exit", async error => { console.error(error); process.exit(1);}));
-  //   // spammers[0].postMessage("unpause");
-  // 
-  //   // faucet 
-  //   const faucet = new Worker(path.resolve(__dirname, "./faucet.js"), {workerData: null}) 
-  //   // pause spammers to get tada
-  //   faucet.on("message", async msg => {
-  //    if (msg == "successfullyPaidToSpammerWallet")   {
-  //        console.log("fill 1st spammer")
-  //        spammers[0].postMessage("unpause");
-  //     };
-  //   })
-  //   faucet.on("error", async error => {
-  //     console.error(error);
-  //     process.exit(1);
-  //   })
-  //
-  //   faucet.on("exit", async code => {
-  //     console.error(code);
-  //     process.exit(1);
-  //   })
-})()
+
+
+
+
+const spawnFaucet = async (state) => {
+  const http = await import("http");
+  const {parentPort} = await import("node:worker_threads");
+  const path = await import("node:path");
+  const csl  = await import("@emurgo/cardano-serialization-lib-nodejs");
+
+
+
+  const FAUCET_PORT = process.env.FAUCET_PORT;
+  console.log("create faucet server....")
+
+  // faucet server changes faucetPars
+  const server = http.createServer((req, res) => {
+      if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
+          let body = '';
+
+          req.on('data', chunk => {
+              body += chunk;
+          });
+
+          req.on('end', async () => {
+              try {
+                  const data = JSON.parse(body);
+                  const pubKeyHashHex = data.pubKeyHashHex;
+                  state.faucetPayHash(pubKeyHashHex);
+                  if (pubKeyHashHex) {
+                      const interval = setInterval(() => {
+                        if (state.faucetFinish()) {
+                          clearInterval(interval);
+                          res.writeHead(200, { 'Content-Type': 'application/json' });
+                          const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid 1K tada txHash : ${txHash}\n . Transaction added to mempool\n You need to wait it added to block `;
+                          res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
+                        };
+                      },10);
+                      const timeout = setTimeout(() => {
+                        clearInterval(interval); // Stop the interval
+                        res.write('Error: Timeout! backend error.\n');
+                        res.end(); // End the response with an error message
+                      }, 150000);
+                  } else {
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                      res.end(JSON.stringify({ error: 'pubKeyHashHex field is required' }));
+                  }
+              } catch (err) {
+                  res.writeHead(400, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Invalid JSON' }));
+              }
+          });
+      } else {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Not Found' }));
+      }
+  });
+
+  server.listen(FAUCET_PORT, () => {
+      console.log(`Server is running on port ${FAUCET_PORT}`);
+  });
+};
+
+
+const handleWorkerMessage = (msg, worker, state) => {
+  if (msg === "backendPars") {
+    worker.postMessage(state.backendPars());
+  } else if (msg === "txPars") {
+    worker.postMessage(state.txPars());
+  } else if (isDetailedMessage(msg)) {
+    processDetailedMessage(msg, state, worker);
+  } else {
+    worker.postMessage("ok");
+  }
+};
+
+const isDetailedMessage = (msg) => {
+  return Object.hasOwn(msg, "msg") && Object.hasOwn(msg, "time");
+};
+
+const processDetailedMessage = (msg, state, worker) => {
+  const { msg: message, time } = msg;
+
+  if (message.startsWith("initializedWallets")) {
+    state.unpause();
+    state.setWalletsInitiated();
+    state.noAwaitTxToMeasureTime();
+  } else if (message.startsWith("locked")) {
+    const [_, lockedScript, lockedTxHash] = message.split("_");
+    state.pushLocked(lockedScript, lockedTxHash);
+  } else if (message.startsWith("unlocked")) {
+    const [_, txHash] = message.split("_");
+    state.clearLocked(txHash);
+  } else if (message.startsWith("paid")) {
+    const [_, pKeyHash] = message.split("_");
+    // if pKeyHash in faucet set it paid
+    // state.setFaucetPaid(pKeyHash);
+  }
+
+  if (time) {
+    console.log(`time : ${time}`);
+    state.setAwaitTxTime(time);
+    state.noAwaitTxToMeasureTime();
+  }
+
+  worker.postMessage("ok");
+};
+
+const handleWorkerError = (error) => {
+  console.error("Worker encountered an error:", error);
+};
+
+const handleWorkerExit = (code, state) => {
+  if (code !== 0) {
+    console.error(`Worker exited with code ${code}. Restarting...`);
+    spawnWorker(state);
+  } else {
+    console.log("Worker exited gracefully.");
+  }
+};
+
 
 
 

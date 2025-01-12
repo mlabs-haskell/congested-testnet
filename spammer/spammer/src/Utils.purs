@@ -118,7 +118,8 @@ makeTransaction txPars
     txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs 
     time <- if pars.await then measureAwaitTxTime txHash else pure ""  
     log $ "pay : " <> (show txHash) 
-    pure {msg : "paid", time : time}
+    let msg = "paid_" <> pars.hash
+    pure {msg : msg , time : time}
 
 
   | txPars.tx == "lock" = do   
@@ -153,7 +154,7 @@ makeTransaction txPars
 measureAwaitTxTime :: TransactionHash -> Contract String 
 measureAwaitTxTime txHash = do 
   start <- liftEffect nowTime
-  awaitTxConfirmedWithTimeout (wrap 1000.0) txHash
+  awaitTxConfirmedWithTimeout (wrap 2000.0) txHash
   end <- liftEffect nowTime
   let
     dt :: Seconds
