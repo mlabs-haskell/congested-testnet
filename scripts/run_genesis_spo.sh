@@ -1,8 +1,7 @@
 #!/bin/sh
 # export TOPOLOGY_GENESIS_SPO_JSON
-
-ROOT=$1
-PORT=$2
+# export ROOT 
+# export PORT 
 
 cardano-node run --config "$ROOT/configuration.yaml" \
     --database-path "$ROOT/db" \

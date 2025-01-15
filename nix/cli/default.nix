@@ -36,7 +36,7 @@
          export KUPO_PORT="1442"
          export SPAMMER_METRIC_PORT="8001"
          export FAUCET_PORT="8000"
-         export SPAMMER_STATE_FILE="state.json"
+         # export SPAMMER_STATE_FILE="state.json"
          export N_WORKERS=2
          export MEMPOOL_PAUSE_LIMIT=80000
          export MEMPOOL_UNPAUSE_LIMIT=60000
@@ -64,6 +64,24 @@
           socat
           utillinux
           dnsutils
+      ];
+    };
+    packages.congested-testnet-image =
+    # let
+    # cardano-node = pkgs.dockerTools.pullImage {
+    #   imageName = "ghcr.io/intersectmbo/cardano-node";
+    #   imageDigest = "sha256:9baef8d93eb348a9e28c334d0e1665b6220abd340347505b8989829565ef7193";
+    #   sha256 ="sha256-fFkkdyHNhEAYKGRoAHuEwbvQj5rVfEIALouZOBvTB58=";
+    # };
+    # in
+    pkgs.dockerTools.buildLayeredImage {
+      name = "congested-testnet";
+      tag = "latest";
+      contents = with pkgs; [
+          cardano-node
+          jq
+          coreutils
+          bashInteractive
       ];
     };
     # packages.congested-testnet-cli-image =

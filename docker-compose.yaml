@@ -1,0 +1,59 @@
+# version: "3.8"
+
+services:
+
+  # generate testnet config
+  genesis_testnet_config:
+    image: congested-testnet:latest
+    # image: ghcr.io/sadmaxim/cgnet:latest
+    command: ["sh", "-c", "/scripts/gen_testnet_conf.sh"]
+    environment:
+      - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
+      - CONFIGURATION_YAML=/scripts/configuration.yaml
+      - ROOT=/data
+    volumes:
+      - testnet_data:/data
+      - ./scripts:/scripts
+
+
+  # run genesis spo node
+  genesis_spo_node:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_genesis_spo.sh"]
+    environment:
+      - TOPOLOGY_GENESIS_SPO_JSON=/scripts/topology_genesis_spo.json
+      - PORT=3000
+      - ROOT=/data
+    ports:
+      - "3000:3000"  
+      - "12789:12789"  
+    volumes:
+      - testnet_data:/data
+      - ./scripts:/scripts
+    depends_on:
+      - genesis_testnet_config
+
+
+  # generate addtional utxo for main wallet  
+  wallet:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/pay_to_wallet.sh"]
+    environment:
+      - ROOT=/data
+      - CARDANO_NODE_SOCKET_PATH=/data/node.socket
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    depends_on:
+      - genesis_spo_node
+
+
+# volumes:
+#   testnet_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: ./testnet_data
+volumes:
+  testnet_data:

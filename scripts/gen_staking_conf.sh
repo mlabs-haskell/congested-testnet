@@ -5,7 +5,7 @@ DIR=$2
 mkdir -p "$DIR"
 mkdir -p "$DIR/byron-gen-command"
 cp "$SRC/shelley-genesis.json" "$DIR"
-cp "$SRC/byron-gen-command/genesis.json" "$DIR/byron-gen-command"
+cp "$SRC/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
 cp "$SRC/conway-genesis.json" "$DIR"
 cp "$SRC/alonzo-genesis.json" "$DIR"
 cp "$SRC/configuration.yaml" "$DIR"

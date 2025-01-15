@@ -1,9 +1,23 @@
 #!/bin/sh
-# run spo node without byron genesis
-ROOT=$1
-PORT=$2
-ACCESS_URL=$3
-cd $ROOT
+# testnet config folder
+SRC=$1
+# staking node data/config folder
+DIR=$2
+# staking node running port
+PORT=$3
+# topology access url
+ACCESS_URL=$4
+
+# copy files for staking node
+mkdir -p "$DIR"
+mkdir -p "$DIR/byron-gen-command"
+cp "$SRC/shelley-genesis.json" "$DIR"
+cp "$SRC/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
+cp "$SRC/conway-genesis.json" "$DIR"
+cp "$SRC/alonzo-genesis.json" "$DIR"
+cp "$SRC/configuration.yaml" "$DIR"
+
+cd $DIR
 cat <<EOF > topology.json
 {
   "publicRoots": [
@@ -21,14 +35,12 @@ cat <<EOF > topology.json
   "useLedgerAfterSlot":-1
 }
 EOF
-cat topology.json
-
 cardano-node run --config "configuration.yaml" \
     --database-path "db" \
     --port $PORT \
     --host-addr "0.0.0.0" \
-    --socket-path "node.socket" \
     --topology "topology.json" 
+    # --socket-path "node.socket" \
     # --shelley-kes-key "$ROOT/kes.skey" \
     # --shelley-operational-certificate "$ROOT/opcert.cert" \
     # --shelley-vrf-key "$ROOT/vrf.skey" \

@@ -1,12 +1,16 @@
 #!/bin/sh
-PKEYHEX=$(jq '.cborHex' < "$CONFIG/utxo-keys/utxo1/utxo.skey")
+
+# export ROOT
+# export CARDANO_NODE_SOCKET_PATH
+
+PKEYHEX=$(jq '.cborHex' < "$ROOT/utxo-keys/utxo1/utxo.skey")
 
 echo "{\"type\":\"PaymentSigningKeyShelley_ed25519\",\"description\":\"Payment_Signing_Key\",\"cborHex\":$PKEYHEX}" > "$ROOT/wallet.skey"
 
 echo "build address"
 
 cardano-cli conway address build \
-  --payment-verification-key-file "$CONFIG/utxo-keys/utxo1/utxo.vkey" \
+  --payment-verification-key-file "$ROOT/utxo-keys/utxo1/utxo.vkey" \
   --out-file "$ROOT/wallet.addr" \
   --testnet-magic 42 
 
@@ -39,7 +43,7 @@ echo "transaction build"
 
 cardano-cli conway transaction sign \
       --tx-body-file "$ROOT/tx.body" \
-      --signing-key-file "$CONFIG/utxo-keys/utxo1/utxo.skey" \
+      --signing-key-file "$ROOT/utxo-keys/utxo1/utxo.skey" \
       --testnet-magic 42 \
       --out-file "$ROOT/tx.signed"
 

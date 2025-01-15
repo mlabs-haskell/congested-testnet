@@ -86,5 +86,16 @@
             source <(node --completion-bash)
           '';
         };
+
+      packages.hello = pkgs.hello; 
+
+      devShells.test-shell =
+        pkgs.mkShell {
+          name = "test-shell";
+          buildInputs = [
+            pkgs.cardano-node
+          ];
+          shellHook = '''';
+        };
     };
 }

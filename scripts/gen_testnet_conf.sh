@@ -2,8 +2,8 @@
 # defined outside vars:
 # export BYRON_GENESIS_SPEC_JSON
 # export CONFIGURATION_YAML
+# export ROOT
 
-ROOT=$1
 mkdir -p $ROOT
 
 NETWORK_MAGIC=42

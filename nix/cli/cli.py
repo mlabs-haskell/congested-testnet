@@ -41,11 +41,10 @@ def run_staking_node(genesis_config_pth_or_url, node_config_path, port : int, ac
     args:
         genesis_config_pth_or_url : folder or web with genesis and configuration.yaml files
         node_config_path : path where necessary config will be generated for spo node 
+        access_point_url : url for some other node to connect
         port 
     """
-    cmd = [os.environ["GEN_STAKING_CONF_SH"], genesis_config_pth_or_url, node_config_path]
-    subprocess.run(cmd)
-    cmd = [os.environ["RUN_STAKING_NODE_SH"], node_config_path, str(port), access_point_url]
+    cmd = [os.environ["RUN_STAKING_NODE_SH"],genesis_config_pth_or_url, node_config_path, str(port), access_point_url]
     subprocess.run(cmd)
 
 def run_kupo(node_config_path):
@@ -75,15 +74,14 @@ def run_prometheus(data, cardano_node_metrics_url, spammer_metrics_url):
     cmd = [os.environ["RUN_PROMETHEUS_SH"], data, cardano_node_metrics_url,  spammer_metrics_url ]
     subprocess.run(cmd)
 
-def run_spammer(mainwalletSKeyPath, ogmios_url, kupo_url):
+def run_spammer(main_wallet_skey_path, ogmios_url, kupo_url):
     """
     run spammers on node, run faucet on port 8000, and await tx metrics on port 8001
     """
-    os.environ["OGMIOS_URL"]=ogmios_url 
-    os.environ["KUPO_URL"]=kupo_url 
-    os.environ["WALLET_SKEY_PATH"]=mainwalletSKeyPath
+    os.environ["OGMIOS_URL"] = ogmios_url 
+    os.environ["KUPO_URL"] = kupo_url 
+    os.environ["WALLET_SKEY_PATH"] = main_wallet_skey_path 
     subprocess.run("spammer")
-
 
 
 if __name__ == '__main__':
