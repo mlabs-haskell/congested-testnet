@@ -11,6 +11,13 @@ const generateInitialWalletState = (keys) => ({
   empty: true,
 });
 
+const setEnvVarsInState = (state) => {
+  state.mainWallet.path = process.env.WALLET_SKEY_PATH;
+  state.ogmiosUrl = process.env.OGMIOS_URL;
+  state.kupoUrl = process.env.KUPO_URL;
+
+}; 
+
 const generateDefaultState = (keys) => ({
   mainWallet: {
     path: process.env.WALLET_SKEY_PATH,
@@ -35,11 +42,13 @@ const generateDefaultState = (keys) => ({
 });
 
 const loadState = () => {
+  if (!fs.existsSync(process.env.WALLET_SKEY_PATH)) throw new Error("no wallet.skey file");
   if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
     const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, "utf-8");
     const parsedState = JSON.parse(fileContent);
     parsedState.pause = false;
     parsedState.await = false;
+    setEnvVarsInState(parsedState);
     return parsedState;
   }
   return generateDefaultState(utils.generatePkeys(300));

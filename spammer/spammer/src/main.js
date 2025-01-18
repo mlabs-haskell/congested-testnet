@@ -28,7 +28,7 @@ const spawnWorker = async (state) => {
 
 const spawnMemPoolChecker = async (state) => {
   const {WebSocket} = await import("ws");
-  const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:${process.env.OGMIOS_PORT}`);
+  const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
 
   ws.on("message", handleWebSocketMessage(state));
 
@@ -53,9 +53,9 @@ const spawnAwaitTxMetric = async (state) => {
     });
 
     // Start listening on the specified port
-    const port = process.env.SPAMMER_METRIC_PORT;
+    const port = process.env.SPAMMER_METRIC_PORT; 
     promExporter.listen(port, () => {
-        console.log(`Prometheus metrics available at http://0.0.0.0:${port}/metrics`);
+      console.log(`Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`);
     });
 };
 

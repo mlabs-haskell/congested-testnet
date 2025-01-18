@@ -1,5 +1,5 @@
 #!/bin/sh
-ROOT=$1
+# export ROOT
 ogmios \
   --host 0.0.0.0 \
   --port 1337 \

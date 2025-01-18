@@ -1,30 +1,30 @@
 #!/bin/sh
 # testnet config folder
-SRC=$1
+# export SRC
 # staking node data/config folder
-DIR=$2
+# export DIR
 # staking node running port
-PORT=$3
+# export PORT
 # topology access url
-ACCESS_URL=$4
+# export ACCESS_URL
 
 # copy files for staking node
-mkdir -p "$DIR"
-mkdir -p "$DIR/byron-gen-command"
-cp "$SRC/shelley-genesis.json" "$DIR"
-cp "$SRC/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
-cp "$SRC/conway-genesis.json" "$DIR"
-cp "$SRC/alonzo-genesis.json" "$DIR"
-cp "$SRC/configuration.yaml" "$DIR"
+# mkdir -p "$DIR"
+# mkdir -p "$DIR/byron-gen-command"
+# cp "$SRC/shelley-genesis.json" "$DIR"
+# cp "$SRC/byron-gen-command/genesis.json" "$DIR/byron-gen-command/genesis.json"
+# cp "$SRC/conway-genesis.json" "$DIR"
+# cp "$SRC/alonzo-genesis.json" "$DIR"
+# cp "$SRC/configuration.yaml" "$DIR"
 
-cd $DIR
+cd $SRC
 cat <<EOF > topology.json
 {
   "publicRoots": [
     {
       "accessPoints": [
         {
-          "address": "${ACCESS_URL}",
+          "address": ${ACCESS_URL},
           "port": 3000
         }
       ],
@@ -36,9 +36,9 @@ cat <<EOF > topology.json
 }
 EOF
 cardano-node run --config "configuration.yaml" \
-    --database-path "db" \
+    --database-path "db1" \
     --port $PORT \
-    --host-addr "0.0.0.0" \
+    --host-addr 0.0.0.0 \
     --topology "topology.json" 
     # --socket-path "node.socket" \
     # --shelley-kes-key "$ROOT/kes.skey" \

@@ -1,8 +1,8 @@
 #!/bin/sh
-DATA=$1
-# metrics url like 0.0.0.0:12789
-CARDANO_NODE_METRICS_URL=$2
-SPAMMER_METRICS_URL=$3
+# export DATA
+## metrics url like 0.0.0.0:12789
+# export CARDANO_NODE_METRICS_URL
+# export SPAMMER_METRICS_URL
 
 mkdir -p $DATA
 

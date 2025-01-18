@@ -82,6 +82,10 @@
           jq
           coreutils
           bashInteractive
+          ogmios
+          kupo
+          spammer
+          prometheus
       ];
     };
     # packages.congested-testnet-cli-image =

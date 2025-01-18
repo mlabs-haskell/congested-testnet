@@ -1,7 +1,4 @@
-# version: "3.8"
-
 services:
-
   # generate testnet config
   genesis_testnet_config:
     image: congested-testnet:latest
@@ -40,12 +37,100 @@ services:
     command: ["sh", "-c", "/scripts/pay_to_wallet.sh"]
     environment:
       - ROOT=/data
-      - CARDANO_NODE_SOCKET_PATH=/data/node.socket
+      - CARDANO_NODE_SOCKET_PATH=/data
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+
+    restart : "on-failure"
+
+    depends_on:
+      - genesis_spo_node
+
+
+  ogmios:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_ogmios.sh"]
+    environment:
+      - ROOT=/data
+    ports:
+      - "1337:1337"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    restart: always
+
+
+  kupo:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_kupo.sh"]
+    environment:
+      - ROOT=/data
+    ports:
+      - "1442:1442"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    restart: always
+
+
+
+  prometheus:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_prometheus.sh"]
+    environment:
+      - DATA=/data
+      - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
+      - SPAMMER_METRICS_URL=spammer:8001
+    ports:
+      - "9090:9090"  
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
     depends_on:
       - genesis_spo_node
+    restart: always
+
+
+  spammer:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "spammer"]
+    environment:
+      - WALLET_SKEY_PATH=/data/wallet.skey
+      - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
+      - SPAMMER_METRIC_PORT=8001
+      - FAUCET_PORT=8000
+      - N_WORKERS=2
+      - OGMIOS_URL=ogmios
+      - KUPO_URL=kupo
+      - MEMPOOL_PAUSE_LIMIT=80000
+      - MEMPOOL_UNPAUSE_LIMIT=60000
+      - SPAMMER_STATE_FILE=/data/state.json
+    ports:
+      - "8001:8001"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    depends_on:
+      - genesis_spo_node
+      - wallet
+    restart: always
+
+  staking_node:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_stacking_node.sh"]
+    environment:
+      - PORT=3000
+      - ACCESS_URL=http://genesis_spo_node
+      - SRC=/data
+    # ports:
+      # - "3000:3000"  
+      # - "12789:12789"  
+    volumes:
+      - testnet_data:/data
+      - ./scripts:/scripts
+    depends_on:
+      - genesis_testnet_config
 
 
 # volumes:

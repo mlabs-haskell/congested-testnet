@@ -1,5 +1,5 @@
 #!/bin/sh
-ROOT=$1
+# export ROOT
 kupo \
   --node-config $ROOT/configuration.yaml \
   --node-socket $ROOT/node.socket \
