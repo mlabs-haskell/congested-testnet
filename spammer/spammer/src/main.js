@@ -13,16 +13,10 @@
 })()
 
 const spawnWorker = async (state) => {
-  try {
-    const path = await import("path");
-    const { Worker } = await import("node:worker_threads");
-    const worker = new Worker(path.resolve(__dirname, "./worker.js"));
-    worker.on("message", (msg) => handleWorkerMessage(msg, worker, state));
-    worker.on("error", handleWorkerError);
-    worker.on("exit", (code) => handleWorkerExit(code, state));
-  } catch (error) {
-    console.error("Failed to initialize worker:", error);
-  }
+  const path = await import("path");
+  const { Worker } = await import("node:worker_threads");
+  const worker = new Worker(path.resolve(__dirname, "./worker.js"));
+  worker.on("message", (msg) => handleWorkerMessage(msg, worker, state));
 };
 
 
@@ -59,6 +53,7 @@ const spawnAwaitTxMetric = async (state) => {
     });
 };
 
+// send mempoort request to ogmios
 const sendMempoolRequests = (ws) => {
   const requests = [
     { method: "acquireMempool" },
@@ -199,15 +194,3 @@ const processDetailedMessage = (msg, state, worker) => {
   worker.postMessage("ok");
 };
 
-const handleWorkerError = (error) => {
-  console.error("Worker encountered an error:", error);
-};
-
-const handleWorkerExit = (code, state) => {
-  if (code !== 0) {
-    console.error(`Worker exited with code ${code}. Restarting...`);
-    spawnWorker(state);
-  } else {
-    console.log("Worker exited gracefully.");
-  }
-};

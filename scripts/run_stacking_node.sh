@@ -17,6 +17,7 @@
 # cp "$SRC/alonzo-genesis.json" "$DIR"
 # cp "$SRC/configuration.yaml" "$DIR"
 
+          # "address":$ACCESS_URL,
 cd $SRC
 cat <<EOF > topology.json
 {
@@ -24,17 +25,18 @@ cat <<EOF > topology.json
     {
       "accessPoints": [
         {
-          "address": ${ACCESS_URL},
-          "port": 3000
+          "address":"127.0.0.1",
+          "port":3000
         }
       ],
-      "advertise": true 
+      "advertise":true 
     }
   ],
-  "localRoots": [],
+  "localRoots":[],
   "useLedgerAfterSlot":-1
 }
 EOF
+
 cardano-node run --config "configuration.yaml" \
     --database-path "db1" \
     --port $PORT \

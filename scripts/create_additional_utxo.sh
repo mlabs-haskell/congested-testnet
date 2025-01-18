@@ -47,3 +47,5 @@ cardano-cli conway transaction submit \
       --socket-path "$ROOT/node.socket" \
       --tx-file "$ROOT/tx.signed" \
       --testnet-magic 42
+
+touch "$ROOT/added_utxo"

@@ -108,29 +108,34 @@ services:
       - SPAMMER_STATE_FILE=/data/state.json
     ports:
       - "8001:8001"  
+      - "8000:8000"  
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
     depends_on:
       - genesis_spo_node
       - wallet
+      - ogmios 
+      - kupo
     restart: always
+
 
   staking_node:
     image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_stacking_node.sh"]
     environment:
-      - PORT=3000
-      - ACCESS_URL=http://genesis_spo_node
+      - PORT=3001
+      - ACCESS_URL=genesis_spo_node
       - SRC=/data
-    # ports:
-      # - "3000:3000"  
+    ports:
+      - "3001:3001"  
       # - "12789:12789"  
     volumes:
       - testnet_data:/data
       - ./scripts:/scripts
     depends_on:
-      - genesis_testnet_config
+      - genesis_spo_node
+    restart: always
 
 
 # volumes:
