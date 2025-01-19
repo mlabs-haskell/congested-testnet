@@ -8,9 +8,12 @@ services:
       - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
       - CONFIGURATION_YAML=/scripts/configuration.yaml
       - ROOT=/data
+      - SHARE=/share
     volumes:
       - testnet_data:/data
+      - share_config:/share
       - ./scripts:/scripts
+
 
 
   # run genesis spo node
@@ -24,9 +27,16 @@ services:
     ports:
       - "3000:3000"  
       - "12789:12789"  
+    expose:
+      - "3000"
+      - "12789"
     volumes:
       - testnet_data:/data
       - ./scripts:/scripts
+    networks:
+      my:
+        aliases:
+          - genesis.local
     depends_on:
       - genesis_testnet_config
 
@@ -41,9 +51,7 @@ services:
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
-
     restart : "on-failure"
-
     depends_on:
       - genesis_spo_node
 
@@ -55,9 +63,16 @@ services:
       - ROOT=/data
     ports:
       - "1337:1337"  
+    expose:
+      - "1337"  
     volumes:
       - ./scripts:/scripts
-      - testnet_data:/data
+      # - testnet_data:/data
+      - staking_node_data:/data
+    networks:
+      my:
+        aliases:
+        - ogmios.local
     restart: always
 
 
@@ -68,9 +83,16 @@ services:
       - ROOT=/data
     ports:
       - "1442:1442"  
+    expose:
+      - "1442"  
     volumes:
       - ./scripts:/scripts
-      - testnet_data:/data
+      # - testnet_data:/data
+      - staking_node_data:/data
+    networks:
+      my:
+        aliases:
+        - kupo.local
     restart: always
 
 
@@ -80,7 +102,8 @@ services:
     command: ["sh", "-c", "/scripts/run_prometheus.sh"]
     environment:
       - DATA=/data
-      - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
+      - CARDANO_NODE_METRICS_URL=staking_node:12789
+      # - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
       - SPAMMER_METRICS_URL=spammer:8001
     ports:
       - "9090:9090"  
@@ -89,6 +112,10 @@ services:
       - testnet_data:/data
     depends_on:
       - genesis_spo_node
+    networks:
+      my:
+        aliases:
+        - prometheus.local
     restart: always
 
 
@@ -97,12 +124,13 @@ services:
     command: ["sh", "-c", "spammer"]
     environment:
       - WALLET_SKEY_PATH=/data/wallet.skey
-      - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
+      # - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
+      - CARDANO_NODE_METRICS_URL=staking.local:12789
       - SPAMMER_METRIC_PORT=8001
       - FAUCET_PORT=8000
       - N_WORKERS=2
-      - OGMIOS_URL=ogmios
-      - KUPO_URL=kupo
+      - OGMIOS_URL=ogmios.local
+      - KUPO_URL=kupo.local
       - MEMPOOL_PAUSE_LIMIT=80000
       - MEMPOOL_UNPAUSE_LIMIT=60000
       - SPAMMER_STATE_FILE=/data/state.json
@@ -112,11 +140,18 @@ services:
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
+      # - staking_node_data:/data
+    networks:
+      my:
+        aliases:
+        - spammer.local
     depends_on:
       - genesis_spo_node
+      - staking_node
       - wallet
       - ogmios 
       - kupo
+      - prometheus
     restart: always
 
 
@@ -124,18 +159,28 @@ services:
     image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_stacking_node.sh"]
     environment:
-      - PORT=3001
+      - PORT=3000
       - ACCESS_URL=genesis_spo_node
-      - SRC=/data
-    ports:
-      - "3001:3001"  
+      - DATA=/data
+      - CONFIG=/config
+    # ports:
+    #   - "3000:3000"  
       # - "12789:12789"  
+    expose:
+      - "3000"
+      - "12789"
     volumes:
-      - testnet_data:/data
+      - staking_node_data:/data
+      - share_config:/config
       - ./scripts:/scripts
     depends_on:
       - genesis_spo_node
-    restart: always
+      - wallet
+    networks:
+      my:
+        aliases:
+          - staking.local
+    restart : "on-failure"
 
 
 # volumes:
@@ -147,3 +192,8 @@ services:
 #       device: ./testnet_data
 volumes:
   testnet_data:
+  share_config:
+  staking_node_data:
+
+networks:
+  my:

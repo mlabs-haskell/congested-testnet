@@ -1,5 +1,10 @@
 {
-  "localRoots": [],
-  "publicRoots":[],
-  "useLedgerAfterSlot": -1 
+  "localRoots": [
+  ],
+  "publicRoots":[
+  {
+  "accessPoints": [],
+  "advertise": true 
+  }
+  ]
 }

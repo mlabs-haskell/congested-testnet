@@ -1,4 +1,5 @@
 // MAIN 
+// TODO split on separate spammer faucet files and containers
 // spammers and faucet share same wallets
 (async () => {
   const path = await import("path");
