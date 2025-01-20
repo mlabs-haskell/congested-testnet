@@ -9,7 +9,9 @@
   }
   // pause if large mempool
   spawnMemPoolChecker(state.default);
+  // await tx metrics
   spawnAwaitTxMetric(state.default);
+  // fauceta based on workers
   spawnFaucet(state.default);
 })()
 
@@ -17,17 +19,19 @@ const spawnWorker = async (state) => {
   const path = await import("path");
   const { Worker } = await import("node:worker_threads");
   const worker = new Worker(path.resolve(__dirname, "./worker.js"));
-  worker.on("message", (msg) => handleWorkerMessage(msg, worker, state));
+  worker.on("message", (msg) => {
+    state.updateState(msg);
+    const message = state.message();
+    worker.postMessage(message);
+  });
 };
 
 
 const spawnMemPoolChecker = async (state) => {
   const {WebSocket} = await import("ws");
   const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
-
-  ws.on("message", handleWebSocketMessage(state));
-
   setInterval(() => sendMempoolRequests(ws), 3000);
+  ws.on("message", state.updateMemPoolSize);
 };
 
 
@@ -119,7 +123,10 @@ const spawnFaucet = async (state) => {
                           clearInterval(interval);
                           clearTimeout(timeout);
                           res.writeHead(200, { 'Content-Type': 'application/json' });
-                          const message = `Received pubKeyHashHex: ${pubKeyHashHex};\n paid 1K tada txHash : ${txHash}\n . Transaction added to mempool\n You need to wait it added to block\n`;
+                          const message = {
+                            txHash: txHash, 
+                            msg : `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
+                          }
                           // res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
                           res.end(JSON.stringify({ message }));
                         };
@@ -151,13 +158,14 @@ const spawnFaucet = async (state) => {
 
 
 const handleWorkerMessage = (msg, worker, state) => {
+  // request messages from worker
   if (msg === "backendPars") {
     worker.postMessage(state.backendPars());
   } else if (msg === "txPars") {
     worker.postMessage(state.txPars());
-  } else if (isDetailedMessage(msg)) {
-    processDetailedMessage(msg, state, worker);
-  } else {
+  // tx results messages from worker
+  } else  {
+    state.processTxResult(msg);
     worker.postMessage("ok");
   }
 };
@@ -181,7 +189,6 @@ const processDetailedMessage = (msg, state, worker) => {
     state.clearLocked(txHash);
   } else if (message.startsWith("paid")) {
     const [_, pKeyHash, txHash] = message.split("_");
-
     // mark if faucet paid 
     state.faucetPaid(pKeyHash, txHash);
   }

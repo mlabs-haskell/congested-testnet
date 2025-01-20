@@ -3,143 +3,88 @@ const path = require("path");
 const utils = require(path.resolve(__dirname, "./utils.js"));
 const scripts = require(path.resolve(__dirname, "./scripts.js"));
 
-const generateInitialWalletState = (keys) => ({
-  keys,
-  ikey: 0,
-  hashes: keys.map(utils.hash),
-  ihash: 1,
-  empty: true,
-});
-
-const setEnvVarsInState = (state) => {
-  state.mainWallet.path = process.env.WALLET_SKEY_PATH;
-  state.ogmiosUrl = process.env.OGMIOS_URL;
-  state.kupoUrl = process.env.KUPO_URL;
-
-}; 
-
-const generateDefaultState = (keys) => ({
-  mainWallet: {
-    path: process.env.WALLET_SKEY_PATH,
-    free: true,
-  },
-  ogmiosUrl: process.env.OGMIOS_URL,
-  kupoUrl: process.env.KUPO_URL,
-  wallets: generateInitialWalletState(keys),
-  tx: {
-    // transactions types like  "pay" | "lock" | "unlock"
-    type: "pay",
-    // [[txHash, script]]
-    locked: { txHashScript: [] },
-  },
-  // pause workers 
-  pause: false,
-  // use await flag awaiting tx for time delay 
-  await: false,
-  awaitTxTime: "0.0",
-  // faucet {payKeyHash : "pay" | "inprogress" | if paid then txHash for paid transaction}
-  faucet: {},
-});
-
-const loadState = () => {
-  if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
-    const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, "utf-8");
-    const parsedState = JSON.parse(fileContent);
-    parsedState.pause = false;
-    parsedState.await = false;
-    setEnvVarsInState(parsedState);
-    return parsedState;
-  }
-  return generateDefaultState(utils.generatePkeys(300));
-};
-
 const state = loadState();
 
-const saveState = () => {
-  fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
+const generateDefaultState = (keys) => ({
+  // workers wallets
+  walletsKeys: keys, 
+  walletsI : 0,
+  walletsStatus : "EMPTY", // also "INPROGRESS" and "FILLED"
+  // locked transactions [[txHash, script]]
+  locked: {},
+  // faucet {payKeyHash : "pay" | "inprogress" | if paid then txHash for paid transaction}
+  faucet: {}
+});
+// const mainWalletPath: process.env.WALLET_SKEY_PATH,
+// const ogmiosUrl: process.env.OGMIOS_URL,
+// const kupoUrl: process.env.KUPO_URL,
+
+var memPoolSize; 
+// metric for prometheus
+var awaitTxTime; 
+// pause workers 
+var flagPause = false;
+var flagSendBackendPars = false;
+
+/** 
+  * possible stateUpdates on messages from workers: 
+  * messages:
+  * backendPars -> flagSendBackendPars = true 
+  * initializedWallets -> flagWalletsFilled = true set wallets filled, unpause
+  * locked > 100 txs -> unlock
+  * pay or lock ->
+  */ 
+
+/** 
+  * possible messages from current state: 
+  * flagSendBackendPars -> send backendPars
+  * if not flagWalletsFilled  -> pay to all wallets from main wallet
+  * initializedWallets -> flagWalletsFilled = true set wallets filled, unpause
+  * locked > 100 txs -> unlock
+  * pay or lock ->
+  */ 
+
+const message = () => {
+    if (flagSendBackendPars)
+      return {
+      };
+    if (flagPause) return {};
+    if (!state.walletsFilled) return {
+    };
+};  
+
+
+const nextState = (responseFromWorker) => {
+  switch (state.type) {
+    case "ZERO": 
+      if (responseFromWorker == "initializedWallets") {
+        state.type = "PAY";
+      }
+      break
+    case "PAY":
+  };
+
 };
 
-const handleExitSignals = () => {
-  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
-    process.on(signal, () => {
-      saveState();
-      process.exit();
-    })
-  );
-};
-
-const handleUncaughtErrors = () => {
-  process.on("uncaughtException", (error) => {
-    console.error("Uncaught exception:", error);
-    console.log("Saving state before exit due to uncaught exception...");
-    saveState();
-    process.exit(1);
-  });
-
-  process.on("unhandledRejection", (reason) => {
-    console.error("Unhandled promise rejection:", reason);
-    console.log("Saving state before exit due to unhandled rejection...");
-    saveState();
-    process.exit(1);
-  });
-};
-
-handleExitSignals();
-handleUncaughtErrors();
-
-const nextIndex = (i, length) => (i === length - 1 ? 0 : i + 1);
-
-const walletKey = () => state.wallets.keys[state.wallets.ikey];
-const walletHash = () => state.wallets.hashes[state.wallets.ihash];
-const nextWallet = () => {
-  state.wallets.ikey = nextIndex(state.wallets.ikey, state.wallets.keys.length);
-  state.wallets.ihash = nextIndex(state.wallets.ihash, state.wallets.hashes.length);
-};
-
+// send backend pars to workers
 const backendPars = () => ({
   type: "BackendPars",
   ogmiosUrl: state.ogmiosUrl,
   kupoUrl: state.kupoUrl,
-  walletPath: state.mainWallet.path,
+  walletPath: state.mainWalletPath
 });
 
-const faucetPay = (hex) => {
-  state.faucet[hex] = "pay";
-};
-
-const _faucetPay = () => {
-  for (const [key, status] of Object.entries(state.faucet)) {
-    if (status === "pay") {
-      state.faucet[key] = "inprogress";
-      return key;
-    }
-  }
-  return null;
-};
-
-const faucetPaid = (pKeyHash, txHash) => {
-  if (Object.hasOwn(state.faucet, pKeyHash)) state.faucet[pKeyHash] = txHash;
-};
-
-const faucetFinish = (pKeyHash) => {
-  txHash = state.faucet[pKeyHash]
-  if (txHash && txHash.length == 64) { 
-    delete state.faucet[pKeyHash];
-    return txHash
-  };
-  return null
-}; 
-
-const pushLocked = (script, txHash) => {
-  state.tx.locked.txHashScript.push([txHash, script]);
-};
-
-const clearLocked = (txHash) => {
-  state.tx.locked.txHashScript = state.tx.locked.txHashScript.filter(arr => arr[0] !== txHash);
-};
-
+// tx params sent to workers 
 const txPars = () => {
-  const faucetPubKeyHex = _faucetPay();
+  if (!state.walletsFilled){
+    return payToWallets();
+  }
+  if (!state.walletsFilled){
+    return payToWallets();
+  }
+  // is there request for faucet
+  const faucetPubKeyHex = _faucetPayKey();
+  // pay to faucet is 1st priority
   if (faucetPubKeyHex && !state.wallets.empty) {
     const response = {
       tx: "pay",
@@ -210,6 +155,113 @@ const txPars = () => {
   state.await = true;
   return response;
 };
+
+const generateInitialWalletState = (keys) => ({
+  keys,
+  ikey: 0,
+  hashes: keys.map(utils.hash),
+  ihash: 1,
+  empty: true,
+});
+
+const setEnvVarsInState = (state) => {
+  state.mainWallet.path = process.env.WALLET_SKEY_PATH;
+  state.ogmiosUrl = process.env.OGMIOS_URL;
+  state.kupoUrl = process.env.KUPO_URL;
+
+}; 
+
+
+const loadState = () => {
+  if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
+    const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, "utf-8");
+    const parsedState = JSON.parse(fileContent);
+    parsedState.pause = false;
+    parsedState.await = false;
+    setEnvVarsInState(parsedState);
+    return parsedState;
+  }
+  return generateDefaultState(utils.generatePkeys(300));
+};
+
+
+const saveState = () => {
+  fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
+};
+
+const handleExitSignals = () => {
+  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
+    process.on(signal, () => {
+      saveState();
+      process.exit();
+    })
+  );
+};
+
+const handleUncaughtErrors = () => {
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    console.log("Saving state before exit due to uncaught exception...");
+    saveState();
+    process.exit(1);
+  });
+
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+    console.log("Saving state before exit due to unhandled rejection...");
+    saveState();
+    process.exit(1);
+  });
+};
+
+handleExitSignals();
+handleUncaughtErrors();
+
+const nextIndex = (i, length) => (i === length - 1 ? 0 : i + 1);
+
+const walletKey = () => state.wallets.keys[state.wallets.ikey];
+const walletHash = () => state.wallets.hashes[state.wallets.ihash];
+const nextWallet = () => {
+  state.wallets.ikey = nextIndex(state.wallets.ikey, state.wallets.keys.length);
+  state.wallets.ihash = nextIndex(state.wallets.ihash, state.wallets.hashes.length);
+};
+
+
+const faucetPay = (hex) => {
+  state.faucet[hex] = "pay";
+};
+
+const _faucetPayKey = () => {
+  for (const [key, status] of Object.entries(state.faucet)) {
+    if (status === "pay") {
+      state.faucet[key] = "inprogress";
+      return key;
+    }
+  }
+  return null;
+};
+
+const faucetPaid = (pKeyHash, txHash) => {
+  if (Object.hasOwn(state.faucet, pKeyHash)) state.faucet[pKeyHash] = txHash;
+};
+
+const faucetFinish = (pKeyHash) => {
+  txHash = state.faucet[pKeyHash]
+  if (txHash && txHash.length == 64) { 
+    delete state.faucet[pKeyHash];
+    return txHash
+  };
+  return null
+}; 
+
+const pushLocked = (script, txHash) => {
+  state.tx.locked.txHashScript.push([txHash, script]);
+};
+
+const clearLocked = (txHash) => {
+  state.tx.locked.txHashScript = state.tx.locked.txHashScript.filter(arr => arr[0] !== txHash);
+};
+
 
 module.exports = {
   backendPars,

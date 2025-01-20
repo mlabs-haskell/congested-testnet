@@ -1,4 +1,5 @@
 services:
+
   # generate testnet config
   genesis_testnet_config:
     image: congested-testnet:latest
@@ -13,8 +14,6 @@ services:
       - testnet_data:/data
       - share_config:/share
       - ./scripts:/scripts
-
-
 
   # run genesis spo node
   genesis_spo_node:
@@ -121,10 +120,9 @@ services:
 
   spammer:
     image: congested-testnet:latest
-    command: ["sh", "-c", "spammer"]
+    command: ["sh", "-c", "sleep 2 && spammer"]
     environment:
       - WALLET_SKEY_PATH=/data/wallet.skey
-      # - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
       - CARDANO_NODE_METRICS_URL=staking.local:12789
       - SPAMMER_METRIC_PORT=8001
       - FAUCET_PORT=8000
@@ -183,13 +181,15 @@ services:
     restart : "on-failure"
 
 
-# volumes:
-#   testnet_data:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       o: bind
-#       device: ./testnet_data
+  # share_config:
+  #   image: python:3.9-slim
+  #   command: ["python", "-m", "http.server", "5000", "--directory", "/config"]
+  #   volumes:
+  #     - share_config:/config
+  #   ports:
+  #     - "5000:5000"  
+
+
 volumes:
   testnet_data:
   share_config:
