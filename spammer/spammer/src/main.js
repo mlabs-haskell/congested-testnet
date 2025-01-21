@@ -3,17 +3,40 @@
 // spammers and faucet share same wallets
 (async () => {
   const path = await import("path");
-  const state = await import(path.resolve(__dirname, "./state.js"));
+  let state = await import(path.resolve(__dirname, "./state.js"));
+  state = state.default;
+  const { Worker } = await import("node:worker_threads");
+  const workers = [];
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
-     spawnWorker(state.default);
+    workers.push(new Worker(path.resolve(__dirname, "./worker.js")));
   }
-  // pause if large mempool
-  spawnMemPoolChecker(state.default);
-  // await tx metrics
-  spawnAwaitTxMetric(state.default);
-  // fauceta based on workers
-  spawnFaucet(state.default);
+  console.log(state);
+  // initialise wallets if needed
+  if (state.walletsEmpty()) {
+    workers[0].postMessage(state.initializeWalletsPars());
+    const response = await workerResponse(workers[0])("initWallets");
+    // waitTxIsSubmitted(response)
+    const [_, txHash] = message.split("_");
+    state.setWalletsInitialized();
+  };
+  // // faucet based on workers
+  // spawnFaucet(state.default);
+  // //
+  // spawnSpammer(state.default);
+  // // pause if large mempool
+  // spawnMemPoolChecker(state.default);
+  // // await tx metrics
+  // spawnAwaitTxMetric(state.default);
 })()
+
+const workerResponse =  worker => targetMsg => (
+  new Promise((resolve) => {
+    worker.once("message", msg => {
+      if (msg.startsWith(targetMsg)) resolve(msg);
+    })
+  })
+);
+
 
 const spawnWorker = async (state) => {
   const path = await import("path");
@@ -21,8 +44,7 @@ const spawnWorker = async (state) => {
   const worker = new Worker(path.resolve(__dirname, "./worker.js"));
   worker.on("message", (msg) => {
     state.updateState(msg);
-    const message = state.message();
-    worker.postMessage(message);
+    worker.postMessage(state.message());
   });
 };
 

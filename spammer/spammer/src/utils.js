@@ -4,8 +4,8 @@ const generatePkeys = N => {
   var pkeys = [];
 
   for (var i = 1; i <= N; i++) {
-    pkey_bech = csl.PrivateKey.generate_ed25519().to_hex();
-    pkeys.push(pkey_bech);
+    pkeyHex = csl.PrivateKey.generate_ed25519().to_hex();
+    pkeys.push(pkeyHex);
   };
 
   return pkeys;
@@ -22,7 +22,7 @@ const uploadKeys = fname => {
   return bechs 
 };
 
-const hash = pkey_hex => csl.PrivateKey.from_hex(pkey_hex).to_public().hash().to_hex();
+const hash = pkeyHex => csl.PrivateKey.from_hex(pkeyHex).to_public().hash().to_hex();
 
 module.exports = {
   hash,

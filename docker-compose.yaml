@@ -118,39 +118,39 @@ services:
     restart: always
 
 
-  spammer:
-    image: congested-testnet:latest
-    command: ["sh", "-c", "sleep 2 && spammer"]
-    environment:
-      - WALLET_SKEY_PATH=/data/wallet.skey
-      - CARDANO_NODE_METRICS_URL=staking.local:12789
-      - SPAMMER_METRIC_PORT=8001
-      - FAUCET_PORT=8000
-      - N_WORKERS=2
-      - OGMIOS_URL=ogmios.local
-      - KUPO_URL=kupo.local
-      - MEMPOOL_PAUSE_LIMIT=80000
-      - MEMPOOL_UNPAUSE_LIMIT=60000
-      - SPAMMER_STATE_FILE=/data/state.json
-    ports:
-      - "8001:8001"  
-      - "8000:8000"  
-    volumes:
-      - ./scripts:/scripts
-      - testnet_data:/data
-      # - staking_node_data:/data
-    networks:
-      my:
-        aliases:
-        - spammer.local
-    depends_on:
-      - genesis_spo_node
-      - staking_node
-      - wallet
-      - ogmios 
-      - kupo
-      - prometheus
-    restart: always
+  # spammer:
+  #   image: congested-testnet:latest
+  #   command: ["sh", "-c", "sleep 2 && spammer"]
+  #   environment:
+  #     - WALLET_SKEY_PATH=/data/wallet.skey
+  #     - CARDANO_NODE_METRICS_URL=staking.local:12789
+  #     - SPAMMER_METRIC_PORT=8001
+  #     - FAUCET_PORT=8000
+  #     - N_WORKERS=2
+  #     - OGMIOS_URL=ogmios.local
+  #     - KUPO_URL=kupo.local
+  #     - MEMPOOL_PAUSE_LIMIT=80000
+  #     - MEMPOOL_UNPAUSE_LIMIT=60000
+  #     - SPAMMER_STATE_FILE=/data/state.json
+  #   ports:
+  #     - "8001:8001"  
+  #     - "8000:8000"  
+  #   volumes:
+  #     - ./scripts:/scripts
+  #     - testnet_data:/data
+  #     # - staking_node_data:/data
+  #   networks:
+  #     my:
+  #       aliases:
+  #       - spammer.local
+  #   depends_on:
+  #     - genesis_spo_node
+  #     - staking_node
+  #     - wallet
+  #     - ogmios 
+  #     - kupo
+  #     - prometheus
+  #   restart: always
 
 
   staking_node:
@@ -187,13 +187,22 @@ services:
   #   volumes:
   #     - share_config:/config
   #   ports:
-  #     - "5000:5000"  
-
+ #     - "5000:5000"  
 
 volumes:
   testnet_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./testnet_data
   share_config:
   staking_node_data:
+
+# volumes:
+#   testnet_data:
+#   share_config:
+#   staking_node_data:
 
 networks:
   my:
