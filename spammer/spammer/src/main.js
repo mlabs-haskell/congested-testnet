@@ -1,41 +1,61 @@
 // MAIN 
-// TODO split on separate spammer faucet files and containers
 // spammers and faucet share same wallets
 (async () => {
   const path = await import("path");
   let state = await import(path.resolve(__dirname, "./state.js"));
   state = state.default;
   const { Worker } = await import("node:worker_threads");
+
+
+
+  // run workers
   const workers = [];
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
     workers.push(new Worker(path.resolve(__dirname, "./worker.js")));
   }
+  workers.map(w => w.on("message", state.handleMessage));
+
+  // setup event manager
+  const event = await import("events");
+  const EVENTMANAGER = new event.EventEmitter();
+  let spammerLoop;
+  EVENTMANAGER.on("unpauseSpammer", () => {spammerLoop = runSpammer(state,workers)});
+  EVENTMANAGER.on("pauseSpammer", () => {clearInterval(spammerLoop)});
+
   console.log(state);
-  // initialise wallets if needed
+
+  // initialise worker wallets 
   if (state.walletsEmpty()) {
     workers[0].postMessage(state.initializeWalletsPars());
-    const response = await workerResponse(workers[0])("initWallets");
-    // waitTxIsSubmitted(response)
-    const [_, txHash] = message.split("_");
-    state.setWalletsInitialized();
+    const response = await workerResponse(workers[0]);
+    state.handleMessage(response);
   };
+
+  EVENTMANAGER.emit("unpauseSpammer");
+
+  // pause if large mempool
+  // spawnMemPoolChecker(state.default, EVENTMANAGER);
+  // // await tx metrics
+  // spawnAwaitTxMetric(state.default, EVENTMANAGER);
   // // faucet based on workers
   // spawnFaucet(state.default);
-  // //
-  // spawnSpammer(state.default);
-  // // pause if large mempool
-  // spawnMemPoolChecker(state.default);
-  // // await tx metrics
-  // spawnAwaitTxMetric(state.default);
 })()
 
-const workerResponse =  worker => targetMsg => (
+const workerResponse =  worker => (
   new Promise((resolve) => {
-    worker.once("message", msg => {
-      if (msg.startsWith(targetMsg)) resolve(msg);
-    })
+    worker.once("message", msg => { resolve(msg);})
   })
 );
+
+const runSpammer = async (state, workers) => {
+  let i = 0;
+  const loop = setInterval(() => {
+      workers[i].postMessage(state.txPars());
+      i += 1;
+      if (i == workers.length) i = 0;
+  },0);
+  return loop;
+};
 
 
 const spawnWorker = async (state) => {
@@ -47,6 +67,7 @@ const spawnWorker = async (state) => {
     worker.postMessage(state.message());
   });
 };
+
 
 
 const spawnMemPoolChecker = async (state) => {

@@ -91,7 +91,7 @@ makeTransaction txPars
 
   | txPars.tx == "pay" = do
       let
-        pars :: { key :: String, hash :: String, amount :: String, await :: Boolean }
+        pars :: { key :: String, hash :: String, amount :: String}
         pars = unsafeFromForeign txPars.pars
         keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing
         pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
@@ -102,7 +102,7 @@ makeTransaction txPars
 
   | txPars.tx == "lock" = do
       let
-        pars :: { key :: String, script :: String, amount :: String, await :: Boolean }
+        pars :: { key :: String, script :: String, amount :: String}
         pars = unsafeFromForeign txPars.pars
         script = unsafeFromJust "wrong script code" $ decodeCborHexToScript pars.script
         scriptHash = PScript.hash script
@@ -114,7 +114,7 @@ makeTransaction txPars
 
   | txPars.tx == "unlock" = do
       let
-        pars :: { key :: String, script :: String, lockedTxHash :: String, await :: Boolean }
+        pars :: { key :: String, script :: String, lockedTxHash :: String}
         pars = unsafeFromForeign txPars.pars
         script = unsafeFromJust "wrong script code" $ decodeCborHexToScript pars.script
         scriptHash = PScript.hash script
@@ -122,7 +122,7 @@ makeTransaction txPars
         keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing
       txHash <- withKeyWallet keyWallet $ spendFromAlwaysSucceeds scriptHash script lockedTxHash
       log $ "unlocked : " <> (show txHash)
-      let msg = "unlocked_" <> pars.lockedTxHash
+      let msg = "unlocked_" <> pars.lockedTxHash <> "_" <> (txHashToHex <<< unwrap $ txHash)
       pure msg
 
   | otherwise = pure "" 
