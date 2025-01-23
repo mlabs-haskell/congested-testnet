@@ -27,7 +27,8 @@ function generateDefaultState () {
   };
 };
 
-// temporary state vars
+
+
 const initializeWalletsPars = () => ({
   tx: "initWallets",
   pars: {

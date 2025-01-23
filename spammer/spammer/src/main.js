@@ -12,147 +12,110 @@
     workers.push(new Worker(path.resolve(__dirname, "./worker.js")));
   }
 
-  workers.map(w => w.on("message", msg => state.handleMessage(msg)));
-
-  // setup event manager
-  // const event = await import("events");
-  // const EVENT = new event.EventEmitter();
-  // let spammerLoops;
-  // EVENT.on("unpauseSpammer", () => {spammerLoops = workers.map(w => runSpammer(w,state))});
-  // EVENT.on("pauseSpammer", () => {spammerLoops.map(loop => clearInterval(loop))});
-  
-
+  //message handler  
+  let flagMeasureTxTimeInProcess = false;
+  let txTimeSeconds;
+  workers.map(w => w.on("message", msg => {
+    const txHash = state.handleMessage(msg)
+    if (!flagMeasureTxTimeInProcess)
+      flagMeasureTxTimeInProcess = true
+      measureTxTime(txHash, txTimeSeconds, flagMeasureTxTimeInProcess)
+  }));
+  // spawnAwaitTxMetric(txHash);
 
   // initialise worker wallets 
   if (state.walletsEmpty()) {
     workers[0].postMessage(state.initializeWalletsPars());
-    // await workerResponse(workers[0],state);
   };
 
-  // run spammer loops
-  loops = workers.map(runSpammerLoop(state));
+  // setup spammer control, if mempool large pause , if low start spammer 
+  const {WebSocket} = await import("ws");
+  const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
+  let spammerLoops;
+  ws.on("message", message => {
+      let msg = JSON.parse(message);
+      console.log(msg);
+      if (msg.method == "sizeOfMempool") {
+       if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT)
+        // stop spammer
+            spammerLoops.map(clearInterval)
+            spammerLoops = undefined;
+       if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT)
+        // start spammer
+          if (!spammerLoops)
+          spammerLoops = workers.map(runSpammer(state));
+      }
+  }) 
+  spawnMemPoolChecker(ws);
 
 
-  // workers[0].on("message", msg => {console.log(msg)})
-  // await workerResponse(workers[0],state);
-  // workers[0].postMessage(state.txPars());
-  // await workerResponse(workers[0],state);
-  // workers[0].postMessage(state.txPars());
-  // await workerResponse(workers[0],state);
-  // workers[0].postMessage(state.txPars());
-  // const loop = runSpammer(workers[0], state);
-  // console.log(loop);
-  // setTimeout(() => {loops.map(clearInterval); console.log("clear");}, 2000);
-  // EVENT.emit("unpauseSpammer");
 
-  // pause if large mempool
-  // spawnMemPoolChecker(state.default, EVENT);
-  // // await tx metrics
-  // spawnAwaitTxMetric(state.default, EVENT);
-  // // faucet based on workers
-  // spawnFaucet(state.default);
-  // spammerLoops = workers.map(w => runSpammer(w,state))
+
+
+
+
 })()
 
-// const runSpammer = async (worker, state) => {
-//
-//   const loop = setInterval(async () => {
-//       worker.postMessage(state.txPars());
-//       await workerResponse(worker, state);
-//   },10);
-//   return loop;
-// };
 
-// const workerResponse =  (worker, state) => (
-//   new Promise((resolve) => {
-//     worker.once("message", msg => {resolve(state.handleMessage(msg));})
-//   })
-// );
-
-const runSpammerLoop = state => worker => (setInterval(() => {
+const runSpammer = state => worker => (setInterval(() => {
     worker.postMessage(state.txPars());
     },10));
 
-// const runSpammer = (workers, state) => {
-//   // const loop = w => (setInterval(() => console.log(state.txPars()),100));
-//   const loop = w => (setInterval(() => {},100));
-//   return workers.map(loop)
-// };
-
-// const runSpammer = async (state, workers) => {
-//   // TODO handle response from worker
-//   const loop = setInterval(async () => {
-//       const worker = workers[i];
-//       worker.postMessage(state.txPars());
-//       i += 1;
-//       if (i == workers.length) i = 0;
-//   },0);
-//   return loop;
-// };
 
 
-// const spawnWorker = async (state) => {
-//   const path = await import("path");
-//   const { Worker } = await import("node:worker_threads");
-//   const worker = new Worker(path.resolve(__dirname, "./worker.js"));
-//   worker.on("message", (msg) => {
-//     state.updateState(msg);
-//     worker.postMessage(state.message());
-//   });
-// };
-//
 
-
-const spawnMemPoolChecker = async (state) => {
-  const {WebSocket} = await import("ws");
-  const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
-  setInterval(() => sendMempoolRequests(ws), 3000);
-  ws.on("message", state.updateMemPoolSize);
+const spawnMemPoolChecker = async ws => {
+  setInterval(() =>  
+    [
+      { method: "acquireMempool" },
+      { method: "sizeOfMempool" },
+      { method: "releaseMempool" },
+    ].forEach((request) => {
+      ws.send(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          method: request.method,
+          params: {},
+        })
+      );
+    }),3000);
 };
 
-//
-//
-// const spawnAwaitTxMetric = async (state) => {
-//     // Dynamically import the HTTP module
-//     const { createServer } = await import("http");
-//
-//     // Define the Prometheus exporter server
-//     const promExporter = createServer((req, res) => {
-//         if (req.url === '/metrics') {
-//             const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime()}\n`;
-//             res.writeHead(200, { 'Content-Type': 'text/plain' });
-//             res.end(metrics);
-//         } else {
-//             res.writeHead(404, { 'Content-Type': 'text/plain' });
-//             res.end('Not Found');
-//         }
-//     });
-//
-//     // Start listening on the specified port
-//     const port = process.env.SPAMMER_METRIC_PORT; 
-//     promExporter.listen(port, () => {
-//       console.log(`Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`);
-//     });
-// };
+const measureTxTime = async (txHash, txWaitTimeSeconds, flagMeasureTxTimeInProcess) => {
+  const fetch = await import("node-fetch");
+  const url = `http://${process.env.KUPO_URL}:1442/matches/*@${txHash}`;
+  while (true) {
+    const resp = await fetch.default(url);
+    const body = await resp.json();
+    console.log(body);
+    await new Promise((resolve) => setTimeout(() => resolve, 4000))
+  }
+};
+
+const spawnAwaitTxMetric = async (state) => {
+    // Dynamically import the HTTP module
+    const { createServer } = await import("http");
+
+    // Define the Prometheus exporter server
+    const promExporter = createServer((req, res) => {
+        if (req.url === '/metrics') {
+            const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime()}\n`;
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end(metrics);
+        } else {
+            res.writeHead(404, { 'Content-Type': 'text/plain' });
+            res.end('Not Found');
+        }
+    });
+
+    // Start listening on the specified port
+    const port = process.env.SPAMMER_METRIC_PORT; 
+    promExporter.listen(port, () => {
+      console.log(`Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`);
+    });
+};
 //
 // // send mempoort request to ogmios
-// const sendMempoolRequests = (ws) => {
-//   const requests = [
-//     { method: "acquireMempool" },
-//     { method: "sizeOfMempool" },
-//     { method: "releaseMempool" },
-//   ];
-//
-//   requests.forEach((request) => {
-//     ws.send(
-//       JSON.stringify({
-//         jsonrpc: "2.0",
-//         method: request.method,
-//         params: {},
-//       })
-//     );
-//   });
-// };
 //
 // const handleWebSocketMessage = (state) => (data) => {
 //   try {
