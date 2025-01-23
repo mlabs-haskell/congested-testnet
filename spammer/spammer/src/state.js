@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { util } = require("webpack");
 const utils = require(path.resolve(__dirname, "./utils.js"));
 const scripts = require(path.resolve(__dirname, "./scripts.js"));
 
@@ -20,6 +19,7 @@ function generateDefaultState () {
   // workers wallets
   walletsKeys: utils.generatePkeys(200),  
   walletsEmpty : true, 
+  walletsInd : 0,
   // locked transactions : [[txHash, script]]
   locked: [], 
   // faucet {payKeyHash : "pay" | "inprogress" | if paid then txHash for paid transaction}
@@ -28,8 +28,6 @@ function generateDefaultState () {
 };
 
 // temporary state vars
-let KEY_IND = 0;
-
 const initializeWalletsPars = () => ({
   tx: "initWallets",
   pars: {
@@ -48,9 +46,7 @@ const handleMessage = msg => {
     return txHash;
   };
 
-  if (header == "locked") {
-    const script = msgParts[1];
-    state.locked.push([txHash, script]);
+  if (header == "paid") {
     return txHash;
   }; 
 
@@ -69,9 +65,9 @@ const handleMessage = msg => {
 };
 
 const txPars = () => {
-  const key = state.walletsKeys[KEY_IND];
-  KEY_IND += 1;
-  if (KEY_IND == state.walletsKeys.length) KEY_IND = 0;
+  const key = state.walletsKeys[state.walletsInd];
+  state.walletsInd += 1;
+  if (state.walletsInd  == state.walletsKeys.length) state.walletsInd = 0;
 
   //unlock
   if (state.locked.length > 100) {

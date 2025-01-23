@@ -22,9 +22,13 @@ export const waitPars = parentPort => () => {
   return promise;
 }
 
-export const sendMsg = parentPort => msg => { 
-  parentPort.postMessage(msg);
-}
+// export const sendMsg = parentPort => msg => (
+//   // new Promise((resolve) => (resolve(console.log(); parentPort.postMessage(msg))))
+//   new Promise((resolve) => (resolve(console.log("hi"))))
+// ); 
+//
+
+export const sendMsg = parentPort => msg => () => parentPort.postMessage(msg);
 
 
 export const edHash = hex => csl.Ed25519KeyHash.from_hex(hex)

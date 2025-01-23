@@ -4,7 +4,7 @@ import Contract.Prelude
 
 import Cardano.Serialization.Lib (Ed25519KeyHash, TransactionHash) as CSL
 import Cardano.Transaction.Builder (DatumWitness(DatumValue), OutputWitness(PlutusScriptOutput), ScriptWitness(ScriptValue), TransactionBuilderStep(SpendOutput, Pay))
-import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), Language(..), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionOutput(TransactionOutput),PaymentPubKeyHash, PrivateKey, NetworkId(..))
+import Cardano.Types (Credential(PubKeyHashCredential, ScriptHashCredential), Language(..), PaymentCredential(PaymentCredential), PlutusScript, ScriptHash, StakeCredential(StakeCredential), TransactionOutput(TransactionOutput), PaymentPubKeyHash, PrivateKey, NetworkId(..))
 import Cardano.Types.BigNum (fromStringUnsafe)
 import Cardano.Types.BigNum as BigNum
 import Cardano.Types.DataHash (hashPlutusData)
@@ -17,7 +17,7 @@ import Cardano.Types.TransactionUnspentOutput (toUtxoMap)
 import Contract.Address (mkAddress)
 import Contract.Config (ContractParams, ContractSynchronizationParams, ContractTimeParams, PrivatePaymentKeySource(..), WalletSpec(..), defaultKupoServerConfig, defaultOgmiosWsConfig, emptyHooks)
 import Contract.Monad (Contract, launchAff_, runContract)
-import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout,submitTxFromConstraints, lookupTxHash, submitTxFromBuildPlan)
+import Contract.Transaction (TransactionHash, awaitTxConfirmedWithTimeout, submitTxFromConstraints, lookupTxHash, submitTxFromBuildPlan)
 import Contract.TxConstraints (mustPayToPubKey)
 import Contract.Utxos (utxosAt)
 import Contract.Value (lovelaceValueOf)
@@ -34,7 +34,7 @@ import Data.Map as Map
 import Data.Time (diff)
 import Data.Time.Duration (Milliseconds(..), Seconds(..))
 import Data.UInt (fromInt)
-import Effect.Aff (try)
+import Effect.Aff (delay, try)
 import Effect.Class.Console (logShow)
 import Effect.Exception (error)
 import Effect.Now (nowTime)
@@ -65,7 +65,9 @@ executeTransactionLoop parentPort = do
       forever do
          txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ waitPars parentPort )
          msg <- makeTransaction txPars 
-         liftEffect $ sendMsg parentPort msg
+         liftEffect $ sendMsg parentPort msg 
+         liftAff $ delay $ wrap 10.0
+
 
 foreign import edHash :: String -> CSL.Ed25519KeyHash
 foreign import pKey :: String -> PrivateKey
