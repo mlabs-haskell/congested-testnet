@@ -1,5 +1,6 @@
 // MAIN 
 // spammers and faucet share same wallets
+// TODO  fix unlock , fix try in purs file, fix pause unpause , fix faucet
 (async () => {
   const path = await import("path");
   let state = await import(path.resolve(__dirname, "./state.js"));
@@ -17,9 +18,10 @@
   let txTimeSeconds;
   workers.map(w => w.on("message", msg => {
     const txHash = state.handleMessage(msg)
-    if (!flagMeasureTxTimeInProcess)
-      flagMeasureTxTimeInProcess = true
-      measureTxTime(txHash, txTimeSeconds, flagMeasureTxTimeInProcess)
+    if (!flagMeasureTxTimeInProcess){
+      flagMeasureTxTimeInProcess = true;
+      measureTxTime(txHash, txTimeSeconds, flagMeasureTxTimeInProcess);
+    }
   }));
   // spawnAwaitTxMetric(txHash);
 
@@ -34,14 +36,16 @@
   let spammerLoops;
   ws.on("message", message => {
       let msg = JSON.parse(message);
-      console.log(msg);
+       console.log(msg);
       if (msg.method == "sizeOfMempool") {
-       if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT)
         // stop spammer
-            spammerLoops.map(clearInterval)
+       if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT)
+          if (spammerLoops){
+            spammerLoops.map(clearInterval);
             spammerLoops = undefined;
-       if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT)
+          }
         // start spammer
+       if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT)
           if (!spammerLoops)
           spammerLoops = workers.map(runSpammer(state));
       }
@@ -87,8 +91,11 @@ const measureTxTime = async (txHash, txWaitTimeSeconds, flagMeasureTxTimeInProce
   while (true) {
     const resp = await fetch.default(url);
     const body = await resp.json();
-    console.log(body);
     await new Promise((resolve) => setTimeout(() => resolve, 4000))
+    if (body) {
+      console.log(body);
+      return body;
+    }
   }
 };
 
