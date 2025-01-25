@@ -84,9 +84,8 @@ const txPars = () => {
   if (state.walletsInd  == state.walletsKeys.length) state.walletsInd = 0;
 
   //unlock
-  if (state.locked.length > 300) {
+  if (state.locked.length > 100) {
     const [txHash, script] = state.locked.shift();
-    console.log(txHash)
     state.locked.push([txHash,script]);
 
     return {

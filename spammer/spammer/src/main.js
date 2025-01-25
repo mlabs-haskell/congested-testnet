@@ -50,13 +50,13 @@
   const runSpammers = () => {
     if (!spammerLoops) {
       spammerLoops = workers.map(runSpammer(state)); 
-      console.log(`iiiiiiiiiiiii=================== ${spammerLoops}`);
+      console.log("RESUME");
     }
   };
 
   const stopSpammers = () => {
-    console.log(`sssssss=================== ${spammerLoops}`);
     if (spammerLoops){
+    console.log("PAUSE");
     spammerLoops.map(clearInterval); 
     spammerLoops = undefined;
     }
@@ -67,19 +67,17 @@
   ws.on("message", message => {
       let msg = JSON.parse(message);
       if (msg.method == "sizeOfMempool"){ 
-        // if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
-        // if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT) runSpammers();
-        if (msg.result.currentSize.bytes > 300000) stopSpammers();
+        if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
         else runSpammers();
-        // if (msg.result.currentSize.bytes < 20000) runSpammers();
       }}) 
   spawnMemPoolChecker(ws);
 })()
 
 const runSpammer = state => worker => {
   return (setInterval(() => {
-    worker.postMessage(state.txPars());
-    },10));
+    msg = state.txPars();
+    worker.postMessage(msg);
+    },500));
 }
 
 
@@ -97,7 +95,7 @@ const spawnMemPoolChecker = async ws => {
           params: {},
         })
       );
-    }),3000);
+    }), 3000);
 };
 
 // request awaitTxTime with kupo
