@@ -5,6 +5,7 @@ const scripts = require(path.resolve(__dirname, "./scripts.js"));
 
 state = loadState();
 
+
 function loadState() {
   if (fs.existsSync(process.env.SPAMMER_STATE_FILE)) {
     const fileContent = fs.readFileSync(process.env.SPAMMER_STATE_FILE, "utf-8");
@@ -17,7 +18,7 @@ function loadState() {
 function generateDefaultState () {
   return {
   // workers wallets
-  walletsKeys: utils.generatePkeys(200),  
+  walletsKeys: [],  
   walletsEmpty : true, 
   walletsInd : 0,
   // locked transactions : [[txHash, script]]
@@ -27,15 +28,20 @@ function generateDefaultState () {
   };
 };
 
-
-
-const initializeWalletsPars = () => ({
+const initializeWalletsPars = () => {
+  const newWalletsKeys = utils.generatePkeys(250); 
+  state.walletsKeys.push(...newWalletsKeys);
+  return {
   tx: "initWallets",
   pars: {
-    hashes: state.walletsKeys.map(utils.hash),
+    hashes: newWalletsKeys.map(utils.hash),
     amount: "1000000000000000"
   }
-});
+  };
+};
+
+
+
 
 const handleMessage = msg => {
   const msgParts = msg.split("_");
@@ -43,7 +49,10 @@ const handleMessage = msg => {
   const header = msgParts[0]
 
   if (header == "initWallets") {
-    state.walletsEmpty = false;
+    // mark only if enough workers wallets are processed 
+    if (state.walletsKeys.length > 499) {
+      state.walletsEmpty = false;
+    }
     return txHash;
   };
 
@@ -59,10 +68,14 @@ const handleMessage = msg => {
 
   if (header == "unlocked") {
     const lockedTxHash = msgParts[1];
+    console.log(`locked tx number : ${state.locked.length}`)
     state.locked = state.locked.filter(arr => arr[0] !== lockedTxHash);
     return txHash;
   }; 
 
+  if (header == "error") {
+    console.log(msg);
+  }; 
 };
 
 const txPars = () => {
@@ -71,10 +84,11 @@ const txPars = () => {
   if (state.walletsInd  == state.walletsKeys.length) state.walletsInd = 0;
 
   //unlock
-  if (state.locked.length > 100) {
+  if (state.locked.length > 300) {
     const [txHash, script] = state.locked.shift();
-    // push to the end, and in case of fail return back to this txHash later
-    state.locked.push([txHash, script])
+    console.log(txHash)
+    state.locked.push([txHash,script]);
+
     return {
       tx: "unlock",
       pars: {
@@ -115,41 +129,13 @@ const saveState = () => {
   fs.writeFileSync(process.env.SPAMMER_STATE_FILE, JSON.stringify(state));
 };
 
-const handleExitSignals = () => {
-  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
-    process.on(signal, () => {
-      saveState();
-      process.exit();
-    })
-  );
-};
-
-const handleUncaughtErrors = () => {
-  process.on("uncaughtException", (error) => {
-    console.error("Uncaught exception:", error);
-    console.log("Saving state before exit due to uncaught exception...");
-    saveState();
-    process.exit(1);
-  });
-
-  process.on("unhandledRejection", (reason) => {
-    console.error("Unhandled promise rejection:", reason);
-    console.log("Saving state before exit due to unhandled rejection...");
-    saveState();
-    process.exit(1);
-  });
-};
-
-handleExitSignals();
-handleUncaughtErrors();
 
 const walletsEmpty = () => (state.walletsEmpty);
-const setWalletsInitialized = () => {state.walletsEmpty = false;};
 
 module.exports = {
   walletsEmpty,
   initializeWalletsPars,
-  setWalletsInitialized,
   txPars,
-  handleMessage
+  handleMessage,
+  saveState
 };

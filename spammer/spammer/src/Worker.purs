@@ -64,8 +64,12 @@ executeTransactionLoop parentPort = do
     runContract (contractParams backendPars) do
       forever do
          txPars :: TxPars <- unsafeFromForeign <$> (liftAff <<< toAffE $ waitPars parentPort )
-         msg <- makeTransaction txPars 
-         liftEffect $ sendMsg parentPort msg 
+         msg <- try $ makeTransaction txPars 
+         liftEffect 
+          $ sendMsg parentPort 
+           $ case msg of
+                 Left e -> "error_" <> show e
+                 Right m -> m
          liftAff $ delay $ wrap 10.0
 
 

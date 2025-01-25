@@ -3,69 +3,84 @@
 // TODO  fix unlock , fix try in purs file, fix pause unpause , fix faucet
 (async () => {
   const path = await import("path");
+
+  //sate
   let state = await import(path.resolve(__dirname, "./state.js"));
   state = state.default;
-  const { Worker } = await import("node:worker_threads");
 
   // run workers
+  const { Worker } = await import("node:worker_threads");
   const workers = [];
   for (let i = 0; i < parseInt(process.env.N_WORKERS); i++) {
     workers.push(new Worker(path.resolve(__dirname, "./worker.js")));
   }
+  handleExit(workers,state);
 
-  //message handler  
+  // initialise worker wallets 
+  while (state.walletsEmpty()) { 
+    workers[0].postMessage(state.initializeWalletsPars());
+    let txHash;
+    await new Promise((resolve) => workers[0].once("message", msg => {txHash = state.handleMessage(msg); resolve()}));
+    if (txHash) await awaitTxTime(txHash);
+    await new Promise((resolve) => setTimeout(() => resolve(), 2000))
+  }; 
+
+
+  // message handler  
   let flagMeasureTxTimeInProcess = false;
   let txTimeSeconds;
   workers.map(w => w.on("message", msg => {
-    const txHash = state.handleMessage(msg)
-    if (!flagMeasureTxTimeInProcess){
-      flagMeasureTxTimeInProcess = true;
-      measureTxTime(txHash, txTimeSeconds, flagMeasureTxTimeInProcess);
-    }
-  }));
-  // spawnAwaitTxMetric(txHash);
+    const txHash = state.handleMessage(msg);
+    // measure tx time for metrics 
+    if (!flagMeasureTxTimeInProcess) 
+     (async () => {
+       flagMeasureTxTimeInProcess = true;
+       txTimeSeconds = await awaitTxTime(txHash); 
+       flagMeasureTxTimeInProcess = false;
+     })(); 
+    })); 
 
-  // initialise worker wallets 
-  if (state.walletsEmpty()) {
-    workers[0].postMessage(state.initializeWalletsPars());
+  // display tx time prometheus metric
+  spawnMeasureTxTimePrometheusMetric(() => txTimeSeconds);
+
+
+  // spammer contoller
+  var spammerLoops;
+
+  const runSpammers = () => {
+    if (!spammerLoops) {
+      spammerLoops = workers.map(runSpammer(state)); 
+      console.log(`iiiiiiiiiiiii=================== ${spammerLoops}`);
+    }
   };
 
-  // setup spammer control, if mempool large pause , if low start spammer 
+  const stopSpammers = () => {
+    console.log(`sssssss=================== ${spammerLoops}`);
+    if (spammerLoops){
+    spammerLoops.map(clearInterval); 
+    spammerLoops = undefined;
+    }
+  };
   const {WebSocket} = await import("ws");
   const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
-  let spammerLoops;
+  // handle mempool info
   ws.on("message", message => {
       let msg = JSON.parse(message);
-       console.log(msg);
-      if (msg.method == "sizeOfMempool") {
-        // stop spammer
-       if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT)
-          if (spammerLoops){
-            spammerLoops.map(clearInterval);
-            spammerLoops = undefined;
-          }
-        // start spammer
-       if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT)
-          if (!spammerLoops)
-          spammerLoops = workers.map(runSpammer(state));
-      }
-  }) 
+      if (msg.method == "sizeOfMempool"){ 
+        // if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
+        // if (msg.result.currentSize.bytes < process.env.MEMPOOL_UNPAUSE_LIMIT) runSpammers();
+        if (msg.result.currentSize.bytes > 300000) stopSpammers();
+        else runSpammers();
+        // if (msg.result.currentSize.bytes < 20000) runSpammers();
+      }}) 
   spawnMemPoolChecker(ws);
-
-
-
-
-
-
-
 })()
 
-
-const runSpammer = state => worker => (setInterval(() => {
+const runSpammer = state => worker => {
+  return (setInterval(() => {
     worker.postMessage(state.txPars());
     },10));
-
-
+}
 
 
 const spawnMemPoolChecker = async ws => {
@@ -85,28 +100,31 @@ const spawnMemPoolChecker = async ws => {
     }),3000);
 };
 
-const measureTxTime = async (txHash, txWaitTimeSeconds, flagMeasureTxTimeInProcess) => {
-  const fetch = await import("node-fetch");
-  const url = `http://${process.env.KUPO_URL}:1442/matches/*@${txHash}`;
-  while (true) {
-    const resp = await fetch.default(url);
-    const body = await resp.json();
-    await new Promise((resolve) => setTimeout(() => resolve, 4000))
-    if (body) {
-      console.log(body);
-      return body;
+// request awaitTxTime with kupo
+const awaitTxTime = async txHash => {
+    console.log(`measure time for ${txHash}`)
+    const fetch = await import("node-fetch");
+    const url = `http://${process.env.KUPO_URL}:1442/matches/*@${txHash}`;
+    const start = Date.now();
+    while (true) {
+      try { 
+        const resp = await fetch.default(url);
+        const body = await resp.json();
+        if (body.length > 0) return (Date.now() - start)/1000;
+      } catch (err) { 
+        throw Error ("kupo requests error") 
+      }
+      await new Promise((resolve) => setTimeout(() => resolve(), 4000))
     }
-  }
 };
 
-const spawnAwaitTxMetric = async (state) => {
-    // Dynamically import the HTTP module
+const spawnMeasureTxTimePrometheusMetric = async (timeInSecondsCallback) => {
     const { createServer } = await import("http");
 
     // Define the Prometheus exporter server
     const promExporter = createServer((req, res) => {
         if (req.url === '/metrics') {
-            const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${state.awaitTxTime()}\n`;
+            const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${timeInSecondsCallback()}\n`;
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end(metrics);
         } else {
@@ -121,6 +139,33 @@ const spawnAwaitTxMetric = async (state) => {
       console.log(`Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`);
     });
 };
+
+
+const handleExit = (workers, state) => {
+  // handle exit
+  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach((signal) =>
+    process.on(signal, () => {
+      console.log("exit")
+      state.saveState();
+      workers.map(w => w.terminate())
+      process.exit();
+    })
+  );
+
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception:", error);
+    state.saveState();
+    workers.map(w => w.terminate())
+    process.exit(1);
+  });
+
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+    state.saveState();
+    workers.map(w => w.terminate())
+    process.exit(1);
+  });
+}
 //
 // // send mempoort request to ogmios
 //
