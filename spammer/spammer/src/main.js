@@ -49,7 +49,11 @@
 
   const runSpammers = () => {
     if (!spammerLoops) {
-      spammerLoops = workers.map(runSpammer(state)); 
+      // spammerLoops = workers.map(runSpammer(state)); 
+      spammerLoops = workers.map(worker => setInterval(() => {
+          msg = state.txPars();
+          worker.postMessage(msg);
+        },500)); 
       console.log("RESUME");
     }
   };
@@ -71,14 +75,10 @@
         else runSpammers();
       }}) 
   spawnMemPoolChecker(ws);
+  // spawnFaucet
+
 })()
 
-const runSpammer = state => worker => {
-  return (setInterval(() => {
-    msg = state.txPars();
-    worker.postMessage(msg);
-    },500));
-}
 
 
 const spawnMemPoolChecker = async ws => {
