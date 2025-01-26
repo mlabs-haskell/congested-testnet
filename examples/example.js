@@ -4,6 +4,9 @@ const fetch = require('node-fetch');
 
 // example transaction using cardano-serialization-lib and congested testnet server
 (async () => { 
+  // const path = await import("path");
+const csl = await import("@emurgo/cardano-serialization-lib-nodejs");
+const fetch = await import('node-fetch');
 // generate cardano private payment key
 const pkey = csl.PrivateKey.generate_ed25519();
 const pubKeyHashHex = pkey.to_public().hash().to_hex();
@@ -11,20 +14,19 @@ const pubKeyHashHex = pkey.to_public().hash().to_hex();
 // request 1000 tada from faucet
 await get1000tada(pubKeyHashHex,'http://0.0.0.0:8000');
 
-
 console.log(txHash);
 })()
 
 
 const get1000tada = async (pubKeyHashHex, faucetUrl) => {
-  const postFaucetRequestBody = { pubKeyHashHex : pubKeyHashHex};
   const faucetResponse = await fetch(`${faucetUrl}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json'},
-      body: JSON.stringify(postData)
+      body: JSON.stringify({pubKeyHashHex : pubKeyHashHex})
   });
   const data = await faucetResponse.json();
   const txHash = data.message.txHash;
+  console.log(txHash)
 }; 
 
 
