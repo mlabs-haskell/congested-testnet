@@ -43,6 +43,15 @@
   // display tx time prometheus metric
   spawnMeasureTxTimePrometheusMetric(() => txTimeSeconds);
 
+  // workers loop
+  // (async () => {
+  //   while (true) {
+  //     workers.map(w => w.postMessage)
+  //
+  //   };
+  //
+  // })();
+
 
   // spammer contoller
   var spammerLoops;
@@ -65,6 +74,7 @@
     spammerLoops = undefined;
     }
   };
+
   const {WebSocket} = await import("ws");
   const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
   // handle mempool info
@@ -74,9 +84,9 @@
         if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
         else runSpammers();
       }}) 
-  spawnMemPoolChecker(ws);
-  // spawnFaucet
 
+  spawnMemPoolChecker(ws);
+  spawnFaucet(workers, state);
 })()
 
 
@@ -164,131 +174,51 @@ const handleExit = (workers, state) => {
     process.exit(1);
   });
 }
-//
-// // send mempoort request to ogmios
-//
-// const handleWebSocketMessage = (state) => (data) => {
-//   try {
-//     const resp = JSON.parse(data);
-//
-//     if (resp.method === "sizeOfMempool") {
-//       const memPoolSize = resp.result.currentSize.bytes;
-//
-//       if (memPoolSize > process.env.MEMPOOL_PAUSE_LIMIT) {
-//         console.log("PAUSE");
-//         state.pause();
-//       } else if (memPoolSize < process.env.MEMPOOL_UNPAUSE_LIMIT) {
-//         console.log("UNPAUSE");
-//         state.unpause();
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Error handling WebSocket message:", error);
-//   }
-// };
-//
-//
-//
-//
-//
-// const spawnFaucet = async (state) => {
-//   const http = await import("http");
-//   const FAUCET_PORT = process.env.FAUCET_PORT;
-//   console.log("create faucet server....")
-//   const server = http.createServer((req, res) => {
-//       if (req.method === 'POST' && req.headers['content-type'] === 'application/json') {
-//           let body = '';
-//           req.on('data', chunk => {
-//               body += chunk;
-//           });
-//           req.on('end', async () => {
-//               try {
-//                   const data = JSON.parse(body);
-//                   const pubKeyHashHex = data.pubKeyHashHex;
-//                   state.faucetPay(pubKeyHashHex);
-//                   if (pubKeyHashHex) {
-//                       const interval = setInterval(() => {
-//                         let txHash = state.faucetFinish(pubKeyHashHex)
-//                         if (txHash) {
-//                           clearInterval(interval);
-//                           clearTimeout(timeout);
-//                           res.writeHead(200, { 'Content-Type': 'application/json' });
-//                           const message = {
-//                             txHash: txHash, 
-//                             msg : `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
-//                           }
-//                           // res.end(JSON.stringify({ message }).replace(/\\n/g, '\n'));
-//                           res.end(JSON.stringify({ message }));
-//                         };
-//                       },100);
-//                       const timeout = setTimeout(() => {
-//                         clearInterval(interval); // Stop the interval
-//                         res.write('Error: Timeout! backend error.\n');
-//                         res.end(); // End the response with an error message
-//                       }, 150000);
-//                   } else {
-//                       res.writeHead(400, { 'Content-Type': 'application/json' });
-//                       res.end(JSON.stringify({ error: 'pubKeyHashHex field is required' }));
-//                   }
-//               } catch (err) {
-//                   res.writeHead(400, { 'Content-Type': 'application/json' });
-//                   res.end(JSON.stringify({ error: 'Invalid JSON' }));
-//               }
-//           });
-//       } else {
-//           res.writeHead(404, { 'Content-Type': 'application/json' });
-//           res.end(JSON.stringify({ error: 'Not Found' }));
-//       }
-//   });
-//
-//   server.listen(FAUCET_PORT, () => {
-//       console.log(`faucet server is running on port ${FAUCET_PORT}`);
-//   });
-// };
-//
-//
-// const handleWorkerMessage = (msg, worker, state) => {
-//   // request messages from worker
-//   if (msg === "backendPars") {
-//     worker.postMessage(state.backendPars());
-//   } else if (msg === "txPars") {
-//     worker.postMessage(state.txPars());
-//   // tx results messages from worker
-//   } else  {
-//     state.processTxResult(msg);
-//     worker.postMessage("ok");
-//   }
-// };
-//
-// const isDetailedMessage = (msg) => {
-//   return Object.hasOwn(msg, "msg") && Object.hasOwn(msg, "time");
-// };
-//
-// const processDetailedMessage = (msg, state, worker) => {
-//   const { msg: message, time } = msg;
-//
-//   if (message.startsWith("initializedWallets")) {
-//     state.unpause();
-//     state.setWalletsInitiated();
-//     state.noAwaitTxToMeasureTime();
-//   } else if (message.startsWith("locked")) {
-//     const [_, lockedScript, lockedTxHash] = message.split("_");
-//     state.pushLocked(lockedScript, lockedTxHash);
-//   } else if (message.startsWith("unlocked")) {
-//     const [_, txHash] = message.split("_");
-//     state.clearLocked(txHash);
-//   } else if (message.startsWith("paid")) {
-//     const [_, pKeyHash, txHash] = message.split("_");
-//     // mark if faucet paid 
-//     state.faucetPaid(pKeyHash, txHash);
-//   }
-//
-//   if (time) {
-//     console.log(`time : ${time}`);
-//     state.setAwaitTxTime(time);
-//     state.noAwaitTxToMeasureTime();
-//   }
-//
-//   worker.postMessage("ok");
-// };
-//
+
+const spawnFaucet = async (workers, state) => {
+  const http = await import("http");
+  const FAUCET_PORT = process.env.FAUCET_PORT;
+  console.log("create faucet server....")
+  let i = 0;
+  const server = http.createServer(
+    (req, res) => {
+      if (req.method === 'POST' && req.headers['content-type'] === 'application/json'){
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk;
+        });
+        req.on('end', async () => {
+          try {
+            const data = JSON.parse(body);
+            const pubKeyHashHex = data.pubKeyHashHex;
+            if (pubKeyHashHex) {
+              workers[i].postMessage(state.faucetPayPars(pubKeyHashHex)); 
+
+              i += 1;
+              if (i == workers.length) i = 0;
+
+              for (let i = 1; i <= 100; i++) {
+                const txHash = state.faucetTxHash(pubKeyHashHex)
+                if (txHash){
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  const message = {
+                    txHash: txHash, 
+                    msg : `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
+                  }
+                  res.end(JSON.stringify({ message }));
+                }; 
+                await new Promise((resolve) => setTimeout(() => resolve(), 100))
+            }}} catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Invalid JSON' }));
+          }})} else {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Not Found' }));
+      }});
+
+  server.listen(FAUCET_PORT, () => {
+      console.log(`faucet server is running on port ${FAUCET_PORT}`);
+  });
+};
+                            
+// msg : `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`

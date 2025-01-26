@@ -41,12 +41,45 @@ const initializeWalletsPars = () => {
 };
 
 
+const nextKey = () => {
+  state.walletsInd += 1;
+  if (state.walletsInd  == state.walletsKeys.length) state.walletsInd = 0;
+};
 
+const faucetPayPars = txHash => {
+  const key = state.walletsKeys[state.walletsInd];
+  nextKey();
+    return {
+      tx: "faucet",
+      pars: {
+        key: key,
+        hash: txHash,
+        amount: "10000000000"
+      }
+    };
+};
+
+
+
+let faucetTx = {};
+const faucetTxHash = pubKeyHash => {
+  const txHash =  faucetTx[pubKeyHashHex];
+  if (txHash) {
+    delete faucetTx[pubKeyHashHex];
+  }; 
+  return txHash
+}
 
 const handleMessage = msg => {
   const msgParts = msg.split("_");
   const txHash = msgParts[msgParts.length - 1];
   const header = msgParts[0]
+
+  if (header == "error") {
+    console.log(msg);
+    return;
+  }; 
+
 
   if (header == "initWallets") {
     // mark only if enough workers wallets are processed 
@@ -57,6 +90,12 @@ const handleMessage = msg => {
   };
 
   if (header == "paid") {
+    return txHash;
+  }; 
+
+  if (header == "faucet") {
+    const pubKeyHash = msgParts[1];
+    faucetTx[pubKeyHash] = txHash;
     return txHash;
   }; 
 
@@ -73,15 +112,14 @@ const handleMessage = msg => {
     return txHash;
   }; 
 
-  if (header == "error") {
-    console.log(msg);
-  }; 
 };
 
+
+// spammer loop pars
 const txPars = () => {
+
   const key = state.walletsKeys[state.walletsInd];
-  state.walletsInd += 1;
-  if (state.walletsInd  == state.walletsKeys.length) state.walletsInd = 0;
+  nextKey();
 
   //unlock
   if (state.locked.length > 100) {
@@ -114,14 +152,14 @@ const txPars = () => {
   }; 
 
   // lock 
-    return {
-      tx: "lock",
-      pars: {
-        key: key,
-        script: script,
-        amount: "3000000",
-      }
-    };
+  return {
+    tx: "lock",
+    pars: {
+      key: key,
+      script: script,
+      amount: "3000000"
+    }
+  };
 };
 
 const saveState = () => {
@@ -136,5 +174,7 @@ module.exports = {
   initializeWalletsPars,
   txPars,
   handleMessage,
-  saveState
+  saveState,
+  faucetPayPars,
+  faucetTxHash
 };

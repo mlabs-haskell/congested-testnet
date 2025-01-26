@@ -95,7 +95,7 @@ makeTransaction txPars
       let msg = "initWallets_" <> "_" <> (txHashToHex <<< unwrap $ txHash)
       pure msg 
 
-  | txPars.tx == "pay" = do
+  | txPars.tx == "pay"  = do
       let
         pars :: { key :: String, hash :: String, amount :: String}
         pars = unsafeFromForeign txPars.pars
@@ -104,6 +104,17 @@ makeTransaction txPars
       txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs
       log $ "pay : " <> (show txHash)
       let msg = "paid_" <> pars.hash <> "_" <> (txHashToHex <<< unwrap $ txHash)
+      pure msg
+
+  | txPars.tx == "faucet" = do
+      let
+        pars :: { key :: String, hash :: String, amount :: String}
+        pars = unsafeFromForeign txPars.pars
+        keyWallet = privateKeysToKeyWallet (wrap $ pKey pars.key) Nothing Nothing
+        pkhs = (wrap <<< wrap <<< edHash) <$> (pure pars.hash)
+      txHash <- withKeyWallet keyWallet $ payToWallets pars.amount pkhs
+      log $ "faucet : " <> (show txHash)
+      let msg = "faucet_" <> pars.hash <> "_" <> (txHashToHex <<< unwrap $ txHash)
       pure msg
 
   | txPars.tx == "lock" = do
