@@ -1,6 +1,5 @@
 // MAIN 
 // spammers and faucet share same wallets
-// TODO  fix unlock , fix try in purs file, fix pause unpause , fix faucet
 (async () => {
   const path = await import("path");
 
@@ -43,16 +42,6 @@
   // display tx time prometheus metric
   spawnMeasureTxTimePrometheusMetric(() => txTimeSeconds);
 
-  // workers loop
-  // (async () => {
-  //   while (true) {
-  //     workers.map(w => w.postMessage)
-  //
-  //   };
-  //
-  // })();
-
-
   // spammer contoller
   var spammerLoops;
 
@@ -77,6 +66,7 @@
 
   const {WebSocket} = await import("ws");
   const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
+
   // handle mempool info
   ws.on("message", message => {
       let msg = JSON.parse(message);
@@ -85,7 +75,8 @@
         else runSpammers();
       }}) 
 
-  spawnMemPoolChecker(ws);
+  // spawnMemPoolChecker(ws);
+
   spawnFaucet(workers, state);
 })()
 
@@ -203,7 +194,7 @@ const spawnFaucet = async (workers, state) => {
                   res.writeHead(200, { 'Content-Type': 'application/json' });
                   const message = {
                     txHash: txHash, 
-                    msg : `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
+                    msg :`${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
                   }
                   res.end(JSON.stringify({ message }));
                 }; 

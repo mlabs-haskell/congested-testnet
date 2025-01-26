@@ -62,7 +62,7 @@ const faucetPayPars = txHash => {
 
 
 let faucetTx = {};
-const faucetTxHash = pubKeyHash => {
+const faucetTxHash = pubKeyHashHex => {
   const txHash =  faucetTx[pubKeyHashHex];
   if (txHash) {
     delete faucetTx[pubKeyHashHex];
