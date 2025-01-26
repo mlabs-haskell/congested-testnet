@@ -184,7 +184,6 @@ const spawnFaucet = async (workers, state) => {
             const pubKeyHashHex = data.pubKeyHashHex;
             if (pubKeyHashHex) {
               workers[i].postMessage(state.faucetPayPars(pubKeyHashHex)); 
-
               i += 1;
               if (i == workers.length) i = 0;
 
@@ -196,7 +195,7 @@ const spawnFaucet = async (workers, state) => {
                     txHash: txHash, 
                     msg :`${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`
                   }
-                  res.end(JSON.stringify({ message }));
+                  res.end(JSON.stringify({message}));
                 }; 
                 await new Promise((resolve) => setTimeout(() => resolve(), 100))
             }}} catch (err) {
