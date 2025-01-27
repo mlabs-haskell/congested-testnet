@@ -6,6 +6,8 @@
 // example transaction using cardano-serialization-lib and congested testnet server
 (async () => { 
   const csl = await import("@emurgo/cardano-serialization-lib-nodejs");
+  /*
+  const csl = await import("@emurgo/cardano-serialization-lib-nodejs");
   // generate cardano private payment key
   const pkey = csl.PrivateKey.generate_ed25519();
   // TODO delete this line
@@ -18,16 +20,42 @@
   let txHash = await get1000tada(pubKeyHashHex,'http://0.0.0.0:8000');
   let time  = await awaitTxTime(txHash);
   console.log(`${txHash} added to block after ${time} seconds`)
+  */
   const pk = "0a7c59147b1576f3c6bc4d1160b7d41178969ac3ca275ddc52493fb5b2d6d764";
+  const pkey = csl.PrivateKey.from_hex(pk);
+  const publicKey = pkey.to_public();
+  const pubKeyHashHex = publicKey.hash().to_hex();
+  console.log(pubKeyHashHex);
+  const utxos = await kupoUtxosForMyWallet(pubKeyHashHex);
+  // const utxos = await ogmiosUtxosForMyWallet(pk);
   // txHash = await simpleTxWithOgmios(pk); 
   // time  = await awaitTxTime(txHash);
 })()
 
-
-
-const simpleTxWithOgmios = (pkey) => {
-
+const ogmiosUtxosForMyWallet = async pk => {
+  const fetch = await import('node-fetch');
+  const response = await fetch.default(`http://0.0.0.0:1337`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        jsonrpc : "2.0", 
+        method : "queryLedgerState/utxo",
+        params : {
+          outputReferences : [],
+        }
+      })
+  });
+  console.log(response);
 };
+
+const kupoUtxosForMyWallet = async pkh => {
+  const fetch = await import('node-fetch');
+  // const url = `http://0.0.0.0:1442/matches/@${pkh}`;
+  const url = `http://0.0.0.0:1442/matches/${pkh}`;
+  const response = await fetch.default(url);
+  console.log(response);
+};
+
 
 
 const get1000tada = async (pubKeyHashHex, faucetUrl) => {

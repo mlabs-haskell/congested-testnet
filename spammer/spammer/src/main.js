@@ -1,5 +1,6 @@
 // MAIN 
 // spammers and faucet share same wallets
+// TODO test faucet requests with wrong pubkeyhashhexes
 (async () => {
   const path = await import("path");
 
