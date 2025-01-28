@@ -23,7 +23,7 @@
           # pkgs.cargo
           # pkgs.fileshare
           # self'.packages.arion-with-prebuilt
-          arion-with-prebuilt
+          # arion-with-prebuilt
           cardano-node
           # pkgs.cardano-cli
           # pkgs.spago

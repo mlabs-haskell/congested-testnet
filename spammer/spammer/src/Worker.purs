@@ -38,7 +38,7 @@ import Effect.Aff (delay, try)
 import Effect.Class.Console (logShow)
 import Effect.Exception (error)
 import Effect.Now (nowTime)
-import Foreign (Foreign, unsafeFromForeign, unsafeToForeign)
+import Foreign (Foreign, unsafeFromForeign)
 
 type BackendPars =
   { mainWalletPath :: String

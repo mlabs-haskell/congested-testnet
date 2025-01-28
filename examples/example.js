@@ -56,6 +56,9 @@ const kupoUtxosForMyWallet = async pkh => {
   console.log(response);
 };
 
+const simpleTxWithOgmios = (pkey) => {
+
+};
 
 
 const get1000tada = async (pubKeyHashHex, faucetUrl) => {

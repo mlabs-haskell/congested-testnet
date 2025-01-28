@@ -26,15 +26,15 @@
         modules = [ (import ./congested-testnet/vm.nix) ];
       }).config.system.build.vm;
 
-      packages.arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
+      # packages.arion-compose = pkgs.arion.build { modules = [ ./congested-testnet/arion-compose.nix ]; inherit pkgs; };
 
-      packages.arion-with-prebuilt = pkgs.writeShellApplication {
-        name = "arion-with-prebuilt";
-        runtimeInputs = [ pkgs.arion ];
-        text = ''
-          arion --prebuilt-file ${self'.packages.arion-compose} "$@" 
-        '';
-      };
+      # packages.arion-with-prebuilt = pkgs.writeShellApplication {
+      #   name = "arion-with-prebuilt";
+      #   runtimeInputs = [ pkgs.arion ];
+      #   text = ''
+      #     arion --prebuilt-file ${self'.packages.arion-compose} "$@" 
+      #   '';
+      # };
 
       packages.add-ping =
         pkgs.writeShellApplication {
