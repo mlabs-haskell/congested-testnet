@@ -2,11 +2,11 @@
 {
   perSystem = { system, self', pkgs, ... }: {
 
-    packages.spammer =  pkgs.stdenv.mkDerivation {
-     name = "spammer";
-     src = ../../spammer/spammer;
+    packages.spammer = pkgs.stdenv.mkDerivation {
+      name = "spammer";
+      src = ../../spammer/spammer;
       nativeBuildInputs = [
-       pkgs.nodejs
+        pkgs.nodejs
       ];
       buildPhase = ''
         export XDG_CACHE_HOME=$TMPDIR/cache
@@ -19,9 +19,9 @@
         cp -r ${self'.packages.nodeModules}/lib/node_modules $out/node_modules
       '';
       installPhase = ''
-       echo "#!/bin/sh" > $out/bin/spammer
-       echo "${pkgs.nodejs}/bin/node $out/src/main.js" >> $out/bin/spammer
-       chmod +x $out/bin/spammer
+        echo "#!/bin/sh" > $out/bin/spammer
+        echo "${pkgs.nodejs}/bin/node $out/src/main.js" >> $out/bin/spammer
+        chmod +x $out/bin/spammer
       '';
     };
   };

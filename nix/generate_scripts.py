@@ -1,9 +1,16 @@
+'''
+this module generates aiken scripts, which are used in spammer block in scripts.js file
+
+'''
 import os
 import pathlib
 import textwrap
 import json
 
 def validators():
+    """
+    produce aiken file with different size / cpu usage always true scripts 
+    """
     code_parts = []
     code = f"""
     use aiken/builtin.{{append_bytearray, sha2_256}}
@@ -29,7 +36,8 @@ def validators():
     """
     code_parts.append(textwrap.dedent(code))
 
-    # for distribution
+    # this distribution is taken from research to simulate tx size and cpu usage distribution   
+    # close to mainnet in congested periods
     counts = [6000,3359,150,686,5622,2679,1200]
     s = 0 
     cumsum = []

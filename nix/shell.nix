@@ -20,18 +20,8 @@
           # pkgs.audacity
           # pkgs.shotcut
           pkgs.rust-analyzer
-          # pkgs.cargo
           # pkgs.fileshare
-          # self'.packages.arion-with-prebuilt
-          # arion-with-prebuilt
           cardano-node
-          # pkgs.cardano-cli
-          # pkgs.spago
-          # pkgs.purescript
-          # pkgs.nodejs_18
-          # pkgs.compiled
-          # cardano-cli
-          # haskellPackages.cabal-install
           pyright
           nodePackages.svelte-language-server
           nodePackages.typescript-language-server
@@ -39,12 +29,13 @@
           nodejs
           ogmios
           kupo
+          spammer
           python311Packages.fire
-        ] 
+        ]
         ++
         self'.devShells.ctl.buildInputs
-        # ++
-        # (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ])
+          # ++
+          # (with pkgs.python310Packages; [ jupyterlab scikit-learn pandas psycopg2 matplotlib tabulate ])
         ;
         shellHook = ''
           export SSHOPTS="-p 2222"
@@ -75,23 +66,13 @@
             pkgs.nodejs-18_x
             pkgs.esbuild
           ];
-        # ++
-        # self'.devShells.ctl.buildInputs;
+          # ++
+          # self'.devShells.ctl.buildInputs;
           shellHook = ''
             source <(spago --bash-completion-script `which spago`)
             source <(node --completion-bash)
           '';
         };
 
-      packages.hello = pkgs.hello; 
-
-      devShells.test-shell =
-        pkgs.mkShell {
-          name = "test-shell";
-          buildInputs = [
-            pkgs.cardano-node
-          ];
-          shellHook = '''';
-        };
     };
 }
