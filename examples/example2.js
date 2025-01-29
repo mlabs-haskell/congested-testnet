@@ -1,8 +1,7 @@
 // main function 
 (async () => {
   const {execSync} = await import("child_process");
-  const {writeFileSync ,readFileSync, existsSync} = await import("fs");
-  const csl = await import("@emurgo/cardano-serialization-lib-nodejs");
+  const {readFileSync, existsSync} = await import("fs");
   let result;
 
   // generate keys 
@@ -23,6 +22,7 @@
   /*
   let txHash = await get1000tada(pubKeyHashHex,'http://0.0.0.0:8000');
   let time  = await awaitTxTime(txHash);
+  /*
   console.log(`${txHash} added to block after ${time} seconds`)
   writeFileSync("txHash", txHash);
   let txHash = readFileSync("txHash").toString(); 
@@ -43,8 +43,13 @@
   console.log(txid);
 
   // node parameters
-  const pars = await requestOgmios("queryLedgerState/protocolParameters") 
-  writeFileSync("protocol.json", JSON.stringify(pars.result));
+  // let pars = await requestOgmios("queryLedgerState/protocolParameters") 
+  // pars = pars.result
+  // pars.txFeePerByte = pars.minFeeCoefficient;
+  // pars.txFeeFixed = pars.minFeeConstant.ada.lovelace;
+  // pars.maxBlockBodySize = pars.minFeeConstant.ada.lovelace;
+  // writeFileSync("protocol.json", JSON.stringify(pars));
+  // console.log(JSON.parse(readFileSync("protocol.json")))
 
   // console.log(pars);
   let fee = 100000
@@ -57,16 +62,40 @@
         --fee ${fee} \
         --out-file tx.raw`
   )
+
   fee = execSync(
     `cardano-cli conway transaction calculate-min-fee \
       --tx-body-file tx.raw \
-      --tx-in-count 1 \
-      --tx-out-count 2 \
       --witness-count 1 \
-      --protocol-params-file protocol.json`
+      --protocol-params-file ../temp.json`
   )
+
+  // fee in lovelace
+  fee = fee.toString().split(" ")[0]
   console.log(fee)
 
+  // rebuild transaction
+  execSync(
+    `cardano-cli conway transaction build-raw \
+        --tx-in ${txid}#0 \
+        --tx-out ${addr}+3000000 \
+        --tx-out ${addr}+${10000000000 - 3000000 - fee} \
+        --fee ${fee} \
+        --out-file tx.raw`)
+
+  // sign transaction
+  execSync(
+    `cardano-cli conway transaction sign \
+        --tx-body-file tx.raw \
+        --signing-key-file key.skey \
+        --out-file tx.signed`)
+
+  // submit TX
+  txSigned = JSON.parse(readFileSync('tx.signed'));
+  console.log(txSigned.cborHex)
+
+  let submitResponse = await requestOgmios("submitTransaction", { transaction : {cbor : txSigned.cborHex}});
+  console.log(submitResponse)
 
 })()
 
@@ -124,7 +153,7 @@ const requestOgmios = async (method, params) => {
       body: JSON.stringify({
         jsonrpc: "2.0",
         method,
-        params : {}})
+        params : params})
     });
     const body = await resp.json();
     return body
