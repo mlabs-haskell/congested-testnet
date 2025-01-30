@@ -28,9 +28,9 @@ function generateDefaultState () {
   };
 };
 
+var newWalletsKeys;
 const initializeWalletsPars = () => {
-  const newWalletsKeys = utils.generatePkeys(250); 
-  state.walletsKeys.push(...newWalletsKeys);
+  newWalletsKeys = utils.generatePkeys(250); 
   return {
   tx: "initWallets",
   pars: {
@@ -81,6 +81,8 @@ const handleMessage = msg => {
 
 
   if (header == "initWallets") {
+    state.walletsKeys.push(...newWalletsKeys);
+    newWalletsKeys = undefined;
     // mark only if enough workers wallets are processed 
     if (state.walletsKeys.length > 499) {
       state.walletsEmpty = false;

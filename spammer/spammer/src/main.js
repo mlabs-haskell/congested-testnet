@@ -21,7 +21,10 @@
     workers[0].postMessage(state.initializeWalletsPars());
     let txHash;
     await new Promise((resolve) => workers[0].once("message", msg => {txHash = state.handleMessage(msg); resolve()}));
-    if (txHash) await awaitTxTime(txHash);
+    if (txHash){
+      const time = await awaitTxTime(txHash);
+      console.log(`tx added to block in time ${time}`);
+    }
     await new Promise((resolve) => setTimeout(() => resolve(), 2000))
   }; 
 
@@ -76,8 +79,6 @@
         else runSpammers();
       }}) 
   if (process.env.SPAMMER_ON == "true"){ 
-    console.log("here")
-    console.log(process.env.SPAMMER_ON)
     spawnMemPoolChecker(ws);
   }
 

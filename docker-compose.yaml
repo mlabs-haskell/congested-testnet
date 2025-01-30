@@ -1,3 +1,11 @@
+# TODO:  
+  # 1. finish nixos-module
+  # test it with example
+  # 2. add fileshare in nixos-module and docker
+  # 3. add docs:
+  #   docker-compose ---   -run genesis with spammer 
+
+
 services:
 # ghcr.io/mlabs-haskell/cgnet:latest
   genesis_spo_node:

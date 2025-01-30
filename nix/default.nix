@@ -30,5 +30,5 @@
       packages.vm = (self.nixosConfigurations.congested-testnet.extendModules {
         modules = [ (import ./vm.nix) ];
       }).config.system.build.vm;
-   };
+    };
 }
