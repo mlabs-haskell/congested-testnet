@@ -15,6 +15,5 @@
             python ${./generate_scripts.py} > "$dir/Scripts.js"
           '';
         };
-
     };
 }
