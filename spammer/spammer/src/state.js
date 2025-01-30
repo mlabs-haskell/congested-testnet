@@ -77,7 +77,6 @@ const handleMessage = msg => {
 
   if (header == "error") {
     console.log(msg);
-    return;
   }; 
 
 

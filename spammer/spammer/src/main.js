@@ -75,16 +75,21 @@
         if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
         else runSpammers();
       }}) 
-  if (process.env.SPAMMER_ON) 
+  if (process.env.SPAMMER_ON == "true"){ 
+    console.log("here")
+    console.log(process.env.SPAMMER_ON)
     spawnMemPoolChecker(ws);
+  }
 
-  if (process.env.FAUCET_ON)
+  if (process.env.FAUCET_ON == "true"){
     spawnFaucet(workers, state);
+  }
 })()
 
 
 
 const spawnMemPoolChecker = async ws => {
+  console.log("start mempool checker and spammer")
   setInterval(() =>  
     [
       { method: "acquireMempool" },

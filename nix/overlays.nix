@@ -8,7 +8,7 @@
     {
       cardano-node = self.packages.${final.system}.cardano-node;
       gen-testnet-conf = self.packages.${final.system}.gen-testnet-conf;
-      ogmios = self.packages.${final.system}.ogmios;
+      # ogmios = self.packages.${final.system}.ogmios;
       spammer = self.packages.${final.system}.spammer;
       generate-additional-utxo-for-ctl = self.packages.${final.system}.generate-additional-utxo-for-ctl;
     };

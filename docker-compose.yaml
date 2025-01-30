@@ -76,7 +76,6 @@ services:
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
-      - share_config:/share
     networks:
       my:
         aliases:
@@ -84,47 +83,42 @@ services:
     restart: always
 
   # container contains spammer and faucet
-  spammer:
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
-    image: congested-testnet:latest
-    command: ["sh", "-c", "sleep 8 && spammer"]
-    environment:
-      - WALLET_SKEY_PATH=/data/wallet.skey
-      - SPAMMER_STATE_FILE=/data/state.json
-      - CARDANO_NODE_METRICS_URL=genesis.local:12789
-      - SPAMMER_METRIC_PORT=8001
-      - FAUCET_PORT=8000
-      - N_WORKERS=2
-      - OGMIOS_URL=ogmios.local
-      - KUPO_URL=kupo.local
-      - MEMPOOL_PAUSE_LIMIT=80000
-      # off if you don't need spammer or faucet
-      - SPAMMER_ON=true
-      - FAUCET_ON=true
-
-    ports:
-      # await tx time metric
-      - "8001:8001"  
-      # faucet port 
-      - "8000:8000"  
-    volumes:
-      - ./scripts:/scripts
-      - testnet_data:/data
-    networks:
-      my:
-        aliases:
-        - spammer.local
-    depends_on:
-      - genesis_spo_node
-      - ogmios 
-      - kupo
-      - prometheus
-    restart: always
+  # spammer:
+  #   # image: ghcr.io/mlabs-haskell/cgnet:latest
+  #   image: congested-testnet:latest
+  #   command: ["sh", "-c", "sleep 8 && spammer"]
+  #   environment:
+  #     - WALLET_SKEY_PATH=/data/wallet.skey
+  #     - SPAMMER_STATE_FILE=/data/state.json
+  #     - CARDANO_NODE_METRICS_URL=genesis.local:12789
+  #     - SPAMMER_METRIC_PORT=8001
+  #     - FAUCET_PORT=8000
+  #     - N_WORKERS=2
+  #     - OGMIOS_URL=ogmios.local
+  #     - KUPO_URL=kupo.local
+  #     - MEMPOOL_PAUSE_LIMIT=80000
+  #     # off if you don't need spammer or faucet
+  #     - SPAMMER_ON=true
+  #     - FAUCET_ON=true
+  #
+  #   ports:
+  #     # await tx time metric
+  #     - "8001:8001"  
+  #     # faucet port 
+  #     - "8000:8000"  
+  #   volumes:
+  #     - ./scripts:/scripts
+  #     - testnet_data:/data
+  #   networks:
+  #     my:
+  #       aliases:
+  #       - spammer.local
+  #   restart: always
 
 
   prometheus:
-    image: ghcr.io/mlabs-haskell/cgnet:latest
-    # image: congested-testnet:latest
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_prometheus.sh"]
     environment:
       - DATA=/data
@@ -197,6 +191,11 @@ services:
 
 volumes:
   testnet_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./testnet_data
   share_config:
   relay_node_data:
 

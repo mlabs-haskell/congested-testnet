@@ -40,7 +40,9 @@
           export OGMIOS_URL=0.0.0.0
           export KUPO_URL=0.0.0.0
           export MEMPOOL_PAUSE_LIMIT=80000
-          export SPAMMER_STATE_FILE="/home/maxim/work/projects/congested-testnet/spammer/spammer/state.json"
+          export SPAMMER_STATE_FILE="/home/maxim/work/projects/congested-testnet/state.json"
+          export SPAMMER_ON=true
+          export FAUCET_ON=true
         '';
       };
 

@@ -7,11 +7,11 @@
   // generate keys 
   const vkey = "key.vkey";
   const skey = "key.skey";
-  if (!existsSync("key.skey"))
-    execSync(`cardano-cli conway address key-gen \\
-      --verification-key-file ${vkey} \\
-      --signing-key-file ${skey}`
-    );
+  // if (!existsSync("key.skey"))
+  execSync(`cardano-cli conway address key-gen \\
+    --verification-key-file ${vkey} \\
+    --signing-key-file ${skey}`
+  );
   // derive pubKeyHashHex
   result = execSync(
       `cardano-cli conway address key-hash \\
@@ -19,14 +19,11 @@
   );
   let pubKeyHashHex = result.toString().replace(/\n/g, ''); 
 
-  /*
   let txHash = await get1000tada(pubKeyHashHex,'http://0.0.0.0:8000');
   let time  = await awaitTxTime(txHash);
-  /*
   console.log(`${txHash} added to block after ${time} seconds`)
-  writeFileSync("txHash", txHash);
-  let txHash = readFileSync("txHash").toString(); 
-  */
+  // writeFileSync("txHash", txHash);
+  // let txHash = readFileSync("txHash").toString(); 
 
   // derive address
   const addr = execSync(
