@@ -1,28 +1,16 @@
 services:
-
-  # generate testnet config
-  genesis_testnet_config:
-    image: congested-testnet:latest
-    # image: ghcr.io/sadmaxim/cgnet:latest
-    command: ["sh", "-c", "/scripts/gen_testnet_conf.sh"]
-    environment:
-      - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
-      - CONFIGURATION_YAML=/scripts/configuration.yaml
-      - ROOT=/data
-      - SHARE=/share
-    volumes:
-      - testnet_data:/data
-      - share_config:/share
-      - ./scripts:/scripts
-
-  # run genesis spo node
+# ghcr.io/mlabs-haskell/cgnet:latest
   genesis_spo_node:
     image: congested-testnet:latest
-    command: ["sh", "-c", "/scripts/run_genesis_spo.sh"]
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/gen_testnet_conf.sh && /scripts/run_genesis_spo.sh"]
     environment:
+      - ROOT=/data
+      - SHARE=/share
       - TOPOLOGY_GENESIS_SPO_JSON=/scripts/topology_genesis_spo.json
       - PORT=3000
-      - ROOT=/data
+      - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
+      - CONFIGURATION_YAML=/scripts/configuration.yaml
     ports:
       - "3000:3000"  
       - "12789:12789"  
@@ -36,27 +24,26 @@ services:
       my:
         aliases:
           - genesis.local
-    depends_on:
-      - genesis_testnet_config
 
 
-  # generate addtional utxo for genesis main wallet  
-  # additional-utxo:
-  wallet:
+  post_run_genesis_node:
     image: congested-testnet:latest
-    command: ["sh", "-c", "/scripts/pay_to_wallet.sh"]
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/post_run_genesis_node.sh"]
     environment:
       - ROOT=/data
-      - CARDANO_NODE_SOCKET_PATH=/data
+      - SHARE=/share
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
+      - share_config:/share
     restart : "on-failure"
     depends_on:
       - genesis_spo_node
 
 
   ogmios:
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
     image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_ogmios.sh"]
     environment:
@@ -67,8 +54,8 @@ services:
       - "1337"  
     volumes:
       - ./scripts:/scripts
-      # - testnet_data:/data
-      - relay_node_data:/data
+      - testnet_data:/data
+      # - relay_node_data:/data
     networks:
       my:
         aliases:
@@ -77,6 +64,7 @@ services:
 
 
   kupo:
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
     image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_kupo.sh"]
     environment:
@@ -87,25 +75,61 @@ services:
       - "1442"  
     volumes:
       - ./scripts:/scripts
-      # - testnet_data:/data
-      - relay_node_data:/data
+      - testnet_data:/data
+      - share_config:/share
     networks:
       my:
         aliases:
         - kupo.local
     restart: always
 
+  # container contains spammer and faucet
+  spammer:
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    image: congested-testnet:latest
+    command: ["sh", "-c", "sleep 8 && spammer"]
+    environment:
+      - WALLET_SKEY_PATH=/data/wallet.skey
+      - SPAMMER_STATE_FILE=/data/state.json
+      - CARDANO_NODE_METRICS_URL=genesis.local:12789
+      - SPAMMER_METRIC_PORT=8001
+      - FAUCET_PORT=8000
+      - N_WORKERS=2
+      - OGMIOS_URL=ogmios.local
+      - KUPO_URL=kupo.local
+      - MEMPOOL_PAUSE_LIMIT=80000
+      # off if you don't need spammer or faucet
+      - SPAMMER_ON=true
+      - FAUCET_ON=true
+
+    ports:
+      # await tx time metric
+      - "8001:8001"  
+      # faucet port 
+      - "8000:8000"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    networks:
+      my:
+        aliases:
+        - spammer.local
+    depends_on:
+      - genesis_spo_node
+      - ogmios 
+      - kupo
+      - prometheus
+    restart: always
 
 
   prometheus:
-    image: congested-testnet:latest
-    # image: bitnami/prometheus:2.53.0
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    # image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/run_prometheus.sh"]
     environment:
       - DATA=/data
-      - CARDANO_NODE_METRICS_URL=relay_node:12789
-      # - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
-      - SPAMMER_METRICS_URL=spammer:8001
+      - CARDANO_NODE_METRICS_URL=genesis.local:12789
+      - SPAMMER_METRICS_URL=spammer.local:8001
     ports:
       - "9090:9090"  
     volumes:
@@ -120,64 +144,31 @@ services:
     restart: always
 
 
-  # spammer:
+
+
+  # relay_node:
   #   image: congested-testnet:latest
-  #   command: ["sh", "-c", "sleep 2 && spammer"]
+  #   command: ["sh", "-c", "/scripts/run_relay_node.sh"]
   #   environment:
-  #     - WALLET_SKEY_PATH=/data/wallet.skey
-  #     - CARDANO_NODE_METRICS_URL=staking.local:12789
-  #     - SPAMMER_METRIC_PORT=8001
-  #     - FAUCET_PORT=8000
-  #     - N_WORKERS=2
-  #     - OGMIOS_URL=ogmios.local
-  #     - KUPO_URL=kupo.local
-  #     - MEMPOOL_PAUSE_LIMIT=80000
-  #     - MEMPOOL_UNPAUSE_LIMIT=60000
-  #     - SPAMMER_STATE_FILE=/data/state.json
-  #   ports:
-  #     - "8001:8001"  
-  #     - "8000:8000"  
+  #     - PORT=3000
+  #     - ACCESS_URL=genesis_spo_node
+  #     - DATA=/data
+  #     - CONFIG=/config
+  #   expose:
+  #     - "3000"
+  #     - "12789"
   #   volumes:
+  #     - relay_node_data:/data
+  #     - share_config:/config
   #     - ./scripts:/scripts
-  #     - testnet_data:/data
-  #     # - relay_node_data:/data
+  #   depends_on:
+  #     - genesis_spo_node
+  #     - wallet
   #   networks:
   #     my:
   #       aliases:
-  #       - spammer.local
-  #   depends_on:
-  #     - genesis_spo_node
-  #     - relay_node
-  #     - wallet
-  #     - ogmios 
-  #     - kupo
-  #     - prometheus
-  #   restart: always
-
-
-  relay_node:
-    image: congested-testnet:latest
-    command: ["sh", "-c", "/scripts/run_relay_node.sh"]
-    environment:
-      - PORT=3000
-      - ACCESS_URL=genesis_spo_node
-      - DATA=/data
-      - CONFIG=/config
-    expose:
-      - "3000"
-      - "12789"
-    volumes:
-      - relay_node_data:/data
-      - share_config:/config
-      - ./scripts:/scripts
-    depends_on:
-      - genesis_spo_node
-      - wallet
-    networks:
-      my:
-        aliases:
-          - staking.local
-    restart : "on-failure"
+  #         - staking.local
+  #   restart : "on-failure"
 
 
   # share_config_copy:
@@ -206,18 +197,9 @@ services:
 
 volumes:
   testnet_data:
-    # driver: local
-    # driver_opts:
-    #   type: none
-    #   o: bind
-    #   device: ./testnet_data
   share_config:
   relay_node_data:
 
-# volumes:
-#   testnet_data:
-#   share_config:
-#   relay_node_data:
 
 networks:
   my:

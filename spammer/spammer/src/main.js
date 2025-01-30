@@ -28,7 +28,7 @@
 
   // message handler  
   let flagMeasureTxTimeInProcess = false;
-  let txTimeSeconds;
+  let txTimeSeconds = 0.0;
   workers.map(w => w.on("message", msg => {
     const txHash = state.handleMessage(msg);
     // measure tx time for metrics 
@@ -75,10 +75,11 @@
         if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT) stopSpammers();
         else runSpammers();
       }}) 
+  if (process.env.SPAMMER_ON) 
+    spawnMemPoolChecker(ws);
 
-  // spawnMemPoolChecker(ws);
-
-  spawnFaucet(workers, state);
+  if (process.env.FAUCET_ON)
+    spawnFaucet(workers, state);
 })()
 
 

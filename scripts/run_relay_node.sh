@@ -14,7 +14,7 @@ cat <<EOF > topology.json
   {
   "accessPoints": [
    {
-    "address":"genesis.local",
+    "address":"$ADDRESS",
     "port":3000
    }
   ],

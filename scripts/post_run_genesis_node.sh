@@ -1,8 +1,39 @@
 #!/bin/sh
 
-# post cardano node script, here we
-# add aditional utxo
+# 1. config config files to SHARE 
+# 2. add aditional utxo for ctl spammer (simple pay transaction with cardano-cli) 
 
+
+# 1 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# extract protocol params
+#
+
+while true; do
+    cardano-cli conway query protocol-parameters \
+        --socket-path "$ROOT/node.socket" \
+        --testnet-magic 42 > "$SHARE/protocol.json"
+    if [ $? -eq 0 ]; then
+        echo "share testnet parameters"
+        break
+    else
+        echo "Command failed. Retrying in 5 seconds..."
+        sleep 2
+    fi
+done
+
+cp $CONFIGURATION_YAML $ROOT/configuration.yaml
+mkdir -p "$SHARE/byron-gen-command"
+cp "$ROOT/shelley-genesis.json" "$SHARE"
+cp "$ROOT/byron-gen-command/genesis.json" "$SHARE/byron-gen-command/genesis.json"
+cp "$ROOT/conway-genesis.json" "$SHARE"
+cp "$ROOT/alonzo-genesis.json" "$SHARE"
+cp "$ROOT/configuration.yaml" "$SHARE"
+
+
+
+
+# 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 PKEYHEX=$(jq '.cborHex' < "$ROOT/utxo-keys/utxo1/utxo.skey")
 
 echo "{\"type\":\"PaymentSigningKeyShelley_ed25519\",\"description\":\"Payment_Signing_Key\",\"cborHex\":$PKEYHEX}" > "$ROOT/wallet.skey"
@@ -14,7 +45,6 @@ cardano-cli conway address build \
   --out-file "$ROOT/wallet.addr" \
   --testnet-magic 42 
 
-echo "build address"
 
 
 cardano-cli conway query utxo \
@@ -52,3 +82,8 @@ cardano-cli conway transaction submit \
       --socket-path "$ROOT/node.socket" \
       --tx-file "$ROOT/tx.signed" \
       --testnet-magic 42
+
+
+
+cd $SHARE 
+ls -a
