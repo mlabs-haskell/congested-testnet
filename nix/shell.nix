@@ -12,15 +12,8 @@
       devShells.default = pkgs.mkShell {
         buildInputs = with pkgs; [
           nixpkgs-fmt
-          # inputs'.aiken.packages.aiken
           nixos-rebuild
-          # pkgs.nix-diff
-          # pkgs.dia
-          # pkgs.kazam
-          # pkgs.audacity
-          # pkgs.shotcut
           pkgs.rust-analyzer
-          # pkgs.fileshare
           cardano-node
           pyright
           nodePackages.svelte-language-server
@@ -30,7 +23,7 @@
           ogmios
           kupo
           spammer
-          python311Packages.fire
+          prometheus
         ]
         ++
         self'.devShells.ctl.buildInputs

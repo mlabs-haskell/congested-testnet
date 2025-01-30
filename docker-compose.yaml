@@ -40,7 +40,8 @@ services:
       - genesis_testnet_config
 
 
-  # generate addtional utxo for main wallet  
+  # generate addtional utxo for genesis main wallet  
+  # additional-utxo:
   wallet:
     image: congested-testnet:latest
     command: ["sh", "-c", "/scripts/pay_to_wallet.sh"]
@@ -67,7 +68,7 @@ services:
     volumes:
       - ./scripts:/scripts
       # - testnet_data:/data
-      - staking_node_data:/data
+      - relay_node_data:/data
     networks:
       my:
         aliases:
@@ -87,7 +88,7 @@ services:
     volumes:
       - ./scripts:/scripts
       # - testnet_data:/data
-      - staking_node_data:/data
+      - relay_node_data:/data
     networks:
       my:
         aliases:
@@ -98,10 +99,11 @@ services:
 
   prometheus:
     image: congested-testnet:latest
+    # image: bitnami/prometheus:2.53.0
     command: ["sh", "-c", "/scripts/run_prometheus.sh"]
     environment:
       - DATA=/data
-      - CARDANO_NODE_METRICS_URL=staking_node:12789
+      - CARDANO_NODE_METRICS_URL=relay_node:12789
       # - CARDANO_NODE_METRICS_URL=genesis_spo_node:12789
       - SPAMMER_METRICS_URL=spammer:8001
     ports:
@@ -138,14 +140,14 @@ services:
   #   volumes:
   #     - ./scripts:/scripts
   #     - testnet_data:/data
-  #     # - staking_node_data:/data
+  #     # - relay_node_data:/data
   #   networks:
   #     my:
   #       aliases:
   #       - spammer.local
   #   depends_on:
   #     - genesis_spo_node
-  #     - staking_node
+  #     - relay_node
   #     - wallet
   #     - ogmios 
   #     - kupo
@@ -153,22 +155,19 @@ services:
   #   restart: always
 
 
-  staking_node:
+  relay_node:
     image: congested-testnet:latest
-    command: ["sh", "-c", "/scripts/run_stacking_node.sh"]
+    command: ["sh", "-c", "/scripts/run_relay_node.sh"]
     environment:
       - PORT=3000
       - ACCESS_URL=genesis_spo_node
       - DATA=/data
       - CONFIG=/config
-    # ports:
-    #   - "3000:3000"  
-      # - "12789:12789"  
     expose:
       - "3000"
       - "12789"
     volumes:
-      - staking_node_data:/data
+      - relay_node_data:/data
       - share_config:/config
       - ./scripts:/scripts
     depends_on:
@@ -181,28 +180,44 @@ services:
     restart : "on-failure"
 
 
+  # share_config_copy:
+  #   image: ghcr.io/intersectmbo/cardano-node:10.1.4
+  #   command: ["sh", "-c", "/scripts/copy_share_config.sh"]
+  #   environment:
+  #     - CONFIGURATION_YAML=/scripts/configuration.yaml
+  #     - SHARE=/share
+  #     - ROOT=/data
+  #   volumes:
+  #     - share_config:/share
+  #     - testnet_data:/data
+  #     - ./scripts:/scripts
+  #   restart : "on-failure"
+  #
+  #
   # share_config:
   #   image: python:3.9-slim
-  #   command: ["python", "-m", "http.server", "5000", "--directory", "/config"]
+  #   command: ["python", "-m", "http.server", "5000", "--directory", "/share"]
   #   volumes:
-  #     - share_config:/config
+  #     - share_config:/share
   #   ports:
- #     - "5000:5000"  
+  #    - "5000:5000"  
+  #   restart : "always"
+
 
 volumes:
   testnet_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./testnet_data
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: ./testnet_data
   share_config:
-  staking_node_data:
+  relay_node_data:
 
 # volumes:
 #   testnet_data:
 #   share_config:
-#   staking_node_data:
+#   relay_node_data:
 
 networks:
   my:

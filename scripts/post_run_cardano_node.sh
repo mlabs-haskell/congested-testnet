@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# export ROOT
-# export CARDANO_NODE_SOCKET_PATH
+# post cardano node script, here we
+# add aditional utxo
 
 PKEYHEX=$(jq '.cborHex' < "$ROOT/utxo-keys/utxo1/utxo.skey")
 
@@ -18,7 +18,7 @@ echo "build address"
 
 
 cardano-cli conway query utxo \
-      --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
+      --socket-path "$ROOT/node.socket" \
       --testnet-magic 42 \
       --address "$(cat "$ROOT/wallet.addr")" \
       --out-file "$ROOT/utxos.json"
@@ -31,7 +31,7 @@ SEND_AMT=3000000
 TXOUT="$(cat "$ROOT/wallet.addr")+$SEND_AMT"
 
 cardano-cli conway transaction build \
-      --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
+      --socket-path "$ROOT/node.socket" \
       --testnet-magic 42 \
       --change-address "$(cat "$ROOT/wallet.addr")" \
       --tx-in "$TXIN" \
@@ -49,6 +49,6 @@ cardano-cli conway transaction sign \
 
 
 cardano-cli conway transaction submit \
-      --socket-path "$CARDANO_NODE_SOCKET_PATH/node.socket" \
+      --socket-path "$ROOT/node.socket" \
       --tx-file "$ROOT/tx.signed" \
       --testnet-magic 42
