@@ -1,13 +1,12 @@
 // main function 
 (async () => {
   const {execSync} = await import("child_process");
-  const {readFileSync, existsSync} = await import("fs");
+  const {readFileSync} = await import("fs");
   let result;
 
   // generate keys 
   const vkey = "key.vkey";
   const skey = "key.skey";
-  // if (!existsSync("key.skey"))
   execSync(`cardano-cli conway address key-gen \\
     --verification-key-file ${vkey} \\
     --signing-key-file ${skey}`
@@ -39,16 +38,7 @@
   const txid = utxos[0].transaction_id;
   console.log(txid);
 
-  // node parameters
-  // let pars = await requestOgmios("queryLedgerState/protocolParameters") 
-  // pars = pars.result
-  // pars.txFeePerByte = pars.minFeeCoefficient;
-  // pars.txFeeFixed = pars.minFeeConstant.ada.lovelace;
-  // pars.maxBlockBodySize = pars.minFeeConstant.ada.lovelace;
-  // writeFileSync("protocol.json", JSON.stringify(pars));
-  // console.log(JSON.parse(readFileSync("protocol.json")))
 
-  // console.log(pars);
   let fee = 100000
 
   execSync(

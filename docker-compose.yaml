@@ -1,10 +1,3 @@
-# TODO:  
-  # 1. finish nixos-module
-  # test it with example
-  # 2. add fileshare in nixos-module and docker
-  # 3. add docs:
-  #   docker-compose ---   -run genesis with spammer 
-
 
 services:
 # ghcr.io/mlabs-haskell/cgnet:latest
@@ -28,6 +21,8 @@ services:
     volumes:
       - testnet_data:/data
       - ./scripts:/scripts
+    profiles:
+      - create_network 
     networks:
       my:
         aliases:
@@ -46,6 +41,8 @@ services:
       - testnet_data:/data
       - share_config:/share
     restart : "on-failure"
+    profiles:
+      - create_network 
     depends_on:
       - genesis_spo_node
 
@@ -64,6 +61,8 @@ services:
       - ./scripts:/scripts
       - testnet_data:/data
       # - relay_node_data:/data
+    profiles:
+      - create_network 
     networks:
       my:
         aliases:
@@ -84,6 +83,8 @@ services:
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
+    profiles:
+      - create_network 
     networks:
       my:
         aliases:
@@ -91,37 +92,39 @@ services:
     restart: always
 
   # container contains spammer and faucet
-  # spammer:
-  #   # image: ghcr.io/mlabs-haskell/cgnet:latest
-  #   image: congested-testnet:latest
-  #   command: ["sh", "-c", "sleep 8 && spammer"]
-  #   environment:
-  #     - WALLET_SKEY_PATH=/data/wallet.skey
-  #     - SPAMMER_STATE_FILE=/data/state.json
-  #     - CARDANO_NODE_METRICS_URL=genesis.local:12789
-  #     - SPAMMER_METRIC_PORT=8001
-  #     - FAUCET_PORT=8000
-  #     - N_WORKERS=2
-  #     - OGMIOS_URL=ogmios.local
-  #     - KUPO_URL=kupo.local
-  #     - MEMPOOL_PAUSE_LIMIT=80000
-  #     # off if you don't need spammer or faucet
-  #     - SPAMMER_ON=true
-  #     - FAUCET_ON=true
-  #
-  #   ports:
-  #     # await tx time metric
-  #     - "8001:8001"  
-  #     # faucet port 
-  #     - "8000:8000"  
-  #   volumes:
-  #     - ./scripts:/scripts
-  #     - testnet_data:/data
-  #   networks:
-  #     my:
-  #       aliases:
-  #       - spammer.local
-  #   restart: always
+  spammer:
+    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    image: congested-testnet:latest
+    command: ["sh", "-c", "sleep 8 && spammer"]
+    environment:
+      - WALLET_SKEY_PATH=/data/wallet.skey
+      - SPAMMER_STATE_FILE=/data/state.json
+      - CARDANO_NODE_METRICS_URL=genesis.local:12789
+      - SPAMMER_METRIC_PORT=8001
+      - FAUCET_PORT=8000
+      - N_WORKERS=2
+      - OGMIOS_URL=ogmios.local
+      - KUPO_URL=kupo.local
+      - MEMPOOL_PAUSE_LIMIT=80000
+      # off if you don't need spammer or faucet
+      - SPAMMER_ON=true
+      - FAUCET_ON=true
+
+    ports:
+      # await tx time metric
+      - "8001:8001"  
+      # faucet port 
+      - "8000:8000"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    profiles:
+      - create_network 
+    networks:
+      my:
+        aliases:
+        - spammer.local
+    restart: always
 
 
   prometheus:
@@ -139,6 +142,8 @@ services:
       - testnet_data:/data
     depends_on:
       - genesis_spo_node
+    profiles:
+      - create_network 
     networks:
       my:
         aliases:
@@ -146,66 +151,49 @@ services:
     restart: always
 
 
+  share_config:
+    image: python:3.9-slim
+    command: ["python", "-m", "http.server", "5000", "--directory", "/share"]
+    profiles:
+      - create_network 
+    volumes:
+      - share_config:/share
+    ports:
+     - "5000:5000"  
+    restart : "always"
 
 
-  # relay_node:
-  #   image: congested-testnet:latest
-  #   command: ["sh", "-c", "/scripts/run_relay_node.sh"]
-  #   environment:
-  #     - PORT=3000
-  #     - ACCESS_URL=genesis_spo_node
-  #     - DATA=/data
-  #     - CONFIG=/config
-  #   expose:
-  #     - "3000"
-  #     - "12789"
-  #   volumes:
-  #     - relay_node_data:/data
-  #     - share_config:/config
-  #     - ./scripts:/scripts
-  #   depends_on:
-  #     - genesis_spo_node
-  #     - wallet
-  #   networks:
-  #     my:
-  #       aliases:
-  #         - staking.local
-  #   restart : "on-failure"
 
-
-  # share_config_copy:
-  #   image: ghcr.io/intersectmbo/cardano-node:10.1.4
-  #   command: ["sh", "-c", "/scripts/copy_share_config.sh"]
-  #   environment:
-  #     - CONFIGURATION_YAML=/scripts/configuration.yaml
-  #     - SHARE=/share
-  #     - ROOT=/data
-  #   volumes:
-  #     - share_config:/share
-  #     - testnet_data:/data
-  #     - ./scripts:/scripts
-  #   restart : "on-failure"
-  #
-  #
-  # share_config:
-  #   image: python:3.9-slim
-  #   command: ["python", "-m", "http.server", "5000", "--directory", "/share"]
-  #   volumes:
-  #     - share_config:/share
-  #   ports:
-  #    - "5000:5000"  
-  #   restart : "always"
+  relay_node:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_relay_node.sh"]
+    environment:
+      - PORT=3000
+      - ACCESS_URL=${ACCESS_URL}
+      - DATA=/data
+      - CONFIG=/config
+    expose:
+      - "3000"
+      - "12789"
+    volumes:
+      - relay_node_data:/data
+      - share_config:/config
+      - ./scripts:/scripts
+    depends_on:
+      - genesis_spo_node
+      - wallet
+    profiles:
+      - run_custom_node 
+    networks:
+      my:
+        aliases:
+          - staking.local
+    restart : "on-failure"
 
 
 volumes:
   testnet_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./testnet_data
   share_config:
-  relay_node_data:
 
 
 networks:

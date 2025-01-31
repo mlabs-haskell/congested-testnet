@@ -6,6 +6,8 @@ The goal of this project is to operate a cardano testnet under constant congesti
 - [How to use](#how-to-use)
 
 ## how to use
+genesis spo node is runned on server `congested-testnet.staging.mlabs.city` with `faucet`, `kupo`, `ogmios` and testnet config. We can submit custom transactions without running node, which is described in [cardano-cli-nodejs example](./examples/get-ada-submit-tx.js)  
+We can use our
 ### faucet
 To obtain tADA, we need to submit a public key through an HTTP query. This will provide us with 1000 ADA
 ```bash
@@ -56,3 +58,5 @@ nix run .#congested-testnet-cli -- run_ogmios config
 nix run .#congested-testnet-cli -- run_kupo config 
 ```
 
+docker-compose up -d  
+docker run --rm -it congested-testnet:latest bash
