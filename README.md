@@ -4,10 +4,58 @@ The goal of this project is to operate a cardano testnet under constant congesti
 - [Congestion research](./docs/congestion-statistics.md)
 - [Design](./docs/design.md)
 - [How to use](#how-to-use)
+## How to Use
+
+The **Genesis SPO node** with a spammer, which simulates network congestion, is running on the server [`congested-testnet.staging.mlabs.city`](http://congested-testnet.staging.mlabs.city) on the following ports:
+
+- `8000` – Faucet  
+- `1442` – Kupo  
+- `1337` – Ogmios  
+- `5000` – Shared testnet configuration files for running a custom node  
+
+<!-- #### Submitting Custom Transactions -->
+
+You can submit custom transactions **without running a local node**. This process is demonstrated in the [`cardano-cli-nodejs` example](./examples/get-ada-submit-tx.js). Additionally, you will find examples on how to request **Faucet, Ogmios, and Kupo**.  
+
+To follow these examples, ensure you have [Cardano Node `10.1.4`](https://github.com/IntersectMBO/cardano-node/releases/tag/10.1.4) installed. Alternatively, you can run our preconfigured environment with `cardano-node nodejs` using Docker:
+
+```bash
+docker run --rm -it ghcr.io/mlabs-haskell/cgnet:latest /bin/bash
+```  
+Also you can run your own Genesis SPO node with ogmios-kupo-faucet-share_config and simulate congestion using spammer:
+
+```bash
+git clone https://github.com/mlabs-haskell/congested-testnet
+cd congested-testnet
+SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile create_network up -d
+```
+If you only need to run a relay node connected to the Genesis SPO, use the following command:
+```bash
+GENESIS_SPO_ADDRESS=0.0.0.0 docker-compose up --profile relay_node up -d
+```
+
 
 ## how to use
-genesis spo node is runned on server `congested-testnet.staging.mlabs.city` with `faucet`, `kupo`, `ogmios` and testnet config. We can submit custom transactions without running node, which is described in [cardano-cli-nodejs example](./examples/get-ada-submit-tx.js)  
-We can use our
+Genesis spo node with spammer , which simulates congestion  is runned on server `congested-testnet.staging.mlabs.city` on ports `8000:1442:1337:5000` for `faucet`, `kupo`, `ogmios` and `shared testnet config files to run custome node` correspondely. 
+We can submit custom transactions without running node, which is described in [cardano-cli-nodejs example](./examples/get-ada-submit-tx.js). Also you will find examples how to request faucet, ogmios and kupo  For this example you need installed [cardano-node 10.1.4](https://github.com/IntersectMBO/cardano-node/releases/tag/10.1.4), or run our environment with preinstalled `cardano-node nodejs`: 
+```bash
+docker run --rm -it ghcr.io/mlabs-haskell/cgnet:latest /bin/bash
+```
+We can run our own genesis-spo node with `ogmios-kupo-faucet-share_config` and simulate congestion with `spammer`:
+```bash
+git clone https://github.com/mlabs-haskell/congested-testnet
+cd congested-tesnet
+SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile create_network up -d
+```
+Also we can run only relay node with  
+
+run relay-node connected to genesis_spo
+```bash
+GENESIS_SPO_ADDRESS=0.0.0.0 docker-compose up --profile relay_node up -d
+```
+
+
+
 ### faucet
 To obtain tADA, we need to submit a public key through an HTTP query. This will provide us with 1000 ADA
 ```bash

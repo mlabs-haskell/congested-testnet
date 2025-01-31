@@ -212,18 +212,18 @@ in
     };
 
 
-  # systemd.services.share-config =
-  #   {
-  #     description = "share-config";
-  #     wantedBy = [ "multi-user.target" ];
-  #     serviceConfig = {
-  #       ExecStart = ''${pkgs.share-config}/bin/share-config ${root} ${share-config} 5000'';
-  #       Restart = "on-failure";
-  #       RestartSec = 5;
-  #     };
-  #     reloadIfChanged = true;
-  #   };
-  #
+  systemd.services.share-config =
+    {
+      description = "share-config";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = ''${pkgs.python311}/bin/python -m http.server 5000 --directory ${share-config}'';
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
+      reloadIfChanged = true;
+    };
+  
   # systemd.services.spammer-and-faucet =
   #   let
   #     helper = pkgs.writeShellApplication {
@@ -254,8 +254,6 @@ in
   #     };
   #     reloadIfChanged = true;
   #   };
-  #
-
 }
 
 

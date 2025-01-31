@@ -1,4 +1,7 @@
-// main function 
+// In this example we use cardano-cli 10.1.1.0 - linux-x86_64 - ghc-8.10 git rev 1f63dbf2ab39e0b32bf6901dc203866d3e37de08
+// Here it is demonstrated how to get ada with faucet 
+// How to build simple transaction with ogmios and kupo 
+
 (async () => {
   const {execSync} = await import("child_process");
   const {readFileSync} = await import("fs");
@@ -18,11 +21,9 @@
   );
   let pubKeyHashHex = result.toString().replace(/\n/g, ''); 
 
-  let txHash = await get1000tada(pubKeyHashHex,'http://0.0.0.0:8000');
+  let txHash = await get1000tada(pubKeyHashHex,'http://congested-testnet.staging.mlabs.city:8000');
   let time  = await awaitTxTime(txHash);
   console.log(`${txHash} added to block after ${time} seconds`)
-  // writeFileSync("txHash", txHash);
-  // let txHash = readFileSync("txHash").toString(); 
 
   // derive address
   const addr = execSync(
@@ -30,13 +31,13 @@
         --payment-verification-key-file ${vkey} \\
         --testnet-magic 42` 
   ).toString();
-  console.log(addr)
 
   // request utxos with kupo
   const utxos = await requestKupoUtxos(addr);
+  console.log(`utxos:`)
   console.log(utxos)
   const txid = utxos[0].transaction_id;
-  console.log(txid);
+  console.log(`take utxo ${txid} for simple pay transaction`);
 
 
   let fee = 100000
@@ -50,18 +51,19 @@
         --out-file tx.raw`
   )
 
+  // correct fee 
   fee = execSync(
     `cardano-cli conway transaction calculate-min-fee \
       --tx-body-file tx.raw \
       --witness-count 1 \
-      --protocol-params-file ../temp.json`
+      --protocol-params-file protocol.json`
   )
 
   // fee in lovelace
   fee = fee.toString().split(" ")[0]
   console.log(fee)
 
-  // rebuild transaction
+  // rebuild transaction 
   execSync(
     `cardano-cli conway transaction build-raw \
         --tx-in ${txid}#0 \
@@ -79,9 +81,8 @@
 
   // submit TX
   txSigned = JSON.parse(readFileSync('tx.signed'));
-  console.log(txSigned.cborHex)
-
   let submitResponse = await requestOgmios("submitTransaction", { transaction : {cbor : txSigned.cborHex}});
+  console.log(`tx is submitted`)
   console.log(submitResponse)
 
 })()
@@ -105,7 +106,7 @@ const get1000tada = async (pubKeyHashHex, faucetUrl) => {
 const awaitTxTime = async txHash => {
     console.log(`wait until ${txHash} added to block ...`)
     const fetch = await import("node-fetch");
-    const url = `http://0.0.0.0:1442/matches/*@${txHash}`;
+    const url = `http://congested-testnet.staging.mlabs.city:1442/matches/*@${txHash}`;
     const start = Date.now();
     while (true) {
       try { 
@@ -123,15 +124,16 @@ const awaitTxTime = async txHash => {
 const requestKupoUtxos = async addr => {
     console.log(`request utxos with kupo for ${addr}`)
     const fetch = await import("node-fetch");
-    const url = `http://0.0.0.0:1442/matches/${addr}`;
+    const url = `http://congested-testnet.staging.mlabs.city:1442/matches/${addr}`;
     const resp = await fetch.default(url);
     const body = await resp.json();
     return body
 };
 
+// ogmios interface  
 const requestOgmios = async (method, params) => {
   const fetch = await import("node-fetch");
-   const url = `http://0.0.0.0:1337`;
+   const url = `http://congested-testnet.staging.mlabs.city:1337`;
     const resp = await fetch.default(url, {
       method: "POST",
       headers: {
@@ -144,6 +146,5 @@ const requestOgmios = async (method, params) => {
     });
     const body = await resp.json();
     return body
-
 };
 
