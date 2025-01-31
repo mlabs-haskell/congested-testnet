@@ -35,26 +35,6 @@ GENESIS_SPO_ADDRESS=0.0.0.0 docker-compose up --profile relay_node up -d
 ```
 
 
-## how to use
-Genesis spo node with spammer , which simulates congestion  is runned on server `congested-testnet.staging.mlabs.city` on ports `8000:1442:1337:5000` for `faucet`, `kupo`, `ogmios` and `shared testnet config files to run custome node` correspondely. 
-We can submit custom transactions without running node, which is described in [cardano-cli-nodejs example](./examples/get-ada-submit-tx.js). Also you will find examples how to request faucet, ogmios and kupo  For this example you need installed [cardano-node 10.1.4](https://github.com/IntersectMBO/cardano-node/releases/tag/10.1.4), or run our environment with preinstalled `cardano-node nodejs`: 
-```bash
-docker run --rm -it ghcr.io/mlabs-haskell/cgnet:latest /bin/bash
-```
-We can run our own genesis-spo node with `ogmios-kupo-faucet-share_config` and simulate congestion with `spammer`:
-```bash
-git clone https://github.com/mlabs-haskell/congested-testnet
-cd congested-tesnet
-SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile create_network up -d
-```
-Also we can run only relay node with  
-
-run relay-node connected to genesis_spo
-```bash
-GENESIS_SPO_ADDRESS=0.0.0.0 docker-compose up --profile relay_node up -d
-```
-
-
 
 ### faucet
 To obtain tADA, we need to submit a public key through an HTTP query. This will provide us with 1000 ADA
@@ -95,16 +75,3 @@ Run
 ```bash
 nixos-rebuild test --flake .#congested-testnet --target-host root@congested-testnet.staging.mlabs.city
 ```
-### custom node 
-
-create `config` folder with testnet configs
-```bash
-nix run .#congested-testnet-cli -- gen_testnet_conf config
-nix run .#congested-testnet-cli -- run_genesis_spo config 3000 --gen_config
-# nix run .#congested-testnet-cli -- run_staking_node config 3000 --gen_config
-nix run .#congested-testnet-cli -- run_ogmios config 
-nix run .#congested-testnet-cli -- run_kupo config 
-```
-
-docker-compose up -d  
-docker run --rm -it congested-testnet:latest bash
