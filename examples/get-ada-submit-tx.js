@@ -1,6 +1,6 @@
 // In this example we use cardano-cli 10.1.1.0 - linux-x86_64 - ghc-8.10 git rev 1f63dbf2ab39e0b32bf6901dc203866d3e37de08
-// Here it is demonstrated how to get ada with faucet 
-// How to build simple transaction with ogmios and kupo 
+// This demonstrates how to get ADA using the faucet. 
+// How to build a simple transaction using cardano-cli, ogmios and kupo 
 
 (async () => {
   const {execSync} = await import("child_process");
