@@ -224,36 +224,6 @@ in
       reloadIfChanged = true;
     };
   
-  # systemd.services.spammer-and-faucet =
-  #   let
-  #     helper = pkgs.writeShellApplication {
-  #       runtimeInputs = [
-  #         pkgs.spammer
-  #       ];
-  #       name = "spammer";
-  #       text = ''
-  #         ROOT=${root}
-  #         if [ ! -f "$ROOT/faucet_wallet_exist" ]; then
-  #           ${pkgs.generate-additional-utxo-for-ctl}/bin/generate-additional-utxo-for-ctl $ROOT $ROOT $ROOT
-  #         fi
-  #         export ogmiosUrl="0.0.0.0" 
-  #         export kupoUrl="0.0.0.0" 
-  #         export walletPath="$ROOT/wallet.skey"
-  #         spammer
-  #         
-  #       '';
-  #     };
-  #   in
-  #   {
-  #     description = "spammer";
-  #     wantedBy = [ "multi-user.target" ];
-  #     serviceConfig = {
-  #       ExecStart = ''${helper}/bin/spammer'';
-  #       Restart = "on-failure";
-  #       RestartSec = 5;
-  #     };
-  #     reloadIfChanged = true;
-  #   };
 }
 
 

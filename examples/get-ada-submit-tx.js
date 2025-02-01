@@ -3,6 +3,8 @@
 // How to build a simple transaction using cardano-cli, ogmios and kupo 
 
 (async () => {
+  // const url = `http://congested-testnet.staging.mlabs.city`
+  const url = `http://0.0.0.0`
   const {execSync} = await import("child_process");
   const {readFileSync} = await import("fs");
   let result;
@@ -21,8 +23,8 @@
   );
   let pubKeyHashHex = result.toString().replace(/\n/g, ''); 
 
-  let txHash = await get1000tada(pubKeyHashHex,'http://congested-testnet.staging.mlabs.city:8000');
-  let time  = await awaitTxTime(txHash);
+  let txHash = await get1000tada(`${url}:8000`, pubKeyHashHex);
+  let time  = await awaitTxTimeWithKupo(`${url}:1442`, txHash);
   console.log(`${txHash} added to block after ${time} seconds`)
 
   // derive address
@@ -33,7 +35,7 @@
   ).toString();
 
   // request utxos with kupo
-  const utxos = await requestKupoUtxos(addr);
+  const utxos = await requestKupoUtxos(`${url}:1442`, addr);
   console.log(`utxos:`)
   console.log(utxos)
   const txid = utxos[0].transaction_id;
@@ -50,6 +52,9 @@
         --fee ${fee} \
         --out-file tx.raw`
   )
+  // download protocol parameters
+  await downloadFile(`${url}:5000/protocol.json`,`protocol.json`)
+
 
   // correct fee 
   fee = execSync(
@@ -63,7 +68,7 @@
   fee = fee.toString().split(" ")[0]
   console.log(fee)
 
-  // rebuild transaction 
+  // rebuild transaction
   execSync(
     `cardano-cli conway transaction build-raw \
         --tx-in ${txid}#0 \
@@ -81,7 +86,7 @@
 
   // submit TX
   txSigned = JSON.parse(readFileSync('tx.signed'));
-  let submitResponse = await requestOgmios("submitTransaction", { transaction : {cbor : txSigned.cborHex}});
+  let submitResponse = await requestOgmios(`${url}:1337`, "submitTransaction", { transaction : {cbor : txSigned.cborHex}});
   console.log(`tx is submitted`)
   console.log(submitResponse)
 
@@ -89,11 +94,12 @@
 
 
 
-const get1000tada = async (pubKeyHashHex, faucetUrl) => {
+const get1000tada = async (url, pubKeyHashHex) => {
   const fetch = await import('node-fetch');
-  const faucetResponse = await fetch.default(`${faucetUrl}`, {
+  console.log(url);
+  const faucetResponse = await fetch.default(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pubKeyHashHex : pubKeyHashHex})
   });
   const data = await faucetResponse.json();
@@ -103,14 +109,13 @@ const get1000tada = async (pubKeyHashHex, faucetUrl) => {
 
 
 // request awaitTxTime with kupo
-const awaitTxTime = async txHash => {
+const awaitTxTimeWithKupo = async (url, txHash) => {
     console.log(`wait until ${txHash} added to block ...`)
     const fetch = await import("node-fetch");
-    const url = `http://congested-testnet.staging.mlabs.city:1442/matches/*@${txHash}`;
     const start = Date.now();
     while (true) {
       try { 
-        const resp = await fetch.default(url);
+        const resp = await fetch.default(`${url}/matches/*@${txHash}`);
         const body = await resp.json();
         if (body.length > 0) return (Date.now() - start)/1000;
       } catch (err) { 
@@ -121,20 +126,18 @@ const awaitTxTime = async txHash => {
 };
 
 //request utxos with kupo
-const requestKupoUtxos = async addr => {
+const requestKupoUtxos = async (url, addr) => {
     console.log(`request utxos with kupo for ${addr}`)
     const fetch = await import("node-fetch");
-    const url = `http://congested-testnet.staging.mlabs.city:1442/matches/${addr}`;
-    const resp = await fetch.default(url);
+    const resp = await fetch.default(`${url}/matches/${addr}`);
     const body = await resp.json();
     return body
 };
 
 // ogmios interface  
-const requestOgmios = async (method, params) => {
+const requestOgmios = async (url, method, params) => {
   const fetch = await import("node-fetch");
-   const url = `http://congested-testnet.staging.mlabs.city:1337`;
-    const resp = await fetch.default(url, {
+    const resp = await fetch.default(`${url}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -146,5 +149,20 @@ const requestOgmios = async (method, params) => {
     });
     const body = await resp.json();
     return body
+};
+
+
+const downloadFile = async (url, fpath) => {
+  const fs = await import('fs');
+  const fetch = await import ('node-fetch');
+  console.log(`download file from ${url} to ${fpath}`)
+
+  fetch.default(url)
+      .then(res => {
+          const fileStream = fs.createWriteStream(fpath);
+          res.body.pipe(fileStream);
+          res.body.on('end', () => console.log('download completed!'));
+      })
+      .catch(err => console.error('error download file:', err));
 };
 
