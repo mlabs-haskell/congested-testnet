@@ -103,7 +103,7 @@ in
     description = "restart network";
     serviceConfig = {
       ExecStart = ''
-        systemctl restart genesis-spo.service kupo.service ogmios.service spammer.service share-config.service
+        systemctl restart genesis-spo.service kupo.service ogmios.service spammer.service share-config.service post_run_genesis_node
       '';
     };
   };

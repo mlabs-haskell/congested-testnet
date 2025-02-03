@@ -32,15 +32,5 @@
         ];
       };
 
-    packages.congested-testnet-example-image =
-      pkgs.dockerTools.buildLayeredImage {
-        name = "cgnet-example";
-        tag = "latest";
-        contents = with pkgs; [
-          cardano-node
-          bashInteractive
-          pkgs.nodejs
-        ];
-      };
   };
 }

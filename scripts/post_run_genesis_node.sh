@@ -45,6 +45,11 @@ cardano-cli conway address build \
   --out-file "$ROOT/wallet.addr" \
   --testnet-magic 42 
 
+if [ ! -f "$ROOT/wallet.addr" ]; then
+  echo "Error: wallet address file was not created!" 
+  exit 1
+fi
+
 
 
 cardano-cli conway query utxo \
@@ -52,6 +57,10 @@ cardano-cli conway query utxo \
       --testnet-magic 42 \
       --address "$(cat "$ROOT/wallet.addr")" \
       --out-file "$ROOT/utxos.json"
+
+if [ ! -f "$ROOT/utxos.json" ]; then
+  exit 1
+fi
 
 echo "query utxo"
 
@@ -68,6 +77,10 @@ cardano-cli conway transaction build \
       --tx-out "$TXOUT" \
       --out-file "$ROOT/tx.body" 
 
+if [ ! -f "$ROOT/tx.body" ]; then
+  exit 1
+fi
+
 echo "transaction build"
 
 
@@ -77,6 +90,10 @@ cardano-cli conway transaction sign \
       --testnet-magic 42 \
       --out-file "$ROOT/tx.signed"
 
+if [ ! -f "$ROOT/tx.signed" ]; then
+  exit 1
+fi
+
 
 cardano-cli conway transaction submit \
       --socket-path "$ROOT/node.socket" \
@@ -85,5 +102,7 @@ cardano-cli conway transaction submit \
 
 
 
-cd $SHARE 
-ls -a
+if [ ! -f "$ROOT/wallet.addr" ]; then
+  echo "error in post run genesis spo"
+  exit 1
+fi

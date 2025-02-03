@@ -65,4 +65,9 @@ cp "$ROOT/alonzo-genesis.json" "$SHARE"
 cp "$ROOT/configuration.yaml" "$SHARE"
 
 
-touch config.finish
+touch "$ROOT/config.finish"
+
+if [ ! -f "$ROOT/config.finish" ]; then
+  echo "error in gen testnet conf"
+  exit 1
+fi

@@ -17,10 +17,14 @@ The **Genesis SPO node** with a spammer, which simulates network congestion, is 
 
 You can submit custom transactions **without running a local node**. This process is demonstrated in the [`cardano-cli-nodejs` example](./examples/get-ada-submit-tx.js). Additionally, you will find examples on how to request **Faucet, Ogmios, and Kupo**.  
 
-To follow these examples, ensure you have [Cardano Node `10.1.4`](https://github.com/IntersectMBO/cardano-node/releases/tag/10.1.4) installed. Alternatively, you can run our preconfigured environment with `cardano-node nodejs` using Docker:
+To follow these examples, ensure you have `nodejs` and `docker` installed. 
 
 ```bash
-docker run -it --rm -v $(pwd)/examples:/examples ghcr.io/mlabs-haskell/cgnet-example:latest node /examples/get-ada-submit-tx.js
+alias cardano-node="docker run --rm -it -v $(pwd):/workspace docker pull ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
+alias cardano-cli="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-cli"
+npm i node-fetch
+node examples/get-ada-submit-tx.js
+
 ```  
 
 Also you can run your own Genesis SPO node with ogmios-kupo-faucet-share_config and simulate congestion using spammer:
