@@ -38,6 +38,7 @@ If you only need to run a relay node connected to the Genesis SPO, use the follo
 ```bash
 SPO_ADDRESS=http://congested-testnet.staging.mlabs.city docker-compose --profile relay_node up -d
 ```
+All configs are available on `http://congested-testnet.staging.mlabs.city:5000`. So you can run your own node  
 
 
 
