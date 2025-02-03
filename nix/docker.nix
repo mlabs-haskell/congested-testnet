@@ -5,7 +5,7 @@
 
     packages.congested-testnet-image =
       pkgs.dockerTools.buildLayeredImage {
-        name = "congested-testnet";
+        name = "cgnet";
         tag = "latest";
         contents = with pkgs; [
           cardano-node
@@ -17,6 +17,17 @@
           spammer
           prometheus
           # fileshare
+        ];
+      };
+
+    packages.congested-testnet-image-example =
+      pkgs.dockerTools.buildLayeredImage {
+        name = "cgnet-example";
+        tag = "latest";
+        contents = with pkgs; [
+          cardano-node
+          bashInteractive
+          pkgs.nodejs
         ];
       };
   };

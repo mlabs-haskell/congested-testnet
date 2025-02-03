@@ -3,10 +3,11 @@
 // How to build a simple transaction using cardano-cli, ogmios and kupo 
 
 (async () => {
-  // const url = `http://congested-testnet.staging.mlabs.city`
-  const url = `http://0.0.0.0`
+  const url = `http://congested-testnet.staging.mlabs.city`
+  // const url = `http://0.0.0.0`
   const {execSync} = await import("child_process");
   const {readFileSync} = await import("fs");
+
   let result;
 
   // generate keys 
@@ -52,9 +53,9 @@
         --fee ${fee} \
         --out-file tx.raw`
   )
+
   // download protocol parameters
   await downloadFile(`${url}:5000/protocol.json`,`protocol.json`)
-
 
   // correct fee 
   fee = execSync(
@@ -87,8 +88,10 @@
   // submit TX
   txSigned = JSON.parse(readFileSync('tx.signed'));
   let submitResponse = await requestOgmios(`${url}:1337`, "submitTransaction", { transaction : {cbor : txSigned.cborHex}});
-  console.log(`tx is submitted`)
   console.log(submitResponse)
+  console.log(`tx is submitted`)
+  time  = await awaitTxTimeWithKupo(`${url}:1442`, submitResponse.result.transaction.id);
+  console.log(`${txHash} added to block after ${time} seconds`)
 
 })()
 
@@ -157,12 +160,15 @@ const downloadFile = async (url, fpath) => {
   const fetch = await import ('node-fetch');
   console.log(`download file from ${url} to ${fpath}`)
 
-  fetch.default(url)
-      .then(res => {
-          const fileStream = fs.createWriteStream(fpath);
-          res.body.pipe(fileStream);
-          res.body.on('end', () => console.log('download completed!'));
-      })
-      .catch(err => console.error('error download file:', err));
+  return new Promise(resolve => { 
+    fetch.default(url)
+        .then(res => {
+            const fileStream = fs.createWriteStream(fpath);
+            res.body.pipe(fileStream);
+            res.body.on('end', () => console.log(`download to ${fpath} completed!`));
+            resolve()
+        })
+        .catch(err => console.error('error download file:', err));
+  })
 };
 

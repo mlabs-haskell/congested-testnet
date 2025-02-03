@@ -20,8 +20,9 @@ You can submit custom transactions **without running a local node**. This proces
 To follow these examples, ensure you have [Cardano Node `10.1.4`](https://github.com/IntersectMBO/cardano-node/releases/tag/10.1.4) installed. Alternatively, you can run our preconfigured environment with `cardano-node nodejs` using Docker:
 
 ```bash
-docker run --rm -it ghcr.io/mlabs-haskell/cgnet:latest /bin/bash
+docker run -it --rm -v $(pwd)/examples:/examples ghcr.io/mlabs-haskell/cgnet-example:latest node /examples/get-ada-submit-tx.js
 ```  
+
 Also you can run your own Genesis SPO node with ogmios-kupo-faucet-share_config and simulate congestion using spammer:
 
 ```bash
@@ -31,7 +32,7 @@ SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile genesis_spo up -d
 ```
 If you only need to run a relay node connected to the Genesis SPO, use the following command:
 ```bash
-GENESIS_SPO_ADDRESS=0.0.0.0 docker-compose up --profile relay_node up -d
+GENESIS_SPO_ADDRESS=http:// docker-compose up --profile relay_node up -d
 ```
 
 

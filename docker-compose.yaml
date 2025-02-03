@@ -164,31 +164,31 @@ services:
 
 
 
-  # relay_node:
-  #   image: congested-testnet:latest
-  #   command: ["sh", "-c", "/scripts/run_relay_node.sh"]
-  #   environment:
-  #     - PORT=3000
-  #     - ACCESS_URL=${ACCESS_URL}
-  #     - DATA=/data
-  #     - CONFIG=/config
-  #   expose:
-  #     - "3000"
-  #     - "12789"
-  #   volumes:
-  #     - relay_node_data:/data
-  #     - share_config:/config
-  #     - ./scripts:/scripts
-  #   depends_on:
-  #     - genesis_spo_node
-  #     - wallet
-  #   profiles:
-  #     - run_custom_node 
-  #   networks:
-  #     my:
-  #       aliases:
-  #         - staking.local
-  #   restart : "on-failure"
+  relay_node:
+    image: congested-testnet:latest
+    command: ["sh", "-c", "/scripts/run_relay_node.sh"]
+    environment:
+      - PORT=3000
+      - ACCESS_URL=${ACCESS_URL}
+      - DATA=/data
+      - CONFIG=/config
+    expose:
+      - "3000"
+      - "12789"
+    volumes:
+      - relay_node_data:/data
+      - share_config:/config
+      - ./scripts:/scripts
+    depends_on:
+      - genesis_spo_node
+      - wallet
+    profiles:
+      - relay_node 
+    networks:
+      my:
+        aliases:
+          - staking.local
+    restart : "on-failure"
 
 
 volumes:
