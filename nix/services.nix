@@ -49,9 +49,9 @@ in
       helper = pkgs.writeShellApplication {
         name = "post_run_genesis_node";
         runtimeInputs = [
-        pkgs.cardano-node
-        pkgs.bashInteractive
-        pkgs.jq
+          pkgs.cardano-node
+          pkgs.bashInteractive
+          pkgs.jq
         ];
         text = ''
           export ROOT=${root}
@@ -171,7 +171,7 @@ in
       };
       reloadIfChanged = true;
     };
-    
+
   systemd.services.spammer =
     let
       spammer = pkgs.writeShellApplication {
@@ -223,7 +223,7 @@ in
       };
       reloadIfChanged = true;
     };
-  
+
 }
 
 
