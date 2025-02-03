@@ -20,7 +20,7 @@ You can submit custom transactions **without running a local node**. This proces
 To follow these examples, ensure you have `nodejs` and `docker` installed. 
 
 ```bash
-alias cardano-node="docker run --rm -it -v $(pwd):/workspace docker pull ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
+alias cardano-node="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
 alias cardano-cli="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-cli"
 npm i node-fetch
 node examples/get-ada-submit-tx.js
