@@ -7,6 +7,7 @@
   // const url = `http://0.0.0.0`
   const {execSync} = await import("child_process");
   const {readFileSync} = await import("fs");
+  _ = await downloadFile(`${url}:5000/protocol.json`,`protocol.json`)
 
   let result;
 
@@ -99,7 +100,7 @@
 
 const get1000tada = async (url, pubKeyHashHex) => {
   const fetch = await import('node-fetch');
-  console.log(url);
+  console.log(`request tada from ${url}`);
   const faucetResponse = await fetch.default(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
