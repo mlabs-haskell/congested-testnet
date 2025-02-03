@@ -32,7 +32,10 @@ SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile genesis_spo up -d
 ```
 If you only need to run a relay node connected to the Genesis SPO, use the following command:
 ```bash
-GENESIS_SPO_ADDRESS=http:// docker-compose up --profile relay_node up -d
+SPO_ADDRESS=http://congested-testnet.staging.mlabs.city docker-compose --profile relay_node up -d
+SPO_ADDRESS=http://congested-testnet.staging.mlabs.city docker-compose --profile relay_node down -v
+SPO_ADDRESS=http://congested-testnet.staging.mlabs.city docker-compose --profile relay_node logs relay_node 
+docker exec -it relay_node_container sh
 ```
 
 

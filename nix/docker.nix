@@ -20,7 +20,19 @@
         ];
       };
 
-    packages.congested-testnet-image-example =
+    packages.congested-testnet-relay-image =
+      pkgs.dockerTools.buildLayeredImage {
+        name = "cgnet-relay";
+        tag = "latest";
+        contents = with pkgs; [
+          cardano-node
+          wget
+          coreutils
+          bashInteractive
+        ];
+      };
+
+    packages.congested-testnet-example-image =
       pkgs.dockerTools.buildLayeredImage {
         name = "cgnet-example";
         tag = "latest";
