@@ -1,8 +1,6 @@
 
 services:
-# ghcr.io/mlabs-haskell/cgnet:latest
   genesis_spo_node:
-    # image: congested-testnet:latest
     image: ghcr.io/mlabs-haskell/cgnet:latest
     command: ["sh", "-c", "/scripts/gen_testnet_conf.sh && /scripts/run_genesis_spo.sh"]
     environment:
@@ -30,8 +28,7 @@ services:
 
 
   post_run_genesis_node:
-    image: congested-testnet:latest
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    image: ghcr.io/mlabs-haskell/cgnet:latest
     command: ["sh", "-c", "/scripts/post_run_genesis_node.sh"]
     environment:
       - ROOT=/data
@@ -48,8 +45,7 @@ services:
 
 
   ogmios:
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
-    image: congested-testnet:latest
+    image: ghcr.io/mlabs-haskell/cgnet:latest
     command: ["sh", "-c", "/scripts/run_ogmios.sh"]
     environment:
       - ROOT=/data
@@ -60,7 +56,6 @@ services:
     volumes:
       - ./scripts:/scripts
       - testnet_data:/data
-      # - relay_node_data:/data
     profiles:
       - genesis_spo 
     networks:
@@ -71,8 +66,7 @@ services:
 
 
   kupo:
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
-    image: congested-testnet:latest
+    image: ghcr.io/mlabs-haskell/cgnet:latest
     command: ["sh", "-c", "/scripts/run_kupo.sh"]
     environment:
       - ROOT=/data
@@ -93,7 +87,7 @@ services:
 
   # container contains spammer and faucet
   spammer:
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
+    image: ghcr.io/mlabs-haskell/cgnet:latest
     image: congested-testnet:latest
     command: ["sh", "-c", "sleep 8 && spammer"]
     environment:
@@ -128,8 +122,7 @@ services:
 
 
   prometheus:
-    # image: ghcr.io/mlabs-haskell/cgnet:latest
-    image: congested-testnet:latest
+    image: ghcr.io/mlabs-haskell/cgnet:latest
     command: ["sh", "-c", "/scripts/run_prometheus.sh"]
     environment:
       - DATA=/data
@@ -165,7 +158,7 @@ services:
 
 
   relay_node:
-    image: cgnet-relay:latest
+    image: ghcr.io/mlabs-haskell/cgnet-relay:latest
     command: ["sh", "-c", "/scripts/run_relay_node.sh"]
     environment:
       - PORT=3000
