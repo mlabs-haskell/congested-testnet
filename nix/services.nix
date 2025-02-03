@@ -6,10 +6,10 @@ let
 in
 {
 
-  systemd.services.cardano-node =
+  systemd.services.genesis-spo =
     let
       make-config-and-run-spo = pkgs.writeShellApplication {
-        name = "make-config-and-run-spo";
+        name = "genesis-spo";
         runtimeInputs = with pkgs; [
           cardano-node
           jq
@@ -36,7 +36,7 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         ExecStart = ''
-          ${make-config-and-run-spo}/bin/make-config-and-run-spo 
+          ${make-config-and-run-spo}/bin/genesis-spo
         '';
         Restart = "on-failure";
         RestartSec = 5;
@@ -103,7 +103,7 @@ in
     description = "restart network";
     serviceConfig = {
       ExecStart = ''
-        systemctl restart cardano-node.service kupo.service ogmios.service spammer-and-faucet.service share-config.service
+        systemctl restart genesis-spo.service kupo.service ogmios.service spammer.service share-config.service
       '';
     };
   };
@@ -112,7 +112,7 @@ in
     wantedBy = [ "timers.target" ];
     timerConfig = {
       OnBootSec = "1s";
-      OnUnitActiveSec = "2h";
+      OnUnitActiveSec = "8h";
       Unit = "restart-network.service";
     };
   };

@@ -27,7 +27,7 @@ Also you can run your own Genesis SPO node with ogmios-kupo-faucet-share_config 
 ```bash
 git clone https://github.com/mlabs-haskell/congested-testnet
 cd congested-testnet
-SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile create_network up -d
+SPAMMER_ON=true FAUCET_ON=true docker-compose up --profile genesis_spo up -d
 ```
 If you only need to run a relay node connected to the Genesis SPO, use the following command:
 ```bash
