@@ -1,0 +1,185 @@
+
+services:
+  genesis_spo_node:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/gen_testnet_conf.sh && /scripts/run_genesis_spo.sh"]
+    environment:
+      - ROOT=/data
+      - SHARE=/share
+      - TOPOLOGY_GENESIS_SPO_JSON=/scripts/topology_genesis_spo.json
+      - PORT=3000
+      - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
+      - CONFIGURATION_YAML=/scripts/configuration.yaml
+    ports:
+      - "3000:3000"  
+      - "12789:12789"  
+    expose:
+      - "3000"
+      - "12789"
+    volumes:
+      - testnet_data:/data
+      - ./scripts:/scripts
+    profiles:
+      - genesis_spo 
+    networks:
+      my:
+        aliases:
+          - genesis.local
+
+
+  post_run_genesis_node:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/post_run_genesis_node.sh"]
+    environment:
+      - ROOT=/data
+      - SHARE=/share
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+      - share_config:/share
+    restart : "on-failure"
+    profiles:
+      - genesis_spo 
+    depends_on:
+      - genesis_spo_node
+
+
+  ogmios:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/run_ogmios.sh"]
+    environment:
+      - ROOT=/data
+    ports:
+      - "1337:1337"  
+    expose:
+      - "1337"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    profiles:
+      - genesis_spo 
+    networks:
+      my:
+        aliases:
+        - ogmios.local
+    restart: always
+
+
+  kupo:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/run_kupo.sh"]
+    environment:
+      - ROOT=/data
+    ports:
+      - "1442:1442"  
+    expose:
+      - "1442"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    profiles:
+      - genesis_spo 
+    networks:
+      my:
+        aliases:
+        - kupo.local
+    restart: always
+
+  # container contains spammer and faucet
+  spammer:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "sleep 8 && spammer"]
+    environment:
+      - WALLET_SKEY_PATH=/data/wallet.skey
+      - SPAMMER_STATE_FILE=/data/state.json
+      - CARDANO_NODE_METRICS_URL=genesis.local:12789
+      - SPAMMER_METRIC_PORT=8001
+      - FAUCET_PORT=8000
+      - N_WORKERS=2
+      - OGMIOS_URL=ogmios.local
+      - KUPO_URL=kupo.local
+      - MEMPOOL_PAUSE_LIMIT=80000
+      # off if you don't need spammer or faucet
+      - SPAMMER_ON=true
+      - FAUCET_ON=true
+
+    ports:
+      # await tx time metric
+      - "8001:8001"  
+      # faucet port 
+      - "8000:8000"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    profiles:
+      - genesis_spo 
+    networks:
+      my:
+        aliases:
+        - spammer.local
+    restart: always
+
+
+  prometheus:
+    image: ghcr.io/mlabs-haskell/cgnet:latest
+    command: ["sh", "-c", "/scripts/run_prometheus.sh"]
+    environment:
+      - DATA=/data
+      - CARDANO_NODE_METRICS_URL=genesis.local:12789
+      - SPAMMER_METRICS_URL=spammer.local:8001
+    ports:
+      - "9090:9090"  
+    volumes:
+      - ./scripts:/scripts
+      - testnet_data:/data
+    depends_on:
+      - genesis_spo_node
+    profiles:
+      - genesis_spo 
+    networks:
+      my:
+        aliases:
+        - prometheus.local
+    restart: always
+
+
+  share_config:
+    image: python:3.9-slim
+    command: ["python", "-m", "http.server", "5000", "--directory", "/share"]
+    profiles:
+      - genesis_spo 
+    volumes:
+      - share_config:/share
+    ports:
+     - "5000:5000"  
+    restart : "always"
+
+
+
+  relay_node:
+    image: ghcr.io/mlabs-haskell/cgnet-relay:latest
+    command: ["sh", "-c", "/scripts/run_relay_node.sh"]
+    environment:
+      - PORT=3000
+      - SPO_ADDRESS=${SPO_ADDRESS}
+      - DATA=/data
+    expose:
+      - "3000"
+      - "12789"
+    volumes:
+      - relay_node_data:/data
+      - ./scripts:/scripts
+    profiles:
+      - relay_node 
+    # restart : "on-failure"
+
+
+volumes:
+  testnet_data:
+  share_config:
+  relay_node_data:
+
+
+
+networks:
+  my:

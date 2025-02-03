@@ -37,8 +37,7 @@ rec {
     "${faucet-wallet}" = { };
     "${share-config-dir}" = { };
     "${relay-config}" = { };
-  }
-  ;
+  };
 
 
 
@@ -74,7 +73,7 @@ rec {
              sh -c "
             ${pkgs.generate-additional-utxo-for-ctl}/bin/generate-additional-utxo-for-ctl /wallet /socket /config  
             "
-        '';
+          '';
           volumes = [
             "/tmp/wallet:/wallet"
             "${socket-relay}:/socket"

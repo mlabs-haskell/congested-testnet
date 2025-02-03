@@ -1,0 +1,10 @@
+{
+  "localRoots": [
+  ],
+  "publicRoots":[
+  {
+  "accessPoints": [],
+  "advertise": true 
+  }
+  ]
+}

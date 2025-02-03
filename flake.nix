@@ -19,15 +19,7 @@
 
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        ./nix/overlays.nix
-        ./nix/ctl
-        ./nix/shell
-        ./nix/modules
-        ./nix/containers
-        ./nix/cardano
-        # ./nix/research
-        ./nix/tests
+      imports = [./nix
         ./examples/get-tada.nix
       ];
       systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
