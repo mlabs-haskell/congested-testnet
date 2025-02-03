@@ -88,7 +88,6 @@ services:
   # container contains spammer and faucet
   spammer:
     image: ghcr.io/mlabs-haskell/cgnet:latest
-    image: congested-testnet:latest
     command: ["sh", "-c", "sleep 8 && spammer"]
     environment:
       - WALLET_SKEY_PATH=/data/wallet.skey

@@ -6,7 +6,7 @@
         name = "tests";
         runtimeInputs = with pkgs; [ bats ];
         text = ''
-          bats ${../../tests/tests.bats}
+          bats ${../tests/tests.bats}
         '';
       };
     };
