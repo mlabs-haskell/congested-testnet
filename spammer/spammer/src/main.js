@@ -1,6 +1,6 @@
 // MAIN
 // spammers and faucet share same wallets
-// TODO test faucet requests with wrong pubkeyhashhexes
+
 (async () => {
   const path = await import("path");
 
@@ -187,7 +187,12 @@ const handleExit = (workers, state) => {
 };
 
 const spawnFaucet = async (workers, state) => {
+  const path = await import("path");
   const http = await import("http");
+  const { keyHashFromHex } = await import(
+    path.resolve(__dirname, "./utils.js")
+  );
+
   const FAUCET_PORT = process.env.FAUCET_PORT;
   console.log("create faucet server....");
   let i = 0;
@@ -204,6 +209,9 @@ const spawnFaucet = async (workers, state) => {
         try {
           const data = JSON.parse(body);
           const pubKeyHashHex = data.pubKeyHashHex;
+          // trigget exception , if pubKeyHashHex is wrong
+          _ = keyHashFromHex(pubKeyHashHex);
+
           if (pubKeyHashHex) {
             workers[i].postMessage(state.faucetPayPars(pubKeyHashHex));
             i += 1;
@@ -224,7 +232,9 @@ const spawnFaucet = async (workers, state) => {
           }
         } catch (err) {
           res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Invalid JSON" }));
+          res.end(
+            JSON.stringify({ error: "Invalid JSON, or wrong pubKeyHashHex" }),
+          );
         }
       });
     } else {
@@ -237,4 +247,3 @@ const spawnFaucet = async (workers, state) => {
     console.log(`faucet server is running on port ${FAUCET_PORT}`);
   });
 };
-

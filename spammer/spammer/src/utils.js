@@ -1,5 +1,7 @@
 const csl = require("@emurgo/cardano-serialization-lib-nodejs");
 
+const keyHashFromHex = hex => csl.Ed25519KeyHash.from_hex(hex);
+
 const generatePkeys = N => {
   var pkeys = [];
 
@@ -30,4 +32,5 @@ module.exports = {
   generatePkeys,
   saveKeys,
   uploadKeys,
+  keyHashFromHex,
 };
