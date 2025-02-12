@@ -53,9 +53,9 @@ cardano-cli conway genesis create-testnet-data \
 jq --argjson maxSupply "$MAX_SUPPLY" \
    --argjson secParam "$SECURITY_PARAM" \
    --argjson maxBody "$MAX_BLOCK_BODY_SIZE" \
-   --argjson maxBody "$SLOT_LENGTH" \
+   --argjson slotLength "$SLOT_LENGTH" \
   '.maxLovelaceSupply = $maxSupply 
-  | .slotLength = 1 
+  | .slotLength = $slotLength 
   | .securityParam = $secParam 
   | .activeSlotsCoeff = 0.05 
   | .epochLength = 432000 

@@ -35,8 +35,8 @@ It is possible that the cardano-node on your machine outpaces the Spammer, and y
 git clone https://github.com/mlabs-haskell/congested-testnet
 cd congested-testnet
 MEMPOOL_PAUSE_LIMIT=200000 \
-SLOT_LENGTH=2 \
-MAX_BLOCK_BODY_SIZE=20000 \
+SLOT_LENGTH=1 \
+MAX_BLOCK_BODY_SIZE=65000 \
 SPAMMER_ON=true \
 FAUCET_ON=true \
 docker-compose --profile genesis_spo up -d

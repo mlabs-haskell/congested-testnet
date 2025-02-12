@@ -22,6 +22,8 @@ in
           export  PORT=3000
           export  SHARE=${share-config}
           export  ROOT=${root}
+          export  SLOT_LENGTH=2
+          export  MAX_BLOCK_BODY_SIZE=18000
           rm -rf "$ROOT"
           rm -rf "$SHARE"
           mkdir -p "$ROOT"
