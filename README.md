@@ -27,12 +27,19 @@ node examples/get-ada-submit-tx.js
 
 ```  
 
-Also you can run your own Genesis SPO node with ogmios-kupo-faucet-share_config and simulate congestion using spammer:
+You can also run your own Genesis SPO node with Ogmios, Kupo, Faucet, Share Config, and Prometheus Metrics, and simulate congestion using Spammer. It is worth mentioning that we can regulate congestion using the MEMPOOL_PAUSE_LIMIT (max 1_000_000 bytes). This means, the Spammer will run until the mempool reaches the target value.
+
+It is possible that the cardano-node on your machine outpaces the Spammer, and you want to simulate higher congestion. In this case, we can reduce the block size, increase the slotLength, or both.
 
 ```bash
 git clone https://github.com/mlabs-haskell/congested-testnet
 cd congested-testnet
-SPAMMER_ON=true FAUCET_ON=true docker-compose --profile genesis_spo up -d
+MEMPOOL_PAUSE_LIMIT=200000 \
+SLOT_LENGTH=2 \
+MAX_BLOCK_BODY_SIZE=20000 \
+SPAMMER_ON=true \
+FAUCET_ON=true \
+docker-compose --profile genesis_spo up -d
 ```
 If you only need to run a relay node connected to the Genesis SPO, use the following command:
 ```bash

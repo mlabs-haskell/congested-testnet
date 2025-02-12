@@ -4,7 +4,8 @@
 # export CONFIGURATION_YAML
 # export ROOT
 # export SHARE 
-#
+# export MAX_BLOCK_BODY_SIZE 
+# export SLOT_LENGTH 
 
 mkdir -p $ROOT
 
@@ -49,7 +50,26 @@ cardano-cli conway genesis create-testnet-data \
 
 # change some parameters in shelley genesis
 
-jq --argjson maxSupply "$MAX_SUPPLY" --argjson secParam "$SECURITY_PARAM" '.maxLovelaceSupply = $maxSupply | .slotLength = 2 | .securityParam = $secParam | .activeSlotsCoeff = 0.05 | .epochLength = 432000 | .updateQuorum = 2 | .protocolParams.protocolVersion.major = 9 | .protocolParams.minFeeA = 44 | .protocolParams.minFeeB = 155381 | .protocolParams.minUTxOValue = 1000000 | .protocolParams.decentralisationParam = 1 | .protocolParams.rho = 0.003 | .protocolParams.tau = 0.2 | .protocolParams.a0 = 0.3 | .protocolParams.maxBlockBodySize = 17000 | .protocolParams.maxBlockHeaderSize = 1100' "$ROOT/shelley-genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/shelley-genesis.json"
+jq --argjson maxSupply "$MAX_SUPPLY" \
+   --argjson secParam "$SECURITY_PARAM" \
+   --argjson maxBody "$MAX_BLOCK_BODY_SIZE" \
+   --argjson maxBody "$SLOT_LENGTH" \
+  '.maxLovelaceSupply = $maxSupply 
+  | .slotLength = 1 
+  | .securityParam = $secParam 
+  | .activeSlotsCoeff = 0.05 
+  | .epochLength = 432000 
+  | .updateQuorum = 2 
+  | .protocolParams.protocolVersion.major = 9 
+  | .protocolParams.minFeeA = 44 
+  | .protocolParams.minFeeB = 155381 
+  | .protocolParams.minUTxOValue = 1000000 
+  | .protocolParams.decentralisationParam = 1 
+  | .protocolParams.rho = 0.003 
+  | .protocolParams.tau = 0.2 
+  | .protocolParams.a0 = 0.3 
+  | .protocolParams.maxBlockBodySize = $maxBody 
+  | .protocolParams.maxBlockHeaderSize = 1100' "$ROOT/shelley-genesis.json" > "$ROOT/temp.json" && mv "$ROOT/temp.json" "$ROOT/shelley-genesis.json"
 
 
 
