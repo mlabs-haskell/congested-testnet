@@ -10,6 +10,10 @@ services:
       - PORT=3000
       - BYRON_GENESIS_SPEC_JSON=/scripts/byron.genesis.spec.json
       - CONFIGURATION_YAML=/scripts/configuration.yaml
+      # maxBlockBodySize and slotLength influence on cardano-node throughput
+      - MAX_BLOCK_BODY_SIZE=${MAX_BLOCK_BODY_SIZE:-65536} 
+      - SLOT_LENGTH=${SLOT_LENGTH:-1} 
+
     ports:
       - "3000:3000"  
       - "12789:12789"  
@@ -98,10 +102,10 @@ services:
       - N_WORKERS=2
       - OGMIOS_URL=ogmios.local
       - KUPO_URL=kupo.local
-      - MEMPOOL_PAUSE_LIMIT=80000
-      # off if you don't need spammer or faucet
-      - SPAMMER_ON=true
-      - FAUCET_ON=true
+      # mempool pause limit affects congestion 
+      - MEMPOOL_PAUSE_LIMIT=${MEMPOOL_PAUSE_LIMIT:-80000}
+      - SPAMMER_ON=${SPAMMER_ON:-true}
+      - FAUCET_ON=${FAUCET_ON:-true}
 
     ports:
       # await tx time metric
