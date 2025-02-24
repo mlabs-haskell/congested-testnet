@@ -1,38 +1,54 @@
+import fs from 'fs';
+import fetch from 'node-fetch';
+import {execSync} from 'child_process';
+
 // In this example we use cardano-cli 10.1.1.0 - linux-x86_64 - ghc-8.10 git rev 1f63dbf2ab39e0b32bf6901dc203866d3e37de08
 // This demonstrates how to get ADA using the faucet. 
 // How to build a simple transaction using cardano-cli, ogmios and kupo 
 
-(async () => {
+main().catch(console.error);
+
+async function main() {
+  const dataDir = "data";
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir);
+  }
+  
+  const vkeyFile = `${dataDir}/key.vkey`;
+  const skeyFile = `${dataDir}/key.skey`;
+  const faucetTxHashFile = `${dataDir}/faucet-txHash.txt`;
+  const protocolParamsFile = `${dataDir}/protocol.json`;
+  const txRawFile = `${dataDir}/tx.raw`;
+  const txSignedFile = `${dataDir}/tx.signed`;
+
   const url = `http://congested-testnet.staging.mlabs.city`
-  // const url = `http://0.0.0.0`
-  const {execSync} = await import("child_process");
-  const {readFileSync} = await import("fs");
-  _ = await downloadFile(`${url}:5000/protocol.json`,`protocol.json`)
 
-  let result;
+  await downloadFile(`${url}:5000/protocol.json`, protocolParamsFile)
 
-  // generate keys 
-  const vkey = "key.vkey";
-  const skey = "key.skey";
+  // Request funds from the faucet.  if (vkeyExists && skyExists && faucetTxHash) {
   execSync(`cardano-cli conway address key-gen \\
-    --verification-key-file ${vkey} \\
-    --signing-key-file ${skey}`
+    --verification-key-file ${vkeyFile} \\
+    --signing-key-file ${skeyFile}`
   );
-  // derive pubKeyHashHex
-  result = execSync(
-      `cardano-cli conway address key-hash \\
-        --payment-verification-key-file ${vkey}` 
-  );
-  let pubKeyHashHex = result.toString().replace(/\n/g, ''); 
 
-  let txHash = await get1000tada(`${url}:8000`, pubKeyHashHex);
-  let time  = await awaitTxTimeWithKupo(`${url}:1442`, txHash);
-  console.log(`${txHash} added to block after ${time} seconds`)
+  // derive pubKeyHashHex
+  const keyHashResult = execSync(
+      `cardano-cli conway address key-hash \\
+        --payment-verification-key-file ${vkeyFile}` 
+  );
+  const pubKeyHashHex = keyHashResult.toString().replace(/\n/g, ''); 
+
+  const faucetTxHash = await get1000tada(`${url}:8000`, pubKeyHashHex);
+  fs.writeFileSync(faucetTxHashFile, faucetTxHash);
+
+  const faucetTxTime = await awaitTxTimeWithKupo(`${url}:1442`, faucetTxHash);
+  
+  console.log(`$Faucet tx ${faucetTxHash} added to block after ${faucetTxTime} seconds.`);
 
   // derive address
   const addr = execSync(
       `cardano-cli conway address build \\
-        --payment-verification-key-file ${vkey} \\
+        --payment-verification-key-file ${vkeyFile} \\
         --testnet-magic 42` 
   ).toString();
 
@@ -40,30 +56,30 @@
   const utxos = await requestKupoUtxos(`${url}:1442`, addr);
   console.log(`utxos:`)
   console.log(utxos)
-  const txid = utxos[0].transaction_id;
-  console.log(`take utxo ${txid} for simple pay transaction`);
+  const inputTxId = utxos[0].transaction_id;
+  const inputLovelace = utxos[0].value.coins;
+  console.log(`take utxo with txId '${inputTxId}' and ${inputLovelace} lovelace for simple pay transaction`);
 
-
-  let fee = 100000
+  let fee = 100000;
 
   execSync(
     `cardano-cli conway transaction build-raw \
-        --tx-in ${txid}#0 \
+        --tx-in ${inputTxId}#0 \
         --tx-out ${addr}+3000000 \
-        --tx-out ${addr}+${10000000000 - 3000000 - fee} \
+        --tx-out ${addr}+${inputLovelace - 3000000 - fee} \
         --fee ${fee} \
-        --out-file tx.raw`
+        --out-file ${txRawFile}`
   )
 
   // download protocol parameters
-  await downloadFile(`${url}:5000/protocol.json`,`protocol.json`)
+  await downloadFile(`${url}:5000/protocol.json`, protocolParamsFile)
 
   // correct fee 
   fee = execSync(
     `cardano-cli conway transaction calculate-min-fee \
-      --tx-body-file tx.raw \
+      --tx-body-file ${txRawFile} \
       --witness-count 1 \
-      --protocol-params-file protocol.json`
+      --protocol-params-file ${protocolParamsFile}`
   )
 
   // fee in lovelace
@@ -73,35 +89,32 @@
   // rebuild transaction
   execSync(
     `cardano-cli conway transaction build-raw \
-        --tx-in ${txid}#0 \
+        --tx-in ${inputTxId}#0 \
         --tx-out ${addr}+3000000 \
         --tx-out ${addr}+${10000000000 - 3000000 - fee} \
         --fee ${fee} \
-        --out-file tx.raw`)
+        --out-file ${txRawFile}`)
 
   // sign transaction
   execSync(
     `cardano-cli conway transaction sign \
-        --tx-body-file tx.raw \
-        --signing-key-file key.skey \
-        --out-file tx.signed`)
+        --tx-body-file ${txRawFile} \
+        --signing-key-file ${skeyFile} \
+        --out-file ${txSignedFile}`)
 
   // submit TX
-  txSigned = JSON.parse(readFileSync('tx.signed'));
-  let submitResponse = await requestOgmios(`${url}:1337`, "submitTransaction", { transaction : {cbor : txSigned.cborHex}});
+  const txSigned = JSON.parse(fs.readFileSync(txSignedFile));
+  const submitResponse = await requestOgmios(`${url}:1337`, "submitTransaction", { transaction : {cbor : txSigned.cborHex}});
   console.log(submitResponse)
   console.log(`tx is submitted`)
-  time  = await awaitTxTimeWithKupo(`${url}:1442`, submitResponse.result.transaction.id);
-  console.log(`${txHash} added to block after ${time} seconds`)
+  const txTime  = await awaitTxTimeWithKupo(`${url}:1442`, submitResponse.result.transaction.id);
+  console.log(`${submitResponse.result.transaction.id} added to block after ${txTime} seconds`)
 
-})()
+};
 
-
-
-const get1000tada = async (url, pubKeyHashHex) => {
-  const fetch = await import('node-fetch');
+async function get1000tada(url, pubKeyHashHex) {
   console.log(`request tada from ${url}`);
-  const faucetResponse = await fetch.default(url, {
+  const faucetResponse = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pubKeyHashHex : pubKeyHashHex})
@@ -113,13 +126,12 @@ const get1000tada = async (url, pubKeyHashHex) => {
 
 
 // request awaitTxTime with kupo
-const awaitTxTimeWithKupo = async (url, txHash) => {
+async function awaitTxTimeWithKupo(url, txHash) {
     console.log(`wait until ${txHash} added to block ...`)
-    const fetch = await import("node-fetch");
     const start = Date.now();
     while (true) {
       try { 
-        const resp = await fetch.default(`${url}/matches/*@${txHash}`);
+        const resp = await fetch(`${url}/matches/*@${txHash}`);
         const body = await resp.json();
         if (body.length > 0) return (Date.now() - start)/1000;
       } catch (err) { 
@@ -130,18 +142,16 @@ const awaitTxTimeWithKupo = async (url, txHash) => {
 };
 
 //request utxos with kupo
-const requestKupoUtxos = async (url, addr) => {
+async function requestKupoUtxos(url, addr) {
     console.log(`request utxos with kupo for ${addr}`)
-    const fetch = await import("node-fetch");
-    const resp = await fetch.default(`${url}/matches/${addr}`);
+    const resp = await fetch(`${url}/matches/${addr}`);
     const body = await resp.json();
     return body
 };
 
 // ogmios interface  
-const requestOgmios = async (url, method, params) => {
-  const fetch = await import("node-fetch");
-    const resp = await fetch.default(`${url}`, {
+async function requestOgmios(url, method, params) {
+    const resp = await fetch(`${url}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -156,13 +166,11 @@ const requestOgmios = async (url, method, params) => {
 };
 
 
-const downloadFile = async (url, fpath) => {
-  const fs = await import('fs');
-  const fetch = await import ('node-fetch');
+function downloadFile(url, fpath) {
   console.log(`download file from ${url} to ${fpath}`)
 
   return new Promise(resolve => { 
-    fetch.default(url)
+    fetch(url)
         .then(res => {
             const fileStream = fs.createWriteStream(fpath);
             res.body.pipe(fileStream);
