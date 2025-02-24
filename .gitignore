@@ -3,6 +3,9 @@ cluster/socket
 examples/purescript-example/.spago
 examples/purescript-example/output
 examples/purescript-example/node_modules
+examples/js-example/data
 secrets
 .ipynb_checkpoints
 *.pkl
+
+node_modules/
