@@ -12,16 +12,16 @@
 </p>
 
 ##### In our Cardano testnet, some nodes will be integrated with the following APIs:
- - Faucet API. This api will be connected with few testnet nodes annd will be used to send 1000 tADA to a specified address.      
+ - Faucet. This api will be connected with few testnet nodes annd will be used to send 1000 tADA to a specified address.      
      ```bash
     curl -X POST ".../faucet" \
          -H "Content-Type: application/json" \
          -d '{"address": $USER_ADDRESS}'
      ```
- - User. The user can interact with the testnet using ogmios/kupo to submit transactions and access the faucet to receive test ADA 
- - [Prometheus](https://prometheus.io/).This database stores logs from each node in the testnet, allowing us to estimate the current mempool usage percentage for each node and calculate the average mempool usage across the entire testnet. 
+ - [Prometheus](https://prometheus.io/).This database stores logs from nodes in the testnet. Additionally, the spammer continuously measures the transaction time until it is added to a block `awaitTxTime` . 
  - Spammer.   
-    - Spammer continually submits random transactions in round robin manner to each node on the testnet in order to simulate congestion as in [historical peak](./congestion-statistics.md) 
+    - Uses N wallets, switching between them in a round-robin manner after each transaction. 
+    - Transactions can be simple or involve locking/unlocking funds to the alwaysTrueScript with different parameters to simulate congestion, similar to the [historical peak](./congestion-statistics.md) 
     - The size of the transaction and its CPU/memory usage will be regulated by alwaysTrue validators performing varying computational tasks.
     - Transaction parameters such as transaction size, cpu/mem usage will be sampled from [congestion distribution](./congestion-statistics.md) 
     - It will be built on top of [Cardano transaction library(CTL)](https://github.com/Plutonomicon/cardano-transaction-lib) which connects with testnet nodes via [ogmios](https://github.com/CardanoSolutions/ogmios) and [kupo](https://github.com/CardanoSolutions/kupo). 
