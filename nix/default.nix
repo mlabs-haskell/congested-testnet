@@ -8,8 +8,6 @@
     ./generate-scripts.nix
     ./ogmios-kupo.nix
     ./research.nix
-    # ./nixos-module.nix
-    # ./services.nix
     ./shell.nix
     ./tests.nix
   ];

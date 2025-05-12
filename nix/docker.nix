@@ -16,7 +16,6 @@
           kupo
           spammer
           prometheus
-          # fileshare
         ];
       };
 
