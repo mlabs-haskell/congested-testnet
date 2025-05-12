@@ -21,6 +21,8 @@ To run the congested testnet, you'll need:
 
 You can run your own congested testnet locally by running a spo node with Ogmios, Kupo, Faucet, and simulate congestion using the Spammer component. The congestion level can be regulated using the `MEMPOOL_PAUSE_LIMIT` (max 1,000,000 bytes), which means the Spammer will run until the mempool reaches the target value.
 
+> **Note:** After starting the genesis SPO node, you'll need to wait approximately 10 seconds for all services to initialize properly before they become available. This includes time for the node to start, for Ogmios and Kupo to connect to the node, and for the spammer to begin generating transactions.
+
 If the cardano-node on your machine outpaces the Spammer and you want to simulate higher congestion, you can reduce the block size, increase the slotLength, or both.
 
 ```bash
