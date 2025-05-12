@@ -21,7 +21,7 @@ async function main() {
   const txRawFile = `${dataDir}/tx.raw`;
   const txSignedFile = `${dataDir}/tx.signed`;
 
-  const url = `http://congested-testnet.staging.mlabs.city`
+  const url = `http://localhost`
 
   await downloadFile(`${url}:5000/protocol.json`, protocolParamsFile)
 
