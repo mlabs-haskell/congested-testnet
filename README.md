@@ -19,7 +19,7 @@ To run the congested testnet, you'll need:
 
 ## Running the Congested Testnet
 
-You can run your own congested testnet locally by running a spo node with Ogmios, Kupo, Faucet, and simulate congestion using the Spammer component. The congestion level can be regulated using the `MEMPOOL_PAUSE_LIMIT` (max 1,000,000 bytes), which means the Spammer will run until the mempool reaches the target value.
+You can run your own congested testnet locally by running an spo node with Ogmios, Kupo, Faucet, and simulate congestion using the Spammer component. The congestion level can be regulated using the `MEMPOOL_PAUSE_LIMIT` (max 1,000,000 bytes), which means the Spammer will run until the mempool reaches the target value.
 
 > **Note:** After starting the genesis SPO node, you'll need to wait approximately 10 seconds for all services to initialize properly before they become available. This includes time for the node to start, for Ogmios and Kupo to connect to the node, and for the spammer to begin generating transactions.
 
@@ -33,6 +33,7 @@ SLOT_LENGTH=1 \
 MAX_BLOCK_BODY_SIZE=65000 \
 SPAMMER_ON=true \
 FAUCET_ON=true \
+SPO_ADDRESS=localhost \
 docker-compose --profile genesis_spo up -d
 ```
 
