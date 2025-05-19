@@ -113,12 +113,13 @@ async function main() {
 };
 
 async function get1000tada(url, pubKeyHashHex) {
-  console.log(`request tada from ${url}`);
+  console.log(`request tada from ${url} for ${pubKeyHashHex}`);
   const faucetResponse = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({pubKeyHashHex : pubKeyHashHex})
   });
+  console.log(`faucet response: ${faucetResponse.status} ${faucetResponse.statusText}`);
   const data = await faucetResponse.json();
   console.log(data);
   return data.message.txHash;
@@ -167,17 +168,36 @@ async function requestOgmios(url, method, params) {
 
 
 function downloadFile(url, fpath) {
-  console.log(`download file from ${url} to ${fpath}`)
+  console.log(`download file from ${url} to ${fpath}`);
 
-  return new Promise(resolve => { 
+  return new Promise((resolve, reject) => {
     fetch(url)
-        .then(res => {
-            const fileStream = fs.createWriteStream(fpath);
-            res.body.pipe(fileStream);
-            res.body.on('end', () => console.log(`download to ${fpath} completed!`));
-            resolve()
-        })
-        .catch(err => console.error('error download file:', err));
-  })
-};
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const fileStream = fs.createWriteStream(fpath);
+        
+        fileStream.on('error', error => {
+          reject(error);
+        });
+
+        res.body.on('error', error => {
+          fileStream.destroy();
+          reject(error);
+        });
+
+        fileStream.on('finish', () => {
+          fileStream.close();
+          console.log(`download to ${fpath} completed!`);
+          resolve();
+        });
+
+        res.body.pipe(fileStream);
+      })
+      .catch(error => {
+        reject(error);
+      });
+  });
+}
 
