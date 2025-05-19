@@ -74,6 +74,8 @@ To submit a transaction on your local testnet, you can use [ogmios](https://gith
 To run the JS example (you may need to modify it to point to your local services):
 
 ```bash
+alias cardano-node="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
+alias cardano-cli="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-cli"
 cd examples/js-example
 npm install
 node .
