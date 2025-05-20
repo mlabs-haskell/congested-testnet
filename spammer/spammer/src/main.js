@@ -1,10 +1,12 @@
 // MAIN
 // spammers and faucet share same wallets
 
-(async () => {
+main().catch(console.error);
+
+async function main() {
   const path = await import("path");
 
-  //sate
+  //state
   let state = await import(path.resolve(__dirname, "./state.js"));
   state = state.default;
 
@@ -19,48 +21,40 @@
   // initialise worker wallets
   while (state.walletsEmpty()) {
     workers[0].postMessage(state.initializeWalletsPars());
-    let txHash;
-    await new Promise(resolve =>
-      workers[0].once("message", msg => {
-        txHash = state.handleMessage(msg);
-        resolve();
-      }),
-    );
+    let txHash = await receiveWorkerMessage(workers[0], state);
     if (txHash) {
       const time = await awaitTxTime(txHash);
       console.log(`tx added to block in time ${time}`);
     }
-    await new Promise(resolve => setTimeout(() => resolve(), 2000));
+    await sleep(2000);
   }
 
   // message handler
   let flagMeasureTxTimeInProcess = false;
   let txTimeSeconds = 0.0;
-  workers.map(w =>
-    w.on("message", msg => {
+  workers.forEach(worker => {
+    worker.on("message", async (msg) => {
       const txHash = state.handleMessage(msg);
       // measure tx time for metrics
-      if (!flagMeasureTxTimeInProcess)
-        (async () => {
-          flagMeasureTxTimeInProcess = true;
-          txTimeSeconds = await awaitTxTime(txHash);
-          flagMeasureTxTimeInProcess = false;
-        })();
-    }),
-  );
+      if (!flagMeasureTxTimeInProcess) {
+        flagMeasureTxTimeInProcess = true;
+        txTimeSeconds = await awaitTxTime(txHash);
+        flagMeasureTxTimeInProcess = false;
+      }
+    });
+  });
 
   // display tx time prometheus metric
   spawnMeasureTxTimePrometheusMetric(() => txTimeSeconds);
 
-  // spammer contoller
+  // spammer controller
   var spammerLoops;
 
   const runSpammers = () => {
     if (!spammerLoops) {
-      // spammerLoops = workers.map(runSpammer(state));
       spammerLoops = workers.map(worker =>
         setInterval(() => {
-          msg = state.txPars();
+          const msg = state.txPars();
           worker.postMessage(msg);
         }, 500),
       );
@@ -71,7 +65,7 @@
   const stopSpammers = () => {
     if (spammerLoops) {
       console.log("PAUSE");
-      spammerLoops.map(clearInterval);
+      spammerLoops.forEach(clearInterval);
       spammerLoops = undefined;
     }
   };
@@ -79,15 +73,17 @@
   const { WebSocket } = await import("ws");
   const ws = new WebSocket(`ws://${process.env.OGMIOS_URL}:1337`);
 
-  // handle mempool info
-  ws.on("message", message => {
-    let msg = JSON.parse(message);
+  // handle mempool info . 
+  // If mempool size is too big, stop spammers, or resume if mempool size is too small
+  ws.on("message", (message) => {
+    const msg = JSON.parse(message);
     if (msg.method == "sizeOfMempool") {
       if (msg.result.currentSize.bytes > process.env.MEMPOOL_PAUSE_LIMIT)
         stopSpammers();
       else runSpammers();
     }
   });
+  
   if (process.env.SPAMMER_ON == "true") {
     spawnMemPoolChecker(ws);
   }
@@ -95,27 +91,43 @@
   if (process.env.FAUCET_ON == "true") {
     spawnFaucet(workers, state);
   }
-})();
+}
+
+// Helper function to receive a message from a worker
+async function receiveWorkerMessage(worker, state) {
+  return new Promise(resolve => {
+    worker.once("message", msg => {
+      const txHash = state.handleMessage(msg);
+      resolve(txHash);
+    });
+  });
+}
+
+// Helper function for sleep/delay
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const spawnMemPoolChecker = async ws => {
   console.log("start mempool checker and spammer");
-  setInterval(
-    () =>
-      [
-        { method: "acquireMempool" },
-        { method: "sizeOfMempool" },
-        { method: "releaseMempool" },
-      ].forEach(request => {
-        ws.send(
-          JSON.stringify({
-            jsonrpc: "2.0",
-            method: request.method,
-            params: {},
-          }),
-        );
-      }),
-    3000,
-  );
+  
+  function sendMempoolRequest(request) {
+    ws.send(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        method: request.method,
+        params: {},
+      })
+    );
+  }
+  
+  setInterval(() => {
+    [
+      { method: "acquireMempool" },
+      { method: "sizeOfMempool" },
+      { method: "releaseMempool" },
+    ].forEach(sendMempoolRequest);
+  }, 3000);
 };
 
 // request awaitTxTime with kupo
@@ -124,6 +136,7 @@ const awaitTxTime = async txHash => {
   const fetch = await import("node-fetch");
   const url = `http://${process.env.KUPO_URL}:1442/matches/*@${txHash}`;
   const start = Date.now();
+  
   while (true) {
     try {
       const resp = await fetch.default(url);
@@ -132,7 +145,7 @@ const awaitTxTime = async txHash => {
     } catch (err) {
       throw Error("kupo requests error");
     }
-    await new Promise(resolve => setTimeout(() => resolve(), 4000));
+    await sleep(4000);
   }
 };
 
@@ -140,7 +153,7 @@ const spawnMeasureTxTimePrometheusMetric = async timeInSecondsCallback => {
   const { createServer } = await import("http");
 
   // Define the Prometheus exporter server
-  const promExporter = createServer((req, res) => {
+  function handleMetricsRequest(req, res) {
     if (req.url === "/metrics") {
       const metrics = `# TYPE await_time_tx gauge\nawait_time_tx ${timeInSecondsCallback()}\n`;
       res.writeHead(200, { "Content-Type": "text/plain" });
@@ -149,40 +162,48 @@ const spawnMeasureTxTimePrometheusMetric = async timeInSecondsCallback => {
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("Not Found");
     }
-  });
+  }
+  
+  const promExporter = createServer(handleMetricsRequest);
 
   // Start listening on the specified port
   const port = process.env.SPAMMER_METRIC_PORT;
-  promExporter.listen(port, () => {
+  
+  function onServerStart() {
     console.log(
-      `Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`,
+      `Prometheus custom spammer metrics available at 0.0.0.0:${port}/metrics`
     );
-  });
+  }
+  
+  promExporter.listen(port, onServerStart);
 };
 
 const handleExit = (workers, state) => {
   // handle exit
-  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach(signal =>
-    process.on(signal, () => {
-      console.log("exit");
-      state.saveState();
-      workers.map(w => w.terminate());
-      process.exit();
-    }),
-  );
+  function exitHandler() {
+    console.log("exit");
+    state.saveState();
+    workers.forEach(w => w.terminate());
+    process.exit();
+  }
+  
+  function errorHandler(message, error) {
+    console.error(message, error);
+    state.saveState();
+    workers.forEach(w => w.terminate());
+    process.exit(1);
+  }
+  
+  ["SIGINT", "SIGTERM", "SIGQUIT"].forEach(signal => {
+    process.on(signal, exitHandler);
+  });
 
   process.on("uncaughtException", error => {
-    console.error("Uncaught exception:", error);
-    state.saveState();
-    workers.map(w => w.terminate());
-    process.exit(1);
+    errorHandler("Uncaught exception:", error);
   });
 
   process.on("unhandledRejection", reason => {
-    console.error("Unhandled promise rejection:", reason);
-    state.saveState();
-    workers.map(w => w.terminate());
-    process.exit(1);
+    errorHandler("Unhandled promise rejection:", reason);
   });
 };
 
@@ -196,54 +217,69 @@ const spawnFaucet = async (workers, state) => {
   const FAUCET_PORT = process.env.FAUCET_PORT;
   console.log("create faucet server....");
   let i = 0;
-  const server = http.createServer((req, res) => {
+  
+  async function processRequest(body, res) {
+    try {
+      const data = JSON.parse(body);
+      const pubKeyHashHex = data.pubKeyHashHex;
+      // trigger exception if pubKeyHashHex is wrong
+      _ = keyHashFromHex(pubKeyHashHex);
+
+      if (pubKeyHashHex) {
+        workers[i].postMessage(state.faucetPayPars(pubKeyHashHex));
+        i += 1;
+        if (i == workers.length) i = 0;
+
+        for (let i = 1; i <= 100; i++) {
+          const txHash = state.faucetTxHash(pubKeyHashHex);
+          if (txHash) {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            const message = {
+              txHash: txHash,
+              msg: `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`,
+            };
+            res.end(JSON.stringify({ message }));
+            return;
+          }
+          await sleep(100);
+        }
+      }
+    } catch (err) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({ error: "Invalid JSON, or wrong pubKeyHashHex" }),
+      );
+    }
+  }
+  
+  function handleRequest(req, res) {
     if (
       req.method === "POST" &&
       req.headers["content-type"] === "application/json"
     ) {
       let body = "";
-      req.on("data", chunk => {
+      
+      function collectData(chunk) {
         body += chunk;
-      });
-      req.on("end", async () => {
-        try {
-          const data = JSON.parse(body);
-          const pubKeyHashHex = data.pubKeyHashHex;
-          // trigget exception , if pubKeyHashHex is wrong
-          _ = keyHashFromHex(pubKeyHashHex);
-
-          if (pubKeyHashHex) {
-            workers[i].postMessage(state.faucetPayPars(pubKeyHashHex));
-            i += 1;
-            if (i == workers.length) i = 0;
-
-            for (let i = 1; i <= 100; i++) {
-              const txHash = state.faucetTxHash(pubKeyHashHex);
-              if (txHash) {
-                res.writeHead(200, { "Content-Type": "application/json" });
-                const message = {
-                  txHash: txHash,
-                  msg: `${pubKeyHashHex} has paid with 1k tADA. Due to congestion, you neeed to wait until the transaction is added to block`,
-                };
-                res.end(JSON.stringify({ message }));
-              }
-              await new Promise(resolve => setTimeout(() => resolve(), 100));
-            }
-          }
-        } catch (err) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(
-            JSON.stringify({ error: "Invalid JSON, or wrong pubKeyHashHex" }),
-          );
-        }
-      });
+      }
+      
+      function processData() {
+        processRequest(body, res);
+      }
+      
+      req.on("data", collectData);
+      req.on("end", processData);
     } else {
       res.writeHead(404, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Not Found" }));
     }
-  });
+  }
+  
+  const server = http.createServer(handleRequest);
 
-  server.listen(FAUCET_PORT, () => {
+  function onServerStart() {
     console.log(`faucet server is running on port ${FAUCET_PORT}`);
-  });
+  }
+  
+  server.listen(FAUCET_PORT, onServerStart);
 };

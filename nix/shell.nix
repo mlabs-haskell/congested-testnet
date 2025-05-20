@@ -32,7 +32,7 @@
         ;
         shellHook = ''
           export SSHOPTS="-p 2222"
-          export WALLET_SKEY_PATH="/home/maxim/work/projects/congested-testnet/testnet_data/wallet.skey"
+          export WALLET_SKEY_PATH=""
           export CARDANO_NODE_METRICS_URL="0.0.0.0:12789"
           export SPAMMER_METRIC_PORT=8001
           export FAUCET_PORT=8000
@@ -40,7 +40,7 @@
           export OGMIOS_URL=0.0.0.0
           export KUPO_URL=0.0.0.0
           export MEMPOOL_PAUSE_LIMIT=80000
-          export SPAMMER_STATE_FILE="/home/maxim/work/projects/congested-testnet/state.json"
+          export SPAMMER_STATE_FILE=""
           export SPAMMER_ON=true
           export FAUCET_ON=true
         '';
