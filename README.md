@@ -74,8 +74,6 @@ To submit a transaction on your local testnet, you can use [ogmios](https://gith
 To run the JS example (you may need to modify it to point to your local services):
 
 ```bash
-alias cardano-node="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
-alias cardano-cli="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-cli"
 cd examples/js-example
 npm install
 node .
@@ -99,11 +97,4 @@ curl http://localhost:1442/matches/*@<transactionHash>
 
 You can run bats tests using `nix run .#tests`. Additionally, you can monitor your local Cardano testnet statistics with Prometheus at `http://localhost:9090`. The `await_time_tx` metric in Prometheus measures verification time for simple transactions.
 
-### Docker Helper Commands
 
-For convenience, you can set up aliases for cardano-node and cardano-cli:
-
-```bash
-alias cardano-node="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-node"
-alias cardano-cli="docker run --rm -it -v $(pwd):/workspace ghcr.io/intersectmbo/cardano-node:10.4.1 /bin/cardano-cli"
-```
